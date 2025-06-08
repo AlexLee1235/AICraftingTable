@@ -1,0 +1,1 @@
+aicraft,com.watermelon0117.aicraft,AICraftingTable

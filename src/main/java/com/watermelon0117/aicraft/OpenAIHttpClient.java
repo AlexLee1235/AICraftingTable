@@ -1,0 +1,113 @@
+package com.watermelon0117.aicraft;
+
+import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
+public class OpenAIHttpClient {
+
+    private static final URI CHAT_URI =
+            URI.create("https://api.openai.com/v1/chat/completions");
+
+    private final String apiKey;
+    private final HttpClient http;
+    private final Gson gson;
+    public final String model;
+    public final double temperature;
+    public final int maxTokens;
+    public final String systemMessage;
+
+    public OpenAIHttpClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage) {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalArgumentException("API key must not be null/blank");
+        }
+        this.apiKey = apiKey;
+        this.model = model;
+        this.temperature=temperature;
+        this.maxTokens=maxTokens;
+        this.systemMessage=systemMessage;
+
+        this.http = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+
+        this.gson = new GsonBuilder()
+                // map Java camelCase ↔︎ JSON snake_case automatically
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create();
+    }
+
+    public String chat(String message) throws IOException, InterruptedException {
+        ArrayList<Message> list=new ArrayList<>();
+        list.add(new OpenAIHttpClient.Message("system", systemMessage));
+        list.add(new OpenAIHttpClient.Message("user", message));
+        return chat(list);
+    }
+    private String chat(List<Message> messages) throws IOException, InterruptedException {
+        ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages);
+        String bodyJson = gson.toJson(requestBody);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(CHAT_URI)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.ofString(bodyJson))
+                .build();
+
+        HttpResponse<String> resp =
+                http.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (resp.statusCode() != 200) {
+            throw new RuntimeException("OpenAI error " + resp.statusCode() + ": " + resp.body());
+        }
+
+        ChatResponse chat = gson.fromJson(resp.body(), ChatResponse.class);
+        return chat.choices.get(0).message.content;
+    }
+
+    /* ----------  Request / Response POJOs ---------- */
+
+    public static final class Message {
+        public final String role;     // "system" | "user" | "assistant"
+        public final String content;
+
+        public Message(String role, String content) {
+            this.role = role;
+            this.content = content;
+        }
+    }
+
+    private static final class ChatRequest {
+        final String model;
+        final double temperature;
+        @SerializedName("max_tokens") final int maxTokens;
+        final List<Message> messages;
+
+        ChatRequest(String model, double temperature, int maxTokens, List<Message> messages) {
+            this.model = model;
+            this.temperature = temperature;
+            this.maxTokens = maxTokens;
+            this.messages = messages;
+        }
+    }
+
+    private static final class ChatResponse {
+        List<Choice> choices;
+
+        static final class Choice {
+            ChatMessage message;
+        }
+        static final class ChatMessage {
+            String role;
+            String content;
+        }
+    }
+}
