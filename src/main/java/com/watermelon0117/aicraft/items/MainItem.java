@@ -40,7 +40,7 @@ public class MainItem extends Item {
             } catch (IOException | InterruptedException e) {
                 player.sendSystemMessage(Component.literal(e.getMessage()));
             }*/
-            imgClient.generateAsync(
+            /*imgClient.generateAsync(
                             "A cyber-punk street scene in Taipei at night, neon reflections",
                             "1024x1024")
                     .thenAccept(bytes -> {
@@ -51,7 +51,8 @@ public class MainItem extends Item {
                             throw new RuntimeException(e);
                         }
                     })
-                    .exceptionally(ex -> { ex.printStackTrace(); return null; });
+                    .exceptionally(ex -> { ex.printStackTrace(); return null; });*/
+
         }
         return InteractionResultHolder.consume(player.getUseItem());
     }

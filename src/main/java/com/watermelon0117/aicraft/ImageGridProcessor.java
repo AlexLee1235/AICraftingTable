@@ -17,7 +17,7 @@ public class ImageGridProcessor {
     private static final int WHITE_RGB = Color.WHITE.getRGB();
     private static final int BLACK_RGB = Color.BLACK.getRGB();
 
-    public static void main(String[] args) {
+    public static void process() {
         try {
             // 1. Read Image
             BufferedImage image = readImage("4.png");
