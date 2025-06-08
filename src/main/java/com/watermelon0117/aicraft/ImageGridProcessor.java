@@ -16,23 +16,24 @@ import java.util.stream.IntStream;
 public class ImageGridProcessor {
     private static final int WHITE_RGB = Color.WHITE.getRGB();
     private static final int BLACK_RGB = Color.BLACK.getRGB();
+    private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(1,100,200);
 
     public static void process() {
         try {
             // 1. Read Image
-            BufferedImage image = readImage("4.png");
+            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\9.png");
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
 
             // 2. Edge Detection (Placeholder)
             BufferedImage edges = edgeDetectionPlaceholder(image);
-            saveImage(edges, "edges.png");
+            saveImage(edges, "C:\\achieve\\AICraftingTable\\gpt\\edges.png");
 
             // 3. Extract Lines using Morphological Operations
             BufferedImage verticalLines = extractVerticalLines(edges);
-            saveImage(verticalLines, "vertical_lines.png");
+            saveImage(verticalLines, "C:\\achieve\\AICraftingTable\\gpt\\vertical_lines.png");
 
             BufferedImage horizontalLines = extractHorizontalLines(edges);
-            saveImage(horizontalLines, "horizontal_lines.png");
+            saveImage(horizontalLines, "C:\\achieve\\AICraftingTable\\gpt\\horizontal_lines.png");
 
             // 4. Create Histograms
             int[] xHistogram = histogramNonZero(verticalLines, 'x');
@@ -72,12 +73,12 @@ public class ImageGridProcessor {
 
             // 8. Draw Grid and Save
             BufferedImage gridImage = drawGridLines(image, xLines, yLines);
-            saveImage(gridImage, "grid_image.png");
+            saveImage(gridImage, "C:\\achieve\\AICraftingTable\\gpt\\grid_image.png");
 
             // 9. Average Colors in Grid
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
             System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
-            saveImage(gridColors, "grid_colors.png");
+            saveImage(gridColors, "C:\\achieve\\AICraftingTable\\gpt\\grid_colors.png");
 
         } catch (IOException e) {
             System.err.println("An error occurred: " + e.getMessage());
@@ -119,25 +120,7 @@ public class ImageGridProcessor {
      * Placeholder for Canny edge detection. Converts to grayscale and applies a threshold.
      */
     public static BufferedImage edgeDetectionPlaceholder(BufferedImage image) {
-        BufferedImage grayImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g = grayImage.createGraphics();
-        g.drawImage(image, 0, 0, null);
-        g.dispose();
-
-        BufferedImage edges = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
-        int threshold = 128; // Simple brightness threshold
-        for (int y = 0; y < grayImage.getHeight(); y++) {
-            for (int x = 0; x < grayImage.getWidth(); x++) {
-                // Get the grayscale value (same for R, G, and B in a grayscale image)
-                int gray = new Color(grayImage.getRGB(x, y)).getRed();
-                if (gray < threshold) {
-                    edges.setRGB(x, y, WHITE_RGB);
-                } else {
-                    edges.setRGB(x, y, BLACK_RGB);
-                }
-            }
-        }
-        return edges;
+        return cannyEdgeDetector.process(image);
     }
 
     /**

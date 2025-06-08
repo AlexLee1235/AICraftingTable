@@ -47,11 +47,11 @@ public class CannyEdgeDetector {
      * Constructs a CannyEdgeDetector with specified parameters.
      *
      * @param sigma         The standard deviation of the Gaussian kernel. A larger value creates more blur.
-     * Recommended: 1.0 to 2.0.
+     *                      Recommended: 1.0 to 2.0.
      * @param lowThreshold  The lower threshold for hysteresis. Pixels with gradient magnitude below this
-     * are discarded.
+     *                      are discarded.
      * @param highThreshold The upper threshold for hysteresis. Pixels with gradient magnitude above this
-     * are marked as strong edges.
+     *                      are marked as strong edges.
      */
     public CannyEdgeDetector(float sigma, float lowThreshold, float highThreshold) {
         this.sigma = sigma;
@@ -71,20 +71,30 @@ public class CannyEdgeDetector {
         width = sourceImage.getWidth();
         height = sourceImage.getHeight();
 
-        // 1. Convert to grayscale and apply Gaussian blur
+        // Step 1: Convert to grayscale
         grayscaleImage = toGrayscale(sourceImage);
-        int[] blurredImage = applyGaussianFilter(grayscaleImage);
 
-        // 2. Calculate gradients
-        calculateGradients(blurredImage);
+        // --- MODIFIED: Conditionally apply Gaussian blur ---
+        int[] imageForGradients;
+        boolean applyGaussianBlur=false;
+        if (applyGaussianBlur) {
+            System.out.println("Applying Gaussian blur...");
+            imageForGradients = applyGaussianFilter(grayscaleImage);
+        } else {
+            System.out.println("Skipping Gaussian blur...");
+            imageForGradients = grayscaleImage;
+        }
 
-        // 3. Perform non-maximum suppression
+        // Step 2: Calculate gradients using the (potentially blurred) image
+        calculateGradients(imageForGradients);
+
+        // Step 3: Perform non-maximum suppression
         int[] nmsImage = nonMaximumSuppression();
 
-        // 4. Perform double thresholding and hysteresis
+        // Step 4: Perform double thresholding and hysteresis
         int[] finalEdges = hysteresis(nmsImage);
 
-        // 5. Create and return the final output image
+        // Step 5: Create and return the final output image
         return createOutputImage(finalEdges);
     }
 
@@ -98,18 +108,20 @@ public class CannyEdgeDetector {
      * @return A 1D int array of grayscale values (0-255).
      */
     private int[] toGrayscale(BufferedImage image) {
-        byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
         int[] gray = new int[width * height];
-        boolean hasAlpha = image.getAlphaRaster() != null;
-        int pixelLength = hasAlpha ? 4 : 3;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Get pixel color as a single integer (e.g., in ARGB format)
+                int rgb = image.getRGB(x, y);
 
-        for (int pixel = 0, i = 0; pixel + (pixelLength - 1) < pixels.length; pixel += pixelLength, i++) {
-            // Standard luminance conversion formula (Y' = 0.299R + 0.587G + 0.114B)
-            // Pixel format is typically ARGB or BGR
-            int b = (pixels[pixel + (hasAlpha ? 1 : 0)] & 0xff);
-            int g = (pixels[pixel + (hasAlpha ? 2 : 1)] & 0xff);
-            int r = (pixels[pixel + (hasAlpha ? 3 : 2)] & 0xff);
-            gray[i] = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+                // Extract R, G, B components using bitwise operations
+                int r = (rgb >> 16) & 0xFF;
+                int g = (rgb >> 8) & 0xFF;
+                int b = rgb & 0xFF;
+
+                // Standard luminance conversion formula (Y' = 0.299R + 0.587G + 0.114B)
+                gray[y * width + x] = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+            }
         }
         return gray;
     }
@@ -326,61 +338,24 @@ public class CannyEdgeDetector {
      * @return A new BufferedImage with black background and white edges.
      */
     private BufferedImage createOutputImage(int[] edgeData) {
+        // Create the output image with a 1-bit color model.
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_BINARY);
-        byte[] outputPixels = ((DataBufferByte) output.getRaster().getDataBuffer()).getData();
 
+        // Iterate through the edge data and set pixels one by one.
+        // The setRGB method will correctly handle converting the color
+        // to a single bit and placing it in the packed data buffer.
         for (int i = 0; i < edgeData.length; i++) {
-            outputPixels[i] = (byte) edgeData[i];
+            int x = i % width;
+            int y = i / width;
+
+            // Set the pixel to white if it's an edge, otherwise it will remain black.
+            // setRGB expects a color in ARGB format. 0xFFFFFFFF is opaque white.
+            // The image type (TYPE_BYTE_BINARY) will convert this to a '1' bit.
+            if (edgeData[i] == STRONG_EDGE) {
+                output.setRGB(x, y, 0xFFFFFFFF); // White
+            }
+            // No 'else' is needed because the image is initialized to all black (0 bits).
         }
         return output;
-    }
-
-    /**
-     * A demonstration main method.
-     */
-    public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Usage: java CannyEdgeDetector <input_image_path>");
-            System.out.println("Example: java CannyEdgeDetector images/cat.jpg");
-            return;
-        }
-
-        try {
-            System.out.println("Loading image: " + args[0]);
-            File inputFile = new File(args[0]);
-            BufferedImage sourceImage = ImageIO.read(inputFile);
-
-            if (sourceImage == null) {
-                System.err.println("Could not read the input image. Please check the file path and format.");
-                return;
-            }
-
-            // --- Configure the Canny Detector ---
-            // These parameters may need tuning for different images.
-            float sigma = 1.4f;
-            float lowThreshold = 30f;
-            float highThreshold = 60f;
-
-            CannyEdgeDetector detector = new CannyEdgeDetector(sigma, lowThreshold, highThreshold);
-
-            System.out.println("Processing image with parameters:");
-            System.out.println("  Sigma: " + sigma);
-            System.out.println("  Low Threshold: " + lowThreshold);
-            System.out.println("  High Threshold: " + highThreshold);
-
-            // --- Run the detection ---
-            BufferedImage edgeImage = detector.process(sourceImage);
-
-            // --- Save the result ---
-            String outputFileName = "canny_output.png";
-            File outputFile = new File(outputFileName);
-            ImageIO.write(edgeImage, "png", outputFile);
-
-            System.out.println("✅ Edge detection complete. Output saved to: " + outputFile.getAbsolutePath());
-
-        } catch (IOException e) {
-            System.err.println("An error occurred during file I/O.");
-            e.printStackTrace();
-        }
     }
 }

@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.GPTImageClient;
+import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.MyBlockEntityWithoutLevelRenderer;
 import com.watermelon0117.aicraft.OpenAIHttpClient;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -52,7 +53,7 @@ public class MainItem extends Item {
                         }
                     })
                     .exceptionally(ex -> { ex.printStackTrace(); return null; });*/
-
+            ImageGridProcessor.process();
         }
         return InteractionResultHolder.consume(player.getUseItem());
     }
