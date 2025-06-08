@@ -16,7 +16,7 @@ public class AICraftingTable {
 
     public AICraftingTable(){
         IEventBus bus= FMLJavaModLoadingContext.get().getModEventBus();
-
+        //test
         BlockInit.BLOCKS.register(bus);
         BlockInit.BLOCK_ITEMS.register(bus);
         ItemInit.ITEMS.register(bus);
