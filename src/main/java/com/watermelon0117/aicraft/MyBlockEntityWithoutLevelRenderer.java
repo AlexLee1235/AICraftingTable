@@ -21,9 +21,10 @@ import java.awt.image.BufferedImage;
 
 public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
     private final Int2ObjectMap<DynamicItemInstance> maps = new Int2ObjectOpenHashMap<>();
-    private static BufferedImage image;
     public MyBlockEntityWithoutLevelRenderer() {
         super(null,null);
+        BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
+        this.maps.put(0, new DynamicItemInstance(img));
     }
 
     @Override
@@ -31,44 +32,26 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
                              int light, int overlay) {
         poseStack.pushPose();
 
-        DynamicItemInstance instance=this.getOrCreateMapInstance(0, null);
+        DynamicItemInstance instance=this.maps.get(0);
         instance.draw(poseStack, buffers, false, light);
         poseStack.popPose();
     }
 
-    public void update(int p_168766_, BufferedImage p_168767_) {
-        this.getOrCreateMapInstance(p_168766_, p_168767_).forceUpload();
+    public void update(int key, BufferedImage img) {
+        this.maps.get(0).replaceMapData(img);
     }
-    private DynamicItemInstance getOrCreateMapInstance(int key, BufferedImage new_data) {
-        return this.maps.compute(key, (id, val) -> {
-            if (val == null) {
-                return new DynamicItemInstance(id, new_data);
-            } else {
-                val.replaceMapData(new_data);
-                return val;
-            }
-        });
-    }
-    public void resetData() {
-        for(DynamicItemInstance maprenderer$mapinstance : this.maps.values()) {
-            maprenderer$mapinstance.close();
-        }
-        this.maps.clear();
-    }
-    public void close() {
-        this.resetData();
-    }
+
     @OnlyIn(Dist.CLIENT)
     class DynamicItemInstance implements AutoCloseable {
         private BufferedImage image;
         private final DynamicTexture texture;
         private final RenderType renderType;
         private boolean requiresUpload = true;
-        DynamicItemInstance(int p_168783_, BufferedImage image) {
+        DynamicItemInstance(BufferedImage image) {
             this.image = image;
-            this.texture = new DynamicTexture(128, 128, true);
-            ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + p_168783_, this.texture);
-            this.renderType = RenderType.text(resourcelocation);
+            this.texture = new DynamicTexture(image.getHeight(), image.getWidth(), true);
+            //ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + p_168783_, this.texture);
+            this.renderType = RenderType.cutout();//.text(resourcelocation);
         }
         void replaceMapData(BufferedImage image) {
             this.image=image;
