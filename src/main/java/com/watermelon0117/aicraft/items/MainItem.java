@@ -50,18 +50,21 @@ public class MainItem extends Item {
                     .thenAccept(bytes -> {
                         try {
                             Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
-                            BufferedImage txt=ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
-                            ImageGridProcessor.saveImage(txt,"C:\\achieve\\AICraftingTable\\temp\\coffee.png");
+                            BufferedImage txt = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
+                            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\coffee.png");
                             player.sendSystemMessage(Component.literal("Done"));
                             renderer.loadNewFile("coffee");
-                            ItemStack itemStack=new ItemStack(ItemInit.MAIN_ITEM.get());
-                            itemStack.getOrCreateTag().putString("texture","coffee");
+                            ItemStack itemStack = new ItemStack(ItemInit.MAIN_ITEM.get());
+                            itemStack.getOrCreateTag().putString("texture", "coffee");
                             player.getInventory().add(itemStack);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     })
-                    .exceptionally(ex -> { ex.printStackTrace(); return null; });
+                    .exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
             //BufferedImage texture = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\gpt\\11.png");
             //renderer.update("default", texture);
 

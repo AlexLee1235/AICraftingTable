@@ -94,8 +94,9 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         if(tag!=null){
             id=tag.getString("texture");
         }
-        if(!this.maps.containsKey(id)){
-            throw new IllegalStateException("");
+        if(!this.maps.containsKey(id)) {
+            System.out.println(id + " not exist");
+            id = "default";
         }
         DynamicItemInstance instance=this.maps.get(id);
         instance.draw(poseStack, buffers, false, light);
