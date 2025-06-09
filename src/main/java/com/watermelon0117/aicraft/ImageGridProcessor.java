@@ -18,22 +18,22 @@ public class ImageGridProcessor {
     private static final int BLACK_RGB = Color.BLACK.getRGB();
     private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(1,100,200);
 
-    public static BufferedImage process() {
+    public static BufferedImage process(String path) {
         try {
             // 1. Read Image
-            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\11.png");
+            BufferedImage image = readImage(path);
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
 
             // 2. Edge Detection
             BufferedImage edges = edgeDetection(image);
-            saveImage(edges, "C:\\achieve\\AICraftingTable\\gpt\\edges.png");
+            saveImage(edges, "C:\\achieve\\AICraftingTable\\process\\edges.png");
 
             // 3. Extract Lines using Morphological Operations
             BufferedImage verticalLines = extractVerticalLines(edges);
-            saveImage(verticalLines, "C:\\achieve\\AICraftingTable\\gpt\\vertical_lines.png");
+            saveImage(verticalLines, "C:\\achieve\\AICraftingTable\\process\\vertical_lines.png");
 
             BufferedImage horizontalLines = extractHorizontalLines(edges);
-            saveImage(horizontalLines, "C:\\achieve\\AICraftingTable\\gpt\\horizontal_lines.png");
+            saveImage(horizontalLines, "C:\\achieve\\AICraftingTable\\process\\horizontal_lines.png");
 
             // 4. Create Histograms
             int[] xHistogram = histogramNonZero(verticalLines, 'x');
@@ -73,12 +73,12 @@ public class ImageGridProcessor {
 
             // 8. Draw Grid and Save
             BufferedImage gridImage = drawGridLines(image, xLines, yLines);
-            saveImage(gridImage, "C:\\achieve\\AICraftingTable\\gpt\\grid_image.png");
+            saveImage(gridImage, "C:\\achieve\\AICraftingTable\\process\\grid_image.png");
 
             // 9. Average Colors in Grid
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
             System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
-            saveImage(gridColors, "C:\\achieve\\AICraftingTable\\gpt\\grid_colors.png");
+            saveImage(gridColors, "C:\\achieve\\AICraftingTable\\process\\grid_colors.png");
             return gridColors;
         } catch (IOException e) {
             System.err.println("An error occurred: " + e.getMessage());

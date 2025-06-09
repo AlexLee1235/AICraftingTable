@@ -105,16 +105,18 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     @OnlyIn(Dist.CLIENT)
     class DynamicItemInstance implements AutoCloseable {
         private BufferedImage image;
-        private final DynamicTexture texture;
-        private final RenderType renderType;
+        private DynamicTexture texture;
+        private RenderType renderType;
         private boolean requiresUpload = true;
         DynamicItemInstance(BufferedImage image) {
             this.image = image;
-            this.texture = new DynamicTexture(128,128, true);
-            ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
-            this.renderType = RenderType.text(resourcelocation);
         }
         private void updateTexture() {
+            if(this.texture==null) {
+                this.texture = new DynamicTexture(128, 128, true);
+                ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
+                this.renderType = RenderType.text(resourcelocation);
+            }
             for(int i = 0; i < 128; ++i) {
                 for(int j = 0; j < 128; ++j) {
                     int y=image.getHeight() - 1 - j * image.getHeight() / 128;

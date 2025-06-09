@@ -43,23 +43,26 @@ public class MainItem extends Item {
             } catch (IOException | InterruptedException e) {
                 player.sendSystemMessage(Component.literal(e.getMessage()));
             }*/
+            player.sendSystemMessage(Component.literal("Start..."));
             imgClient.generateAsync(
                             "A 16x16 pixel art depiction of a cup of coffee with clearly separated background color",
                             "1024x1024", "opaque", "low", "high")
                     .thenAccept(bytes -> {
                         try {
-                            Files.write(Path.of("C:\\achieve\\AICraftingTable\\AI Crafting Table\\temp\\coffee.png"), bytes);
+                            Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
+                            BufferedImage txt=ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
+                            ImageGridProcessor.saveImage(txt,"C:\\achieve\\AICraftingTable\\temp\\coffee.png");
                             player.sendSystemMessage(Component.literal("Done"));
                             renderer.loadNewFile("coffee");
                             ItemStack itemStack=new ItemStack(ItemInit.MAIN_ITEM.get());
-                            itemStack.getTag().putString("texture","coffee");
+                            itemStack.getOrCreateTag().putString("texture","coffee");
                             player.getInventory().add(itemStack);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     })
                     .exceptionally(ex -> { ex.printStackTrace(); return null; });
-            //BufferedImage texture = ImageGridProcessor.process();
+            //BufferedImage texture = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\gpt\\11.png");
             //renderer.update("default", texture);
 
         }
