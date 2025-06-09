@@ -42,20 +42,21 @@ public class MainItem extends Item {
             } catch (IOException | InterruptedException e) {
                 player.sendSystemMessage(Component.literal(e.getMessage()));
             }*/
-            /*imgClient.generateAsync(
-                            "A cyber-punk street scene in Taipei at night, neon reflections",
-                            "1024x1024")
+            imgClient.generateAsync(
+                            "A 16x16 pixel art depiction of a cup of coffee with clearly separated background color",
+                            "1024x1024", "opaque", "low", "high")
                     .thenAccept(bytes -> {
                         try {
-                            Files.write(Path.of("C:\\achieve\\AICraftingTable\\AI Crafting Table\\taipei_night.png"), bytes);
+                            Files.write(Path.of("C:\\achieve\\AICraftingTable\\AI Crafting Table\\test.png"), bytes);
                             player.sendSystemMessage(Component.literal("Done"));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     })
-                    .exceptionally(ex -> { ex.printStackTrace(); return null; });*/
-            BufferedImage texture = ImageGridProcessor.process();
-            renderer.update(0, texture);
+                    .exceptionally(ex -> { ex.printStackTrace(); return null; });
+            player.sendSystemMessage(Component.literal("Done"));
+            //BufferedImage texture = ImageGridProcessor.process();
+            //renderer.update(0, texture);
         }
         return InteractionResultHolder.consume(player.getUseItem());
     }

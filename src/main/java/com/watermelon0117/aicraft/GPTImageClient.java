@@ -42,8 +42,8 @@ public final class GPTImageClient {
     /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
 
 
-    public CompletableFuture<byte[]> generateAsync(String prompt, String size) {
-        Request body = new Request(prompt, "gpt-image-1", 1, size);
+    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality) {
+        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality);
         String json  = gson.toJson(body);
 
         HttpRequest req = HttpRequest.newBuilder()
@@ -75,7 +75,10 @@ public final class GPTImageClient {
     private record Request(String prompt,
                            String model,
                            int n,
-                           String size) {}
+                           String size,
+                           String background,
+                           String moderation,
+                           String quality) {}
 
     private static final class Response { List<Data> data; }
     private static final class Data     { @SerializedName("b64_json") String b64Json; }
