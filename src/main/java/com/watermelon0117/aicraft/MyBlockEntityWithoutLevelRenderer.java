@@ -17,35 +17,29 @@ import net.minecraft.world.level.material.MaterialColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.awt.image.BufferedImage;
+
 public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
     private final Int2ObjectMap<DynamicItemInstance> maps = new Int2ObjectOpenHashMap<>();
+    private static BufferedImage image;
     public MyBlockEntityWithoutLevelRenderer() {
         super(null,null);
     }
 
     @Override
-    public void renderByItem(ItemStack stack,ItemTransforms.TransformType ctx,PoseStack pose,MultiBufferSource buffers,
+    public void renderByItem(ItemStack itemStack,ItemTransforms.TransformType ctx,PoseStack poseStack,MultiBufferSource buffers,
                              int light, int overlay) {
-        pose.pushPose();
+        poseStack.pushPose();
 
-        byte[] colours = new byte[128 * 128];
-        for (int i = 0; i < 128*128; i++) {
-            colours[i]= (byte) (i%128);
-        }
-
-        render(pose, buffers, 0, colours, false, light);
-        pose.popPose();
+        DynamicItemInstance instance=this.getOrCreateMapInstance(0, null);
+        instance.draw(poseStack, buffers, false, light);
+        poseStack.popPose();
     }
 
-    public void update(int p_168766_, byte[] p_168767_) {
+    public void update(int p_168766_, BufferedImage p_168767_) {
         this.getOrCreateMapInstance(p_168766_, p_168767_).forceUpload();
     }
-    public void render(PoseStack stack, MultiBufferSource bufferSource, int key, byte[] data, boolean p_168776_, int p_168777_) {
-        DynamicItemInstance instance=this.getOrCreateMapInstance(key, data);
-        //System.out.println(instance.renderType.toString());
-        instance.draw(stack, bufferSource, p_168776_, p_168777_);
-    }
-    private DynamicItemInstance getOrCreateMapInstance(int key, byte[] new_data) {
+    private DynamicItemInstance getOrCreateMapInstance(int key, BufferedImage new_data) {
         return this.maps.compute(key, (id, val) -> {
             if (val == null) {
                 return new DynamicItemInstance(id, new_data);
@@ -66,18 +60,18 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     }
     @OnlyIn(Dist.CLIENT)
     class DynamicItemInstance implements AutoCloseable {
-        private byte[] colors;
+        private BufferedImage image;
         private final DynamicTexture texture;
         private final RenderType renderType;
         private boolean requiresUpload = true;
-        DynamicItemInstance(int p_168783_, byte[] colors) {
-            this.colors = colors;
+        DynamicItemInstance(int p_168783_, BufferedImage image) {
+            this.image = image;
             this.texture = new DynamicTexture(128, 128, true);
             ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + p_168783_, this.texture);
             this.renderType = RenderType.text(resourcelocation);
         }
-        void replaceMapData(byte[] colors) {
-            this.colors=colors;
+        void replaceMapData(BufferedImage colors) {
+            this.image=image;
             this.requiresUpload = true;
         }
         public void forceUpload() {
@@ -87,7 +81,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
             for(int i = 0; i < 128; ++i) {
                 for(int j = 0; j < 128; ++j) {
                     int k = j + i * 128;
-                    this.texture.getPixels().setPixelRGBA(j, i, MaterialColor.getColorFromPackedId(this.colors[k]));
+                    this.texture.getPixels().setPixelRGBA(j, i, this.image.getRGB(i,j));
                 }
             }
             this.texture.upload();

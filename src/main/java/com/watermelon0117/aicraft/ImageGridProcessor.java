@@ -18,14 +18,14 @@ public class ImageGridProcessor {
     private static final int BLACK_RGB = Color.BLACK.getRGB();
     private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(1,100,200);
 
-    public static void process() {
+    public static BufferedImage process() {
         try {
             // 1. Read Image
-            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\9.png");
+            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\2.png");
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
 
-            // 2. Edge Detection (Placeholder)
-            BufferedImage edges = edgeDetectionPlaceholder(image);
+            // 2. Edge Detection
+            BufferedImage edges = edgeDetection(image);
             saveImage(edges, "C:\\achieve\\AICraftingTable\\gpt\\edges.png");
 
             // 3. Extract Lines using Morphological Operations
@@ -79,10 +79,11 @@ public class ImageGridProcessor {
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
             System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
             saveImage(gridColors, "C:\\achieve\\AICraftingTable\\gpt\\grid_colors.png");
-
+            return gridColors;
         } catch (IOException e) {
             System.err.println("An error occurred: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -119,7 +120,7 @@ public class ImageGridProcessor {
     /**
      * Placeholder for Canny edge detection. Converts to grayscale and applies a threshold.
      */
-    public static BufferedImage edgeDetectionPlaceholder(BufferedImage image) {
+    public static BufferedImage edgeDetection(BufferedImage image) {
         return cannyEdgeDetector.process(image);
     }
 

@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,7 +54,8 @@ public class MainItem extends Item {
                         }
                     })
                     .exceptionally(ex -> { ex.printStackTrace(); return null; });*/
-            ImageGridProcessor.process();
+            BufferedImage texture = ImageGridProcessor.process();
+            renderer.update(0, texture);
         }
         return InteractionResultHolder.consume(player.getUseItem());
     }
