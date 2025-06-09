@@ -23,22 +23,23 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     private final Int2ObjectMap<DynamicItemInstance> maps = new Int2ObjectOpenHashMap<>();
     public MyBlockEntityWithoutLevelRenderer() {
         super(null,null);
-        BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
-        this.maps.put(0, new DynamicItemInstance(img));
     }
 
     @Override
     public void renderByItem(ItemStack itemStack,ItemTransforms.TransformType ctx,PoseStack poseStack,MultiBufferSource buffers,
                              int light, int overlay) {
         poseStack.pushPose();
-
+        if(!this.maps.containsKey(0)){
+            BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
+            this.maps.put(0, new DynamicItemInstance(img));
+        }
         DynamicItemInstance instance=this.maps.get(0);
         instance.draw(poseStack, buffers, false, light);
         poseStack.popPose();
     }
 
     public void update(int key, BufferedImage img) {
-        this.maps.get(0).replaceMapData(img);
+        this.maps.get(key).replaceMapData(img);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -50,8 +51,8 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         DynamicItemInstance(BufferedImage image) {
             this.image = image;
             this.texture = new DynamicTexture(image.getHeight(), image.getWidth(), true);
-            //ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + p_168783_, this.texture);
-            this.renderType = RenderType.cutout();//.text(resourcelocation);
+            ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
+            this.renderType = RenderType.text(resourcelocation);
         }
         void replaceMapData(BufferedImage image) {
             this.image=image;
@@ -63,8 +64,11 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         private void updateTexture() {
             for(int i = 0; i < 128; ++i) {
                 for(int j = 0; j < 128; ++j) {
-                    int k = j + i * 128;
-                    this.texture.getPixels().setPixelRGBA(j, i, this.image.getRGB(i,j));
+                    int color = this.image.getRGB(i * image.getWidth() / 128, image.getHeight() - 1 - j * image.getHeight() / 128);
+                    int red = (color & 0x00ff0000) >> 16;
+                    int blue = (color & 0x000000ff) << 16;
+                    color = (color & 0xff00ff00) | red | blue;
+                    this.texture.getPixels().setPixelRGBA(i, j, color);
                 }
             }
             this.texture.upload();

@@ -21,7 +21,7 @@ public class ImageGridProcessor {
     public static BufferedImage process() {
         try {
             // 1. Read Image
-            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\2.png");
+            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\8.png");
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
 
             // 2. Edge Detection
@@ -378,7 +378,7 @@ public class ImageGridProcessor {
 
                 if (xStart >= xEnd || yStart >= yEnd) continue;
 
-                long totalR = 0, totalG = 0, totalB = 0;
+                long totalR = 0, totalG = 0, totalB = 0, totalA = 0;
                 int pixelCount = 0;
 
                 for (int x = xStart; x < xEnd; x++) {
@@ -387,6 +387,7 @@ public class ImageGridProcessor {
                         totalR += pixelColor.getRed();
                         totalG += pixelColor.getGreen();
                         totalB += pixelColor.getBlue();
+                        totalA += pixelColor.getAlpha();
                         pixelCount++;
                     }
                 }
@@ -395,10 +396,14 @@ public class ImageGridProcessor {
                     int avgR = (int) (totalR / pixelCount);
                     int avgG = (int) (totalG / pixelCount);
                     int avgB = (int) (totalB / pixelCount);
-                    colorGridImage.setRGB(i, j, new Color(avgR, avgG, avgB).getRGB());
+                    int avgA = (int) (totalA / pixelCount);
+                    avgA=(avgA>128)?255:0;
+                    colorGridImage.setRGB(i, j, new Color(avgR, avgG, avgB, avgA).getRGB());
                 }
             }
         }
+
         return colorGridImage;
     }
+
 }
