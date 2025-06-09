@@ -397,7 +397,7 @@ public class ImageGridProcessor {
                     int avgG = (int) (totalG / pixelCount);
                     int avgB = (int) (totalB / pixelCount);
                     int avgA = (int) (totalA / pixelCount);
-                    avgA=(avgA>128)?255:0;
+                    avgA = (avgA > 128) ? 255 : 0;
                     colorGridImage.setRGB(i, j, new Color(avgR, avgG, avgB, avgA).getRGB());
                 }
             }

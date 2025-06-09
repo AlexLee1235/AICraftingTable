@@ -1,11 +1,8 @@
 package com.watermelon0117.aicraft;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -15,7 +12,6 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -28,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
-    private final Map<String, DynamicItemInstance> maps = new HashMap<>();
+    public final Map<String, DynamicItemInstance> maps = new HashMap<>();
     public MyBlockEntityWithoutLevelRenderer() {
         super(null,null);
     }

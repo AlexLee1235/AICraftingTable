@@ -45,17 +45,17 @@ public class MainItem extends Item {
             }*/
             player.sendSystemMessage(Component.literal("Start..."));
             imgClient.generateAsync(
-                            "A 16x16 pixel art depiction of a cup of coffee with clearly separated background color",
+                            "A 16x16 pixel art depiction of a banana with clearly separated background color",
                             "1024x1024", "opaque", "low", "high")
                     .thenAccept(bytes -> {
                         try {
                             Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
                             BufferedImage txt = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
-                            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\coffee.png");
+                            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\banana.png");
                             player.sendSystemMessage(Component.literal("Done"));
-                            renderer.loadNewFile("coffee");
+                            renderer.loadNewFile("banana");
                             ItemStack itemStack = new ItemStack(ItemInit.MAIN_ITEM.get());
-                            itemStack.getOrCreateTag().putString("texture", "coffee");
+                            itemStack.getOrCreateTag().putString("texture", "banana");
                             player.getInventory().add(itemStack);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
