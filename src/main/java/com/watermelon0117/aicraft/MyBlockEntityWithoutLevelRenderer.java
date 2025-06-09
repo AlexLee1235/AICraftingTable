@@ -17,6 +17,7 @@ import net.minecraft.world.level.material.MaterialColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
@@ -31,6 +32,10 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         poseStack.pushPose();
         if(!this.maps.containsKey(0)){
             BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = img.createGraphics();
+            g2d.setColor(new Color(255, 255, 255, 255));  // transparent white
+            g2d.fillRect(0, 0, 128, 128);
+            g2d.dispose();
             this.maps.put(0, new DynamicItemInstance(img));
         }
         DynamicItemInstance instance=this.maps.get(0);
