@@ -4,6 +4,7 @@ import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.init.EntityInit;
 import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -53,6 +54,7 @@ public class EventHandler {
             System.out.println("EntityJoinLevelEvent");
             if (event.getEntity().level.isClientSide) {
                 System.out.println("client");
+                MainItem.renderer.loadFromFile();
             } else {
                 System.out.println("server");
             }

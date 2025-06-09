@@ -4,6 +4,7 @@ import com.watermelon0117.aicraft.GPTImageClient;
 import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.MyBlockEntityWithoutLevelRenderer;
 import com.watermelon0117.aicraft.OpenAIHttpClient;
+import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -42,23 +43,28 @@ public class MainItem extends Item {
             } catch (IOException | InterruptedException e) {
                 player.sendSystemMessage(Component.literal(e.getMessage()));
             }*/
-            /*imgClient.generateAsync(
+            imgClient.generateAsync(
                             "A 16x16 pixel art depiction of a cup of coffee with clearly separated background color",
                             "1024x1024", "opaque", "low", "high")
                     .thenAccept(bytes -> {
                         try {
-                            Files.write(Path.of("C:\\achieve\\AICraftingTable\\AI Crafting Table\\test.png"), bytes);
+                            Files.write(Path.of("C:\\achieve\\AICraftingTable\\AI Crafting Table\\temp\\coffee.png"), bytes);
                             player.sendSystemMessage(Component.literal("Done"));
+                            renderer.loadNewFile("coffee");
+                            ItemStack itemStack=new ItemStack(ItemInit.MAIN_ITEM.get());
+                            itemStack.getTag().putString("texture","coffee");
+                            player.getInventory().add(itemStack);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     })
                     .exceptionally(ex -> { ex.printStackTrace(); return null; });
-            player.sendSystemMessage(Component.literal("Done"));*/
-            BufferedImage texture = ImageGridProcessor.process();
-            renderer.update(0, texture);
+            //BufferedImage texture = ImageGridProcessor.process();
+            //renderer.update("default", texture);
+
         }
-        return InteractionResultHolder.consume(player.getUseItem());
+        ItemStack itemStack=player.getItemInHand(hand);
+        return InteractionResultHolder.success(itemStack);
     }
 
     @Override

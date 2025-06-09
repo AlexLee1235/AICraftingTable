@@ -12,42 +12,94 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.MaterialColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
-    private final Int2ObjectMap<DynamicItemInstance> maps = new Int2ObjectOpenHashMap<>();
+    private final Map<String, DynamicItemInstance> maps = new HashMap<>();
     public MyBlockEntityWithoutLevelRenderer() {
         super(null,null);
     }
     public void loadFromFile(){
+        File folder = new File("C:\\achieve\\AICraftingTable\\temp");
+        File[] files = folder.listFiles();
+        if (files == null) {
+            System.out.println("Folder not found or empty.");
+            return;
+        }
 
+        for (File file : files) {
+            if (file.isFile()) {
+                try {
+                    BufferedImage image = ImageIO.read(file);
+                    if (image != null) {
+                        String name=file.getName().replace(".png","");
+                        System.out.println("Loaded image: " + name +
+                                " (" + image.getWidth() + "x" + image.getHeight() + ")");
+                        this.maps.put(name,new DynamicItemInstance(image));
+                    } else {
+                        System.out.println("Skipped (not an image): " + file.getName());
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading file: " + file.getName());
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    public void loadNewFile(String name){
+        File file=new File("C:\\achieve\\AICraftingTable\\temp\\"+name+".png");
+        if (file.isFile()) {
+            try {
+                BufferedImage image = ImageIO.read(file);
+                if (image != null) {
+                    System.out.println("Loaded image: " + name +
+                            " (" + image.getWidth() + "x" + image.getHeight() + ")");
+                    this.maps.put(name, new DynamicItemInstance(image));
+                } else {
+                    System.out.println("Skipped (not an image): " + file.getName());
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading file: " + file.getName());
+                e.printStackTrace();
+            }
+        }
     }
     @Override
     public void renderByItem(ItemStack itemStack,ItemTransforms.TransformType ctx,PoseStack poseStack,MultiBufferSource buffers,
                              int light, int overlay) {
         poseStack.pushPose();
-        if(!this.maps.containsKey(0)){
+        if(!this.maps.containsKey("default")){
             BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = img.createGraphics();
             g2d.setColor(new Color(255, 255, 255, 255));  // white
             g2d.fillRect(0, 0, 128, 128);
             g2d.dispose();
-            this.maps.put(0, new DynamicItemInstance(img));
+            this.maps.put("default", new DynamicItemInstance(img));
         }
-        DynamicItemInstance instance=this.maps.get(0);
+        CompoundTag tag=itemStack.getTag();
+        String id="default";
+        if(tag!=null){
+            id=tag.getString("texture");
+        }
+        if(!this.maps.containsKey(id)){
+            throw new IllegalStateException("");
+        }
+        DynamicItemInstance instance=this.maps.get(id);
         instance.draw(poseStack, buffers, false, light);
         poseStack.popPose();
-    }
-
-    public void update(int key, BufferedImage img) {
-        this.maps.get(key).replaceMapData(img);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -58,21 +110,15 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         private boolean requiresUpload = true;
         DynamicItemInstance(BufferedImage image) {
             this.image = image;
-            this.texture = new DynamicTexture(image.getHeight(), image.getWidth(), true);
+            this.texture = new DynamicTexture(128,128, true);
             ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
             this.renderType = RenderType.text(resourcelocation);
-        }
-        void replaceMapData(BufferedImage image) {
-            this.image=image;
-            this.requiresUpload = true;
-        }
-        public void forceUpload() {
-            this.requiresUpload = true;
         }
         private void updateTexture() {
             for(int i = 0; i < 128; ++i) {
                 for(int j = 0; j < 128; ++j) {
-                    int color = this.image.getRGB(i * image.getWidth() / 128, image.getHeight() - 1 - j * image.getHeight() / 128);
+                    int y=image.getHeight() - 1 - j * image.getHeight() / 128;
+                    int color = this.image.getRGB(i * image.getWidth() / 128, y);
                     int red = (color & 0x00ff0000) >> 16;
                     int blue = (color & 0x000000ff) << 16;
                     color = (color & 0xff00ff00) | red | blue;
