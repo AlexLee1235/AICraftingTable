@@ -21,7 +21,7 @@ public class ImageGridProcessor {
     public static BufferedImage process() {
         try {
             // 1. Read Image
-            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\8.png");
+            BufferedImage image = readImage("C:\\achieve\\AICraftingTable\\gpt\\10.png");
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
 
             // 2. Edge Detection
