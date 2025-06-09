@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MainItem extends Item {
-    MyBlockEntityWithoutLevelRenderer renderer = new MyBlockEntityWithoutLevelRenderer();
+    public static MyBlockEntityWithoutLevelRenderer renderer = new MyBlockEntityWithoutLevelRenderer();
     OpenAIHttpClient client = new OpenAIHttpClient("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",
             "gpt-4o",
             0.7,
@@ -42,7 +42,7 @@ public class MainItem extends Item {
             } catch (IOException | InterruptedException e) {
                 player.sendSystemMessage(Component.literal(e.getMessage()));
             }*/
-            imgClient.generateAsync(
+            /*imgClient.generateAsync(
                             "A 16x16 pixel art depiction of a cup of coffee with clearly separated background color",
                             "1024x1024", "opaque", "low", "high")
                     .thenAccept(bytes -> {
@@ -54,9 +54,9 @@ public class MainItem extends Item {
                         }
                     })
                     .exceptionally(ex -> { ex.printStackTrace(); return null; });
-            player.sendSystemMessage(Component.literal("Done"));
-            //BufferedImage texture = ImageGridProcessor.process();
-            //renderer.update(0, texture);
+            player.sendSystemMessage(Component.literal("Done"));*/
+            BufferedImage texture = ImageGridProcessor.process();
+            renderer.update(0, texture);
         }
         return InteractionResultHolder.consume(player.getUseItem());
     }

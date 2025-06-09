@@ -26,7 +26,9 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     public MyBlockEntityWithoutLevelRenderer() {
         super(null,null);
     }
+    public void loadFromFile(){
 
+    }
     @Override
     public void renderByItem(ItemStack itemStack,ItemTransforms.TransformType ctx,PoseStack poseStack,MultiBufferSource buffers,
                              int light, int overlay) {
@@ -34,7 +36,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         if(!this.maps.containsKey(0)){
             BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = img.createGraphics();
-            g2d.setColor(new Color(255, 255, 255, 255));  // transparent white
+            g2d.setColor(new Color(255, 255, 255, 255));  // white
             g2d.fillRect(0, 0, 128, 128);
             g2d.dispose();
             this.maps.put(0, new DynamicItemInstance(img));
