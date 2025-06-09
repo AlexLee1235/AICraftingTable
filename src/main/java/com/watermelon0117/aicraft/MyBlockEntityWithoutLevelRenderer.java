@@ -29,7 +29,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     @Override
     public void renderByItem(ItemStack itemStack,ItemTransforms.TransformType ctx,PoseStack poseStack,MultiBufferSource buffers,
                              int light, int overlay) {
-        poseStack.pushPose();
+        poseStack.pushPose();//
         if(!this.maps.containsKey(0)){
             BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = img.createGraphics();
