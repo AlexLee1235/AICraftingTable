@@ -70,7 +70,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
             ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + p_168783_, this.texture);
             this.renderType = RenderType.text(resourcelocation);
         }
-        void replaceMapData(BufferedImage colors) {
+        void replaceMapData(BufferedImage image) {
             this.image=image;
             this.requiresUpload = true;
         }
