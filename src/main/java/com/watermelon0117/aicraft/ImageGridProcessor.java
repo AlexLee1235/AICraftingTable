@@ -28,10 +28,12 @@ public class ImageGridProcessor {
             BufferedImage edges = edgeDetection(image);
             saveImage(edges, "C:\\achieve\\AICraftingTable\\process\\edges.png");
 
+            // Remove Background
+            image=removeBackgroundAuto(image, edges);
+
             // 3. Extract Lines using Morphological Operations
             BufferedImage verticalLines = extractVerticalLines(edges);
             saveImage(verticalLines, "C:\\achieve\\AICraftingTable\\process\\vertical_lines.png");
-
             BufferedImage horizontalLines = extractHorizontalLines(edges);
             saveImage(horizontalLines, "C:\\achieve\\AICraftingTable\\process\\horizontal_lines.png");
 
@@ -52,19 +54,15 @@ public class ImageGridProcessor {
             double xGridSize = clusterAverage(xDiff);
             double yGridSize = clusterAverage(yDiff);
             System.out.println("Grid size: " + xGridSize + ", " + yGridSize);
+            int[] ratio = findNearestRatio(xGridSize, yGridSize);
+            System.out.println("Nearest ratio:"+ratio[0]+", "+ratio[1]);
+            xGridSize/=ratio[0];
+            yGridSize/=ratio[1];
+            System.out.println("Adjusted Grid size:" + xGridSize + ", " + yGridSize);
 
             // 7. Refine and Insert Lines
             List<Integer> oldXLines = removeDuplicates(xPikes, 5);
             List<Integer> oldYLines = removeDuplicates(yPikes, 5);
-
-            // Add image boundaries to the list of lines
-            oldXLines.add(0, 0);
-            oldXLines.add(image.getWidth());
-            oldYLines.add(0, 0);
-            oldYLines.add(image.getHeight());
-            Collections.sort(oldXLines);
-            Collections.sort(oldYLines);
-
 
             List<Integer> xLines = insertLines(oldXLines, xGridSize);
             List<Integer> yLines = insertLines(oldYLines, yGridSize);
@@ -78,8 +76,9 @@ public class ImageGridProcessor {
             // 9. Average Colors in Grid
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
             System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
-            saveImage(gridColors, "C:\\achieve\\AICraftingTable\\process\\grid_colors.png");
-            return gridColors;
+            BufferedImage pixels = padImageCentered(gridColors, calcPaddingSize(gridColors.getWidth(), gridColors.getHeight(), 1));
+            saveImage(pixels, "C:\\achieve\\AICraftingTable\\process\\grid_colors.png");
+            return pixels;
         } catch (IOException e) {
             System.err.println("An error occurred: " + e.getMessage());
             e.printStackTrace();
@@ -404,6 +403,142 @@ public class ImageGridProcessor {
         }
 
         return colorGridImage;
+    }
+
+    public static int[] computeBoundingBox(BufferedImage edgeImage, int pad) {
+        int width = edgeImage.getWidth();
+        int height = edgeImage.getHeight();
+        int xMin = width, xMax = 0, yMin = height, yMax = 0;
+        boolean found = false;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if ((edgeImage.getRGB(x, y) & 0xFFFFFF) != 0) {
+                    xMin = Math.min(xMin, x);
+                    xMax = Math.max(xMax, x);
+                    yMin = Math.min(yMin, y);
+                    yMax = Math.max(yMax, y);
+                    found = true;
+                }
+            }
+        }
+
+        if (!found) return new int[]{0, 0, width, height};
+
+        return new int[]{
+                Math.max(xMin - pad, 0),
+                Math.max(yMin - pad, 0),
+                Math.min(xMax + pad + 1, width),
+                Math.min(yMax + pad + 1, height)
+        };
+    }
+
+    public static BufferedImage removeBackgroundAuto(BufferedImage image, BufferedImage edgeImage) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        int[] bbox = computeBoundingBox(edgeImage, 5);
+        int x1 = bbox[0], y1 = bbox[1], x2 = bbox[2], y2 = bbox[3];
+
+        long totalR = 0, totalG = 0, totalB = 0;
+        int count = 0;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (x < x1 || x >= x2 || y < y1 || y >= y2) {
+                    Color c = new Color(image.getRGB(x, y), true);
+                    totalR += c.getRed();
+                    totalG += c.getGreen();
+                    totalB += c.getBlue();
+                    count++;
+                }
+            }
+        }
+
+        if (count == 0) return image;
+
+        float bgR = totalR / (float) count;
+        float bgG = totalG / (float) count;
+        float bgB = totalB / (float) count;
+
+        float maxDist = 0f;
+
+        float[][] distMap = new float[width][height];
+        boolean[][] isOutside = new boolean[width][height];
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                boolean outside = (x < x1 || x >= x2 || y < y1 || y >= y2);
+                Color c = new Color(image.getRGB(x, y), true);
+                float dist = (float) Math.sqrt(
+                        Math.pow(c.getRed() - bgR, 2) +
+                                Math.pow(c.getGreen() - bgG, 2) +
+                                Math.pow(c.getBlue() - bgB, 2)
+                );
+                distMap[x][y] = dist;
+                isOutside[x][y] = outside;
+                if (outside && dist > maxDist) maxDist = dist;
+            }
+        }
+
+        float tolerance = maxDist + 1e-5f;
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Color c = new Color(image.getRGB(x, y), true);
+                int alpha = distMap[x][y] < tolerance ? 0 : 255;
+                Color newColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+                output.setRGB(x, y, newColor.getRGB());
+            }
+        }
+
+        return output;
+    }
+
+    public static int calcPaddingSize(int x, int y, int expand) {
+        x += expand;
+        y += expand;
+        int i = Math.max(x, y);
+        i = ((i + 7) / 8) * 8; // ceil to nearest multiple of 8
+        return Math.max(i, 16);
+    }
+
+    public static BufferedImage padImageCentered(BufferedImage image, int targetSize) {
+        int w = image.getWidth();
+        int h = image.getHeight();
+
+        int padLeft = (targetSize - w) / 2;
+        int padTop = (targetSize - h) / 2;
+
+        BufferedImage padded = new BufferedImage(targetSize, targetSize, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = padded.createGraphics();
+        g.setColor(new Color(0, 0, 0, 0));
+        g.fillRect(0, 0, targetSize, targetSize);
+        g.drawImage(image, padLeft, padTop, null);
+        g.dispose();
+        return padded;
+    }
+
+    public static int[] findNearestRatio(double x, double y) {
+        double[][] ratios = {
+                {1, 1}, {1, 2}, {1, 3}, {1, 4}, {2, 3},
+                {2, 1}, {3, 1}, {4, 1}, {3, 2}
+        };
+        double r = x / y;
+        double minDiff = Double.MAX_VALUE;
+        int[] best = {1, 1};
+
+        for (double[] ratio : ratios) {
+            double diff = Math.abs((ratio[0] / ratio[1]) - r);
+            if (diff < minDiff) {
+                minDiff = diff;
+                best[0] = (int) ratio[0];
+                best[1] = (int) ratio[1];
+            }
+        }
+
+        return best;
     }
 
 }
