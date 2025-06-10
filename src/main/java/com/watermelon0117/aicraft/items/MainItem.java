@@ -67,7 +67,6 @@ public class MainItem extends Item {
                     });
             //BufferedImage texture = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\gpt\\11.png");
             //renderer.update("default", texture);
-
         }
         ItemStack itemStack=player.getItemInHand(hand);
         return InteractionResultHolder.success(itemStack);
