@@ -45,17 +45,17 @@ public class MainItem extends Item {
             }*/
             player.sendSystemMessage(Component.literal("Start..."));
             imgClient.generateAsync(
-                            "A 16x16 pixel art depiction of a banana with clearly separated background color",
-                            "1024x1024", "opaque", "low", "high")
+                            "A 16x16 pixel art depiction of a blueberry with clearly separated background color",
+                            "1024x1024", "opaque", "low", "medium")
                     .thenAccept(bytes -> {
                         try {
                             Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
                             BufferedImage txt = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
-                            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\banana.png");
+                            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\blueberry.png");
                             player.sendSystemMessage(Component.literal("Done"));
-                            renderer.loadNewFile("banana");
+                            renderer.loadNewFile("blueberry");
                             ItemStack itemStack = new ItemStack(ItemInit.MAIN_ITEM.get());
-                            itemStack.getOrCreateTag().putString("texture", "banana");
+                            itemStack.getOrCreateTag().putString("texture", "blueberry");
                             player.getInventory().add(itemStack);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -65,7 +65,7 @@ public class MainItem extends Item {
                         ex.printStackTrace();
                         return null;
                     });
-            //BufferedImage texture = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\gpt\\11.png");
+            //BufferedImage texture = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\gpt\\12.png");
             //renderer.update("default", texture);
         }
         ItemStack itemStack=player.getItemInHand(hand);
