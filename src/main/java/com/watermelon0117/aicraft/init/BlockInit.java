@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.init;
 
+import com.watermelon0117.aicraft.blocks.*;
 import com.watermelon0117.aicraft.AICraftingTable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
@@ -24,5 +25,9 @@ public class BlockInit {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS,AICraftingTable.MODID);
     public static final DeferredRegister<Item> BLOCK_ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, AICraftingTable.MODID);
 
+	public static final RegistryObject<Block> AI_CRAFTING_TABLE = BLOCKS.register("ai_crafting_table",
+            () -> new AICraftingTableBlock(BlockBehaviour.Properties.of(Material.STONE).strength(1f).explosionResistance(1f)));
+    public static final RegistryObject<BlockItem> AI_CRAFTING_TABLE_BLOCK_ITEM = BLOCK_ITEMS.register("ai_crafting_table",
+            () -> new BlockItem(AI_CRAFTING_TABLE.get(), new Item.Properties().tab(AICraftingTable.TAB)));
 /*PROGRAM INSERT POINT*/
 }

@@ -1,4 +1,5 @@
 {
 	"itemGroup.aicraft": "AI Crafting Table",
-	"item.aicraft.main_item": "Main Item"
+	"item.aicraft.main_item": "Main Item",
+	"block.aicraft.ai_crafting_table": "AI Crafting Table"
 }
