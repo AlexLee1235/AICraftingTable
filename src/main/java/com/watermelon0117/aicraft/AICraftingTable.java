@@ -27,6 +27,7 @@ public class AICraftingTable {
         RecipeInit.RECIPE_SERIALIZERS.register(bus);
         FluidInit.FLUID_TYPES.register(bus);
         FluidInit.FLUIDS.register(bus);
+        MenuInit.MENU_TYPES.register(bus);
     }
  
     public static final CreativeModeTab TAB = new CreativeModeTab(MODID) {
