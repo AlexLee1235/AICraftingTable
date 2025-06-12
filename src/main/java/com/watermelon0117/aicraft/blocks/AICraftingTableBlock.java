@@ -21,6 +21,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class AICraftingTableBlock extends Block implements EntityBlock {
@@ -38,7 +39,8 @@ public class AICraftingTableBlock extends Block implements EntityBlock {
             return InteractionResult.SUCCESS;
 
         if(player instanceof ServerPlayer sPlayer){
-            sPlayer.openMenu(blockEntity);
+            //sPlayer.openMenu(blockEntity);
+            NetworkHooks.openScreen(sPlayer, blockEntity, pos);
         }
         return InteractionResult.CONSUME;
     }

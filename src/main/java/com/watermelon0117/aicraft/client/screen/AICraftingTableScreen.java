@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CraftingScreen;
+import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
@@ -23,15 +24,11 @@ import java.util.Optional;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION = new ResourceLocation("textures/gui/container/crafting_table.png");
-    private static final ResourceLocation RECIPE_BUTTON_LOCATION = new ResourceLocation("textures/gui/recipe_button.png");
     private boolean widthTooNarrow;
 
-    private static final Component TITLE = Component.translatable("gui."+ AICraftingTable.MODID+".ai_crafting_table_screen");
-
-    public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component c) {
-        super(p_98448_, p_98449_, TITLE);
+    public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
+        super(p_98448_, p_98449_, p_98450_);
     }
-
 
     protected void init() {
         super.init();
@@ -45,6 +42,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
         this.renderBackground(p_98479_);
+        super.render(p_98479_, p_98480_, p_98481_, p_98482_);
         this.renderTooltip(p_98479_, p_98480_, p_98481_);
     }
 
@@ -58,18 +56,26 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
 
     protected boolean isHovering(int p_98462_, int p_98463_, int p_98464_, int p_98465_, double p_98466_, double p_98467_) {
-        return (!this.widthTooNarrow) && super.isHovering(p_98462_, p_98463_, p_98464_, p_98465_, p_98466_, p_98467_);
+        return super.isHovering(p_98462_, p_98463_, p_98464_, p_98465_, p_98466_, p_98467_);
     }
 
     public boolean mouseClicked(double p_98452_, double p_98453_, int p_98454_) {
         return super.mouseClicked(p_98452_, p_98453_, p_98454_);
     }
 
+    protected boolean hasClickedOutside(double p_98456_, double p_98457_, int p_98458_, int p_98459_, int p_98460_) {
+        boolean flag = p_98456_ < (double)p_98458_ || p_98457_ < (double)p_98459_ || p_98456_ >= (double)(p_98458_ + this.imageWidth) || p_98457_ >= (double)(p_98459_ + this.imageHeight);
+        return true;
+    }
+
     protected void slotClicked(Slot p_98469_, int p_98470_, int p_98471_, ClickType p_98472_) {
         super.slotClicked(p_98469_, p_98470_, p_98471_, p_98472_);
     }
 
+
+
     public void removed() {
         super.removed();
     }
+
 }
