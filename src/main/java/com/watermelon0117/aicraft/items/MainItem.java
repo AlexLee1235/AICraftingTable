@@ -1,9 +1,6 @@
 package com.watermelon0117.aicraft.items;
 
-import com.watermelon0117.aicraft.GPTImageClient;
-import com.watermelon0117.aicraft.ImageGridProcessor;
-import com.watermelon0117.aicraft.MyBlockEntityWithoutLevelRenderer;
-import com.watermelon0117.aicraft.OpenAIHttpClient;
+import com.watermelon0117.aicraft.*;
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
@@ -26,7 +23,7 @@ public class MainItem extends Item {
     public static MyBlockEntityWithoutLevelRenderer renderer = new MyBlockEntityWithoutLevelRenderer();
     OpenAIHttpClient client = new OpenAIHttpClient("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",
             "gpt-4o",
-            0.7,
+            1.0,
             1024,
             "You are MinecraftGPT, you answer question related to minecraft.");
     GPTImageClient imgClient = new GPTImageClient("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");
@@ -43,7 +40,15 @@ public class MainItem extends Item {
             } catch (IOException | InterruptedException e) {
                 player.sendSystemMessage(Component.literal(e.getMessage()));
             }*/
-            player.sendSystemMessage(Component.literal("Start..."));
+            GPTItemGenerator generator=new GPTItemGenerator();
+            try {
+                generator.generate(new String[]{"Iron Ingot", "Iron Ingot", "Iron Ingot",
+                        "Iron Ingot", "Stick", "Iron Ingot",
+                        "empty", "Stick", "empty"});
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            /*player.sendSystemMessage(Component.literal("Start..."));
             imgClient.generateAsync(
                             "A 16x16 pixel art depiction of a blueberry with clearly separated background color",
                             "1024x1024", "opaque", "low", "medium")
@@ -64,7 +69,7 @@ public class MainItem extends Item {
                     .exceptionally(ex -> {
                         ex.printStackTrace();
                         return null;
-                    });
+                    });*/
             //BufferedImage texture = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\gpt\\12.png");
             //renderer.update("default", texture);
         }

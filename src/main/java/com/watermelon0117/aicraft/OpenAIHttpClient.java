@@ -23,8 +23,11 @@ public class OpenAIHttpClient {
     public final double temperature;
     public final int maxTokens;
     public final String systemMessage;
-
-    public OpenAIHttpClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage) {
+    public final String response_format;
+    public OpenAIHttpClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage){
+        this(apiKey,model,temperature,maxTokens,systemMessage,"text");
+    }
+    public OpenAIHttpClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage, String response_format) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalArgumentException("API key must not be null/blank");
         }
@@ -33,6 +36,7 @@ public class OpenAIHttpClient {
         this.temperature=temperature;
         this.maxTokens=maxTokens;
         this.systemMessage=systemMessage;
+        this.response_format=response_format;
 
         this.http = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
@@ -51,7 +55,7 @@ public class OpenAIHttpClient {
         return chat(list);
     }
     private String chat(List<Message> messages) throws IOException, InterruptedException {
-        ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages);
+        ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages, response_format);
         String bodyJson = gson.toJson(requestBody);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -90,15 +94,22 @@ public class OpenAIHttpClient {
         final double temperature;
         @SerializedName("max_tokens") final int maxTokens;
         final List<Message> messages;
+        final ResponseFormat response_format;
 
-        ChatRequest(String model, double temperature, int maxTokens, List<Message> messages) {
+        ChatRequest(String model, double temperature, int maxTokens, List<Message> messages, String response_format) {
             this.model = model;
             this.temperature = temperature;
             this.maxTokens = maxTokens;
             this.messages = messages;
+            this.response_format=new ResponseFormat(response_format);
         }
     }
-
+    private static final class ResponseFormat{
+        String type;
+        ResponseFormat(String type){
+            this.type=type;
+        }
+    }
     private static final class ChatResponse {
         List<Choice> choices;
 

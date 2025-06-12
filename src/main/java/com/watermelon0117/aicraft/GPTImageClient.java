@@ -11,12 +11,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Async client for OpenAI’s gpt-image-1 generation endpoint.
- *
- * Build-time dependency:
- *   implementation("com.google.code.gson:gson:2.13.1")
- */
+
 public final class GPTImageClient {
 
     private static final URI ENDPOINT =

@@ -2,38 +2,34 @@ package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
-import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CraftingScreen;
-import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.Slot;
 
-import java.util.Optional;
+import java.util.List;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION = new ResourceLocation("textures/gui/container/crafting_table.png");
-    private boolean widthTooNarrow;
-
+    private Button button;
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
     }
 
     protected void init() {
         super.init();
-        this.widthTooNarrow = this.width < 379;
         this.titleLabelX = 29;
+        //this.button=addRenderableWidget(new Button(this.leftPos,this.topPos,this.leftPos+50,this.topPos+30,
+        //        Component.literal("hi"),this::btnPress));
+    }
+
+    public void btnPress(Button button){
+        System.out.println("hi");
     }
 
     public void containerTick() {
@@ -44,6 +40,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.renderBackground(p_98479_);
         super.render(p_98479_, p_98480_, p_98481_, p_98482_);
         this.renderTooltip(p_98479_, p_98480_, p_98481_);
+        //this.font.draw(p_98479_, Component.literal("hi"), (float)this.leftPos, (float)(this.topPos+40), 4210752);
+
     }
 
     protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
