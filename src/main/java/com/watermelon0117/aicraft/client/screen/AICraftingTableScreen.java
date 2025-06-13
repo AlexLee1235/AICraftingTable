@@ -2,9 +2,12 @@ package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.GPTItemGenerator;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -12,11 +15,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 
+import java.io.IOException;
 import java.util.List;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
-    private static final ResourceLocation CRAFTING_TABLE_LOCATION = new ResourceLocation("textures/gui/container/crafting_table.png");
+    private static final ResourceLocation CRAFTING_TABLE_LOCATION = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table.png");
     private Button button;
+    private String test="hi";
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
     }
@@ -24,12 +29,21 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void init() {
         super.init();
         this.titleLabelX = 29;
-        //this.button=addRenderableWidget(new Button(this.leftPos,this.topPos,this.leftPos+50,this.topPos+30,
-        //        Component.literal("hi"),this::btnPress));
+        this.button=addRenderableWidget(new Button(leftPos+65,topPos+37,15,11,
+                Component.literal("hi"),this::btnPress));
     }
 
     public void btnPress(Button button){
         System.out.println("hi");
+        test="bye";
+        /*GPTItemGenerator generator=new GPTItemGenerator();
+        try {
+            generator.generate(new String[]{"Iron Ingot", "Iron Ingot", "Iron Ingot",
+                    "Iron Ingot", "Stick", "Iron Ingot",
+                    "empty", "Stick", "empty"});
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }*/
     }
 
     public void containerTick() {
@@ -40,7 +54,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.renderBackground(p_98479_);
         super.render(p_98479_, p_98480_, p_98481_, p_98482_);
         this.renderTooltip(p_98479_, p_98480_, p_98481_);
-        //this.font.draw(p_98479_, Component.literal("hi"), (float)this.leftPos, (float)(this.topPos+40), 4210752);
+        this.font.draw(p_98479_, Component.literal(test), (float)this.leftPos, (float)(this.topPos+40), 4210752);
 
     }
 

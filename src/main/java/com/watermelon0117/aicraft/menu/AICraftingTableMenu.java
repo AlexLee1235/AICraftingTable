@@ -34,6 +34,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     private final ResultContainer resultSlots = new ResultContainer();
     private final ContainerLevelAccess access;
     private final Player player;
+    private final AICraftingTableBlockEntity blockEntity;
     //Client Constructor
     public AICraftingTableMenu(int id, Inventory inventory, FriendlyByteBuf buf){
         this(id, inventory, inventory.player.level.getBlockEntity(buf.readBlockPos()));
@@ -42,18 +43,18 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     public AICraftingTableMenu(int id, Inventory inventory, BlockEntity blockEntity){
         super(MenuInit.MAIN_MENU.get(), id);
         if(blockEntity instanceof AICraftingTableBlockEntity be){
-            //this.blockEntity=be;
+            this.blockEntity=be;
         }else {
             throw new IllegalStateException("AICraftingTableMenu be");
         }
 
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
         this.player = inventory.player;
-        this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 124, 35));
+        this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 146, 35));
 
         for(int i = 0; i < 3; ++i) {
             for(int j = 0; j < 3; ++j) {
-                this.addSlot(new Slot(this.craftSlots, j + i * 3, 30 + j * 18, 17 + i * 18));
+                this.addSlot(new Slot(this.craftSlots, j + i * 3, 9 + j * 18, 17 + i * 18));
             }
         }
 
@@ -87,9 +88,9 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     }
 
     public void slotsChanged(Container p_39366_) {
-        this.access.execute((p_39386_, p_39387_) -> {
-            slotChangedCraftingGrid(this, p_39386_, this.player, this.craftSlots, this.resultSlots);
-        });
+        //this.access.execute((p_39386_, p_39387_) -> {
+        //    slotChangedCraftingGrid(this, p_39386_, this.player, this.craftSlots, this.resultSlots);
+        //});
     }
 
     public void removed(Player p_39389_) {
