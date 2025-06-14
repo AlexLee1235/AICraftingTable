@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class GPTItemGenerator {
     private static String inst1="### Goal  \n" +
@@ -43,7 +44,7 @@ public class GPTItemGenerator {
                 .create();
     }
 
-    public String[] generate(String[] input) throws IOException, InterruptedException {
+    public CompletableFuture<String[]> generate(String[] input) throws IOException, InterruptedException {
         StringBuilder prompt = new StringBuilder(inst1);
         for (int i = 0; i < 9; i++) {
             if (!input[i].contentEquals("empty"))
@@ -51,13 +52,13 @@ public class GPTItemGenerator {
         }
         prompt.append(inst2);
         //System.out.println(prompt);
-        String rawResult = client.chat(prompt.toString());
-        //System.out.println(rawResult);
-        ItemResult result = gson.fromJson(rawResult, ItemResult.class);
-        //System.out.println(result.reasoning);
-        return new String[]{result.items.get(0).name, result.items.get(1).name, result.items.get(2).name};
+        return client.chat(prompt.toString()).thenCompose(rawResult->{
+            //System.out.println(rawResult);
+            ItemResult result = gson.fromJson(rawResult, ItemResult.class);
+            //System.out.println(result.reasoning);
+            return CompletableFuture.completedFuture(new String[]{result.items.get(0).name, result.items.get(1).name, result.items.get(2).name});
+        });
     }
-
     private static final class ItemResult{
         String reasoning;
         List<MyItems> items;

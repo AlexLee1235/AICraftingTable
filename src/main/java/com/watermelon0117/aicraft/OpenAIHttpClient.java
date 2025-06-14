@@ -9,7 +9,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class OpenAIHttpClient {
 
@@ -48,33 +50,37 @@ public class OpenAIHttpClient {
                 .create();
     }
 
-    public String chat(String message) throws IOException, InterruptedException {
+    public CompletableFuture<String> chat(String message) throws IOException, InterruptedException {
         ArrayList<Message> list=new ArrayList<>();
         list.add(new OpenAIHttpClient.Message("system", systemMessage));
         list.add(new OpenAIHttpClient.Message("user", message));
         return chat(list);
     }
-    private String chat(List<Message> messages) throws IOException, InterruptedException {
+    private CompletableFuture<String> chat(List<Message> messages) {
         ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages, response_format);
-        String bodyJson = gson.toJson(requestBody);
 
-        HttpRequest request = HttpRequest.newBuilder()
+        String json  = gson.toJson(requestBody);
+
+        HttpRequest req = HttpRequest.newBuilder()
                 .uri(CHAT_URI)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
                 .timeout(Duration.ofSeconds(30))
-                .POST(HttpRequest.BodyPublishers.ofString(bodyJson))
+                .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
-        HttpResponse<String> resp =
-                http.send(request, HttpResponse.BodyHandlers.ofString());
+        return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                .thenCompose(resp -> {
+                    if (resp.statusCode() != 200) {
+                        return CompletableFuture.failedFuture(
+                                new RuntimeException("OpenAI error " +
+                                        resp.statusCode() + ": " +
+                                        resp.body()));
+                    }
 
-        if (resp.statusCode() != 200) {
-            throw new RuntimeException("OpenAI error " + resp.statusCode() + ": " + resp.body());
-        }
-
-        ChatResponse chat = gson.fromJson(resp.body(), ChatResponse.class);
-        return chat.choices.get(0).message.content;
+                    ChatResponse chat = gson.fromJson(resp.body(), ChatResponse.class);
+                    return CompletableFuture.completedFuture(chat.choices.get(0).message.content);
+                });
     }
 
     /* ----------  Request / Response POJOs ---------- */

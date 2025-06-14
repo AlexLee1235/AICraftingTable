@@ -19,9 +19,11 @@ import java.io.IOException;
 import java.util.List;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
-    private static final ResourceLocation CRAFTING_TABLE_LOCATION = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table.png");
-    private Button button;
+    private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
+    private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
+    private Button button, optBtn1, optBtn2, optBtn3;
     private String test="hi";
+    private int stage=1;
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
     }
@@ -29,21 +31,46 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void init() {
         super.init();
         this.titleLabelX = 29;
-        this.button=addRenderableWidget(new Button(leftPos+65,topPos+37,15,11,
+        this.button=addWidget(new Button(leftPos+69,topPos+37,22,14,
                 Component.literal("hi"),this::btnPress));
+        this.optBtn1=addRenderableWidget(new Button(leftPos+98,topPos+16,70,17,
+                Component.literal("hi"),this::btn1Press));
+        this.optBtn2=addRenderableWidget(new Button(leftPos+98,topPos+33,70,17,
+                Component.literal("hi"),this::btn2Press));
+        this.optBtn3=addRenderableWidget(new Button(leftPos+98,topPos+50,70,17,
+                Component.literal("hi"),this::btn3Press));
     }
-
-    public void btnPress(Button button){
+    private void selectItem(int i){
+        setStage2();
+    }
+    public void btn1Press(Button button){selectItem(0);}
+    public void btn2Press(Button button){selectItem(1);}
+    public void btn3Press(Button button){selectItem(2);}
+    public void btnPress(Button button) {
         System.out.println("hi");
-        test="bye";
-        /*GPTItemGenerator generator=new GPTItemGenerator();
+        optBtn1.setMessage(Component.literal("Generating"));
+        //this.optBtn1.visible=false;
+        GPTItemGenerator generator = new GPTItemGenerator();
         try {
             generator.generate(new String[]{"Iron Ingot", "Iron Ingot", "Iron Ingot",
                     "Iron Ingot", "Stick", "Iron Ingot",
-                    "empty", "Stick", "empty"});
+                    "empty", "Stick", "empty"}).thenAccept(results -> {
+                optBtn1.setMessage(Component.literal(results[0]));
+                optBtn2.setMessage(Component.literal(results[1]));
+                optBtn3.setMessage(Component.literal(results[2]));
+                setStage2();
+            });
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }*/
+            e.printStackTrace();
+            test = "Error";
+        }
+    }
+    private void setStage2(){
+        stage=2;
+        this.button.visible=false;
+        this.optBtn1.visible=false;
+        this.optBtn2.visible=false;
+        this.optBtn3.visible=false;
     }
 
     public void containerTick() {
@@ -54,14 +81,18 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.renderBackground(p_98479_);
         super.render(p_98479_, p_98480_, p_98481_, p_98482_);
         this.renderTooltip(p_98479_, p_98480_, p_98481_);
-        this.font.draw(p_98479_, Component.literal(test), (float)this.leftPos, (float)(this.topPos+40), 4210752);
+        //if(stage==1)
+        //    this.font.draw(p_98479_, Component.literal(test), (float)this.leftPos+102, (float)this.topPos+20, 4210752);
 
     }
 
     protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION);
+        if(stage==1)
+            RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_1);
+        else if (stage==2)
+            RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_2);
         int i = this.leftPos;
         int j = (this.height - this.imageHeight) / 2;
         this.blit(p_98474_, i, j, 0, 0, this.imageWidth, this.imageHeight);

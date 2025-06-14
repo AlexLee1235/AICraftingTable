@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.BlockInit;
+import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.init.MenuInit;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
@@ -67,30 +68,6 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         for(int l = 0; l < 9; ++l) {
             this.addSlot(new Slot(inventory, l, 8 + l * 18, 142));
         }
-    }
-
-    protected static void slotChangedCraftingGrid(AbstractContainerMenu p_150547_, Level p_150548_, Player p_150549_, CraftingContainer p_150550_, ResultContainer p_150551_) {
-        if (!p_150548_.isClientSide) {
-            ServerPlayer serverplayer = (ServerPlayer)p_150549_;
-            ItemStack itemstack = ItemStack.EMPTY;
-            Optional<CraftingRecipe> optional = p_150548_.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, p_150550_, p_150548_);
-            if (optional.isPresent()) {
-                CraftingRecipe craftingrecipe = optional.get();
-                if (p_150551_.setRecipeUsed(p_150548_, serverplayer, craftingrecipe)) {
-                    itemstack = craftingrecipe.assemble(p_150550_);
-                }
-            }
-
-            p_150551_.setItem(0, itemstack);
-            p_150547_.setRemoteSlot(0, itemstack);
-            serverplayer.connection.send(new ClientboundContainerSetSlotPacket(p_150547_.containerId, p_150547_.incrementStateId(), 0, itemstack));
-        }
-    }
-
-    public void slotsChanged(Container p_39366_) {
-        //this.access.execute((p_39386_, p_39387_) -> {
-        //    slotChangedCraftingGrid(this, p_39386_, this.player, this.craftSlots, this.resultSlots);
-        //});
     }
 
     public void removed(Player p_39389_) {
