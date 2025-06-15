@@ -8,6 +8,7 @@ import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
+import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private int stage=1;
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
+        FurnaceScreen
     }
 
     protected void init() {
