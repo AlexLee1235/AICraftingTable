@@ -27,7 +27,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private int stage=1;
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
-        FurnaceScreen
     }
 
     protected void init() {
@@ -116,7 +115,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void slotClicked(Slot p_98469_, int p_98470_, int p_98471_, ClickType p_98472_) {
         super.slotClicked(p_98469_, p_98470_, p_98471_, p_98472_);
     }
-
 
 
     public void removed() {
