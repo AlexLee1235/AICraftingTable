@@ -15,10 +15,9 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.TickingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -27,9 +26,8 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvider {
+    public int progress=0;
     private final ItemStackHandler inventory = new ItemStackHandler(10) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -48,12 +46,14 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
         super.load(nbt);
         var tag = nbt.getCompound(AICraftingTable.MODID);
         this.inventory.deserializeNBT(tag.getCompound("Inventory"));
+        this.progress=tag.getInt("Progress");
     }
     @Override
     protected void saveAdditional(CompoundTag nbt) {
         super.saveAdditional(nbt);
         var tag=new CompoundTag();
         tag.put("Inventory", this.inventory.serializeNBT());
+        tag.putInt("Progress", this.progress);
         nbt.put(AICraftingTable.MODID, tag);
     }
     @Override
@@ -67,6 +67,7 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
+
     @Override
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
         super.onDataPacket(net, pkt);
@@ -103,5 +104,11 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
             ret.add(inventory.getStackInSlot(i));
         }
         return ret;
+    }
+    public void tick() {
+        if (level != null && !level.isClientSide) {
+            if (this.progress > 0)
+                this.progress -= 1;
+        }
     }
 }

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.GPTItemGenerator;
+import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -15,6 +16,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.items.SlotItemHandler;
 
 import java.io.IOException;
 import java.util.List;
@@ -72,6 +75,9 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.optBtn1.visible=false;
         this.optBtn2.visible=false;
         this.optBtn3.visible=false;
+        this.menu.blockEntity.getInventory().setStackInSlot(1,new ItemStack(ItemInit.MAIN_ITEM.get()));
+        this.menu.slotsChanged((SlotItemHandler) null);
+
     }
 
     public void containerTick() {
