@@ -5,8 +5,10 @@ import com.watermelon0117.aicraft.ResultSlotItemHandler;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.MenuInit;
 import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -103,13 +105,9 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, itemstack));
         }
     }
-    public void setItemStackInResultSlot(ItemStack itemstack){
-        if (!this.blockEntity.getLevel().isClientSide) {
-            ServerPlayer serverplayer = (ServerPlayer) player;
-            this.blockEntity.getInventory().setStackInSlot(0, itemstack);
-            this.setRemoteSlot(0, itemstack);
-            serverplayer.connection.send(new ClientboundContainerSetSlotPacket(this.containerId, this.incrementStateId(), 0, itemstack));
-        }
+    public void setItemStackInResultSlot(ItemStack itemstack) {
+        this.blockEntity.getInventory().setStackInSlot(1,itemstack);
+        this.blockEntity.setChanged();
     }
 
     public void slotsChanged(SlotItemHandler slotItemHandler) {

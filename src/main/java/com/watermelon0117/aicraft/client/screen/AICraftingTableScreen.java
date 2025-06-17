@@ -6,6 +6,8 @@ import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.GPTItemGenerator;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
+import com.watermelon0117.aicraft.network.PacketHandler;
+import com.watermelon0117.aicraft.network.SGUISelectItemButtonPressedPacket;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
@@ -78,7 +80,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.optBtn3.visible=false;
 
         ItemStack itemStack=new ItemStack(ItemInit.MAIN_ITEM.get());
-        menu.setItemStackInResultSlot(itemStack);
+        PacketHandler.sendToServer(new SGUISelectItemButtonPressedPacket(this.menu.blockEntity.getBlockPos(),"Hi"));
     }
 
     public void containerTick() {
