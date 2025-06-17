@@ -12,6 +12,7 @@ import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
@@ -75,9 +76,9 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.optBtn1.visible=false;
         this.optBtn2.visible=false;
         this.optBtn3.visible=false;
-        this.menu.blockEntity.getInventory().setStackInSlot(1,new ItemStack(ItemInit.MAIN_ITEM.get()));
-        this.menu.slotsChanged((SlotItemHandler) null);
 
+        ItemStack itemStack=new ItemStack(ItemInit.MAIN_ITEM.get());
+        menu.setItemStackInResultSlot(itemStack);
     }
 
     public void containerTick() {
