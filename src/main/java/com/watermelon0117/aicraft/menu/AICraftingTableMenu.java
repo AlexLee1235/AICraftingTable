@@ -34,6 +34,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
     private final Player player;
     public final AICraftingTableBlockEntity blockEntity;
+    public boolean hasCraftResult;
     //Client Constructor
     public AICraftingTableMenu(int id, Inventory inventory, FriendlyByteBuf buf){
         this(id, inventory, inventory.player.level.getBlockEntity(buf.readBlockPos()));
@@ -69,6 +70,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         for (int l = 0; l < 9; ++l) {
             this.addSlot(new Slot(inventory, l, 8 + l * 18, 142));
         }
+
     }
 
     public void removed(Player p_39389_) {
@@ -110,7 +112,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         this.blockEntity.setChanged();
     }
 
-    public void slotsChanged(SlotItemHandler slotItemHandler) {
+    public void slotsChanged() {
         this.access.execute((level, pos) -> {
             slotChangedCraftingGrid(this, level, this.player);
         });

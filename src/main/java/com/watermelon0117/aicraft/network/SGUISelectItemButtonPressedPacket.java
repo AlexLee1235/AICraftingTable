@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -31,7 +32,9 @@ public class SGUISelectItemButtonPressedPacket {
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity=player.level.getBlockEntity(pos);
             if(blockEntity instanceof AICraftingTableBlockEntity be){
-                be.getInventory().setStackInSlot(0, new ItemStack(ItemInit.MAIN_ITEM.get()));
+                be.setProgress(1);
+                player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+                System.out.println("progress");
             }
         }
     }

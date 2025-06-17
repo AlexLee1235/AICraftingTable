@@ -16,6 +16,6 @@ public class CraftingSlotItemHandler extends SlotItemHandler {
     @Override
     public void set(@NotNull ItemStack stack) {
         super.set(stack);
-        this.menu.slotsChanged(this);
+        this.menu.slotsChanged();
     }
 }

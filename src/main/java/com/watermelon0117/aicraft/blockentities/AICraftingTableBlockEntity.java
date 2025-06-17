@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.blockentities;
 
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.init.BlockEntityInit;
+import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.TickingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvider {
-    public int progress=0;
+    private int progress=0;
     private final ItemStackHandler inventory = new ItemStackHandler(10) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -107,8 +109,20 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
     public void tick() {
         if (level != null && !level.isClientSide) {
-            if (this.progress > 0)
-                this.progress -= 1;
+            if (this.progress != 0 && this.progress<580)
+                this.progress += 1;
+            if(this.progress==580){
+                //inventory.setStackInSlot(0, new ItemStack(ItemInit.MAIN_ITEM.get()));
+            }
+            level.sendBlockUpdated(getBlockPos(), level.getBlockState(getBlockPos()), level.getBlockState(getBlockPos()), Block.UPDATE_ALL);
         }
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+    public void setProgress(int v){
+        progress=v;
+        level.sendBlockUpdated(getBlockPos(), level.getBlockState(getBlockPos()), level.getBlockState(getBlockPos()), Block.UPDATE_ALL);
     }
 }

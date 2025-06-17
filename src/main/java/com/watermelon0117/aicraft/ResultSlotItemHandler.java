@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 public class ResultSlotItemHandler extends SlotItemHandler {
     private final ItemStackHandler craftSlots;
@@ -80,6 +81,13 @@ public class ResultSlotItemHandler extends SlotItemHandler {
                 }
             }
         }
-        this.menu.slotsChanged(this);
+        this.menu.blockEntity.setProgress(0);
+        this.menu.slotsChanged();
+    }
+
+    @Override
+    public void set(@NotNull ItemStack stack) {
+        super.set(stack);
+        menu.hasCraftResult=!stack.isEmpty();
     }
 }

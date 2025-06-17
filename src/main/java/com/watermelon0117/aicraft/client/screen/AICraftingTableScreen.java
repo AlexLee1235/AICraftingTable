@@ -4,26 +4,19 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.GPTItemGenerator;
-import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SGUISelectItemButtonPressedPacket;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
-import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.SlotItemHandler;
 
 import java.io.IOException;
-import java.util.List;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
@@ -46,13 +39,23 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                 Component.literal("hi"),this::btn2Press));
         this.optBtn3=addRenderableWidget(new Button(leftPos+98,topPos+50,70,17,
                 Component.literal("hi"),this::btn3Press));
+
+        if(menu.hasCraftResult)
+            setStage2();
+        else {
+            if(menu.blockEntity.getProgress()>0)
+                setStage2();
+            else
+                setStage1();
+        }
     }
-    private void selectItem(int i){
+    private void selectItem(String s){
+        PacketHandler.sendToServer(new SGUISelectItemButtonPressedPacket(this.menu.blockEntity.getBlockPos(), s));
         setStage2();
     }
-    public void btn1Press(Button button){selectItem(0);}
-    public void btn2Press(Button button){selectItem(1);}
-    public void btn3Press(Button button){selectItem(2);}
+    public void btn1Press(Button button){selectItem(button.getMessage().getString());}
+    public void btn2Press(Button button){selectItem(button.getMessage().getString());}
+    public void btn3Press(Button button){selectItem(button.getMessage().getString());}
     public void btnPress(Button button) {
         System.out.println("hi");
         optBtn1.setMessage(Component.literal("Generating"));
@@ -73,18 +76,33 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }
     }
     private void setStage2(){
+        System.out.println("setStage2");
         stage=2;
         this.button.visible=false;
         this.optBtn1.visible=false;
         this.optBtn2.visible=false;
         this.optBtn3.visible=false;
-
-        ItemStack itemStack=new ItemStack(ItemInit.MAIN_ITEM.get());
-        PacketHandler.sendToServer(new SGUISelectItemButtonPressedPacket(this.menu.blockEntity.getBlockPos(),"Hi"));
+    }
+    private void setStage1(){
+        System.out.println("setStage1");
+        stage=1;
+        this.button.visible=true;
+        this.optBtn1.visible=true;
+        this.optBtn2.visible=true;
+        this.optBtn3.visible=true;
     }
 
     public void containerTick() {
         super.containerTick();
+        System.out.println(menu.hasCraftResult);
+        if(menu.hasCraftResult)
+            setStage2();
+        else {
+            if(menu.blockEntity.getProgress()>0)
+                setStage2();
+            else
+                setStage1();
+        }
     }
 
     public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
@@ -106,6 +124,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         int i = this.leftPos;
         int j = (this.height - this.imageHeight) / 2;
         this.blit(p_98474_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        if (stage==2)
+            this.blit(p_98474_, i+66,j+34,0,167,this.menu.blockEntity.getProgress()/10,16);
     }
 
     protected boolean isHovering(int p_98462_, int p_98463_, int p_98464_, int p_98465_, double p_98466_, double p_98467_) {
@@ -124,7 +144,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void slotClicked(Slot p_98469_, int p_98470_, int p_98471_, ClickType p_98472_) {
         super.slotClicked(p_98469_, p_98470_, p_98471_, p_98472_);
     }
-
 
     public void removed() {
         super.removed();
