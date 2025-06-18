@@ -139,7 +139,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
 
             int grid = this.image.getHeight();
             float h = 1.0F / grid;
-            float th2 = 1.0F / grid / 2.0F;
+            float th2 = Math.max(1.0F / grid / 2.0F, 1.0F / 32.0F / 2.0F);
             //RenderSystem.disableCull();
             vertex(vc, mat, 0, 0, 0.5f + th2, 0, 0, uv2);
             vertex(vc, mat, 1, 0, 0.5f + th2, 1, 0, uv2);

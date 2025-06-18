@@ -35,8 +35,15 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void init() {
         super.init();
         this.titleLabelX = 29;
-        this.button=addWidget(new Button(leftPos+69,topPos+37,22,14,
-                Component.literal("Gen"),this::btnPress));
+        this.button=addRenderableWidget(new Button(leftPos+67,topPos+34,26,17,
+                Component.literal("Gen"),this::btnPress){
+            @Override
+            public void render(PoseStack p_93657_, int p_93658_, int p_93659_, float p_93660_) {
+                if (this.visible) {
+                    this.isHovered = p_93658_ >= this.x && p_93659_ >= this.y && p_93658_ < this.x + this.width && p_93659_ < this.y + this.height;
+                }
+            }
+        });
         this.optBtn1=addRenderableWidget(new Button(leftPos+98,topPos+16,70,17,
                 Component.literal("None"),this::btn1Press));
         this.optBtn2=addRenderableWidget(new Button(leftPos+98,topPos+33,70,17,
@@ -154,6 +161,13 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.blit(p_98474_, i, j, 0, 0, this.imageWidth, this.imageHeight);
         if (stage==2)
             this.blit(p_98474_, i+66,j+34,0,167,this.menu.blockEntity.getProgress()/10,16);
+        if(stage==1){
+            if(this.generatingText){
+                this.blit(p_98474_, i+67,j+34,0,185,27,18);
+            }else if(this.button.isHoveredOrFocused()){
+                this.blit(p_98474_, i+67,j+34,0,203,27,18);
+            }
+        }
     }
 
     protected boolean isHovering(int p_98462_, int p_98463_, int p_98464_, int p_98465_, double p_98466_, double p_98467_) {
