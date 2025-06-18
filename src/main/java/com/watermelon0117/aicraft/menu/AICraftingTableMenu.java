@@ -107,13 +107,21 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, itemstack));
         }
     }
-    public void setItemStackInResultSlot(ItemStack itemstack) {
-        this.blockEntity.getInventory().setStackInSlot(1,itemstack);
-        this.blockEntity.setChanged();
+    private void handleInterrupt(AbstractContainerMenu menu, Level level, Player player){
+        if (!level.isClientSide) {
+            ServerPlayer serverplayer = (ServerPlayer) player;
+            if (this.blockEntity.getProgress() > 0) {
+                this.blockEntity.setProgress(0);
+                this.blockEntity.getInventory().setStackInSlot(0, ItemStack.EMPTY);
+                menu.setRemoteSlot(0, ItemStack.EMPTY);
+                serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, ItemStack.EMPTY));
+            }
+        }
     }
 
     public void slotsChanged() {
         this.access.execute((level, pos) -> {
+            handleInterrupt(this, level, this.player);
             slotChangedCraftingGrid(this, level, this.player);
         });
     }

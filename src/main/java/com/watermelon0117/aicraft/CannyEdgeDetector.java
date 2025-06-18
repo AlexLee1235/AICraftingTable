@@ -70,31 +70,21 @@ public class CannyEdgeDetector {
     public BufferedImage process(BufferedImage sourceImage) {
         width = sourceImage.getWidth();
         height = sourceImage.getHeight();
-
-        // Step 1: Convert to grayscale
-        grayscaleImage = toGrayscale(sourceImage);
-
-        // --- MODIFIED: Conditionally apply Gaussian blur ---
-        int[] imageForGradients;
-        boolean applyGaussianBlur=false;
-        if (applyGaussianBlur) {
-            System.out.println("Applying Gaussian blur...");
-            imageForGradients = applyGaussianFilter(grayscaleImage);
-        } else {
-            System.out.println("Skipping Gaussian blur...");
+        int[][] finalEdges=new int[3][];
+        for (int channel = 0; channel < 2; channel++) {
+            // Step 1: Convert to grayscale
+            grayscaleImage = toGrayscale(sourceImage);
+            // --- MODIFIED: Conditionally apply Gaussian blur ---
+            int[] imageForGradients;
             imageForGradients = grayscaleImage;
+            // Step 2: Calculate gradients using the (potentially blurred) image
+            calculateGradients(imageForGradients);
+            // Step 3: Perform non-maximum suppression
+            int[] nmsImage = nonMaximumSuppression();
+            // Step 4: Perform double thresholding and hysteresis
+            finalEdges[channel] = hysteresis(nmsImage);
+            // Step 5: Create and return the final output image
         }
-
-        // Step 2: Calculate gradients using the (potentially blurred) image
-        calculateGradients(imageForGradients);
-
-        // Step 3: Perform non-maximum suppression
-        int[] nmsImage = nonMaximumSuppression();
-
-        // Step 4: Perform double thresholding and hysteresis
-        int[] finalEdges = hysteresis(nmsImage);
-
-        // Step 5: Create and return the final output image
         return createOutputImage(finalEdges);
     }
 
@@ -337,24 +327,17 @@ public class CannyEdgeDetector {
      * @param edgeData The 1D int array of final edge data.
      * @return A new BufferedImage with black background and white edges.
      */
-    private BufferedImage createOutputImage(int[] edgeData) {
-        // Create the output image with a 1-bit color model.
+    private BufferedImage createOutputImage(int[][] edgeData) {
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_BINARY);
-
-        // Iterate through the edge data and set pixels one by one.
-        // The setRGB method will correctly handle converting the color
-        // to a single bit and placing it in the packed data buffer.
-        for (int i = 0; i < edgeData.length; i++) {
-            int x = i % width;
-            int y = i / width;
-
-            // Set the pixel to white if it's an edge, otherwise it will remain black.
-            // setRGB expects a color in ARGB format. 0xFFFFFFFF is opaque white.
-            // The image type (TYPE_BYTE_BINARY) will convert this to a '1' bit.
-            if (edgeData[i] == STRONG_EDGE) {
-                output.setRGB(x, y, 0xFFFFFFFF); // White
+        for (int c = 0; c < 2; c++) {
+            for (int i = 0; i < edgeData[c].length; i++) {
+                int x = i % width;
+                int y = i / width;
+                if (edgeData[c][i] == STRONG_EDGE) {
+                    output.setRGB(x, y, 0xFFFFFFFF); // White
+                }
+                // No 'else' is needed because the image is initialized to all black (0 bits).
             }
-            // No 'else' is needed because the image is initialized to all black (0 bits).
         }
         return output;
     }

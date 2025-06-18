@@ -43,7 +43,9 @@ public class GPTItemGenerator {
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
     }
-
+    public CompletableFuture<String[]> generate(Recipe recipe) throws IOException, InterruptedException{
+        return generate(recipe.getDisplayNames());
+    }
     public CompletableFuture<String[]> generate(String[] input) throws IOException, InterruptedException {
         StringBuilder prompt = new StringBuilder(inst1);
         for (int i = 0; i < 9; i++) {

@@ -36,7 +36,10 @@ public final class GPTImageClient {
 
     /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
 
-
+    public CompletableFuture<byte[]> generateItem(String name){
+        return generateAsync("A 16x16 pixel art depiction of a "+name+" with clearly separated background color",
+                "1024x1024", "opaque", "low", "medium");
+    }
     public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality) {
         Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality);
         String json  = gson.toJson(body);

@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft;
 
+import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
@@ -58,26 +59,33 @@ public class ResultSlotItemHandler extends SlotItemHandler {
         return nonnulllist;
     }
     public void onTake(Player p_150638_, ItemStack p_150639_) {
-        this.checkTakeAchievements(p_150639_);
-        net.minecraftforge.common.ForgeHooks.setCraftingPlayer(p_150638_);
-        NonNullList<ItemStack> nonnulllist=callRecipeManager();
-        net.minecraftforge.common.ForgeHooks.setCraftingPlayer(null);
-        for(int i = 0; i < nonnulllist.size(); ++i) {
-            ItemStack itemstack = this.craftSlots.getStackInSlot(i+1);
-            ItemStack itemstack1 = nonnulllist.get(i);
-            if (!itemstack.isEmpty()) {
-                this.craftSlots.getStackInSlot(i+1).shrink(1);
-                itemstack = this.craftSlots.getStackInSlot(i+1);
+        if(p_150639_.is(ItemInit.MAIN_ITEM.get())){
+            for (int i = 0; i < 9; i++) {
+                if(!this.craftSlots.getStackInSlot(i + 1).isEmpty())
+                    this.craftSlots.getStackInSlot(i + 1).shrink(1);
             }
+        }else {
+            this.checkTakeAchievements(p_150639_);
+            net.minecraftforge.common.ForgeHooks.setCraftingPlayer(p_150638_);
+            NonNullList<ItemStack> nonnulllist = callRecipeManager();
+            net.minecraftforge.common.ForgeHooks.setCraftingPlayer(null);
+            for (int i = 0; i < nonnulllist.size(); ++i) {
+                ItemStack itemstack = this.craftSlots.getStackInSlot(i + 1);
+                ItemStack itemstack1 = nonnulllist.get(i);
+                if (!itemstack.isEmpty()) {
+                    this.craftSlots.getStackInSlot(i + 1).shrink(1);
+                    itemstack = this.craftSlots.getStackInSlot(i + 1);
+                }
 
-            if (!itemstack1.isEmpty()) {
-                if (itemstack.isEmpty()) {
-                    this.craftSlots.setStackInSlot(i+1, itemstack1);
-                } else if (ItemStack.isSame(itemstack, itemstack1) && ItemStack.tagMatches(itemstack, itemstack1)) {
-                    itemstack1.grow(itemstack.getCount());
-                    this.craftSlots.setStackInSlot(i+1, itemstack1);
-                } else if (!this.player.getInventory().add(itemstack1)) {
-                    this.player.drop(itemstack1, false);
+                if (!itemstack1.isEmpty()) {
+                    if (itemstack.isEmpty()) {
+                        this.craftSlots.setStackInSlot(i + 1, itemstack1);
+                    } else if (ItemStack.isSame(itemstack, itemstack1) && ItemStack.tagMatches(itemstack, itemstack1)) {
+                        itemstack1.grow(itemstack.getCount());
+                        this.craftSlots.setStackInSlot(i + 1, itemstack1);
+                    } else if (!this.player.getInventory().add(itemstack1)) {
+                        this.player.drop(itemstack1, false);
+                    }
                 }
             }
         }
