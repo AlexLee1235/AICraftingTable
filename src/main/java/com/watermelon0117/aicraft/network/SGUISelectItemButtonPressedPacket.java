@@ -45,12 +45,13 @@ public class SGUISelectItemButtonPressedPacket {
             BlockEntity blockEntity=player.level.getBlockEntity(pos);
             if(blockEntity instanceof AICraftingTableBlockEntity be){
                 be.setProgress(1);
+                be.target=name;
                 player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                 player.sendSystemMessage(Component.literal("Start..."));
                 imgClient.generateItem(name)
                         .thenAccept(bytes -> {
                             try {
-                                if(be.getProgress()!=0) {
+                                if(be.target.contentEquals(name) && be.getProgress() != 0) {
                                     Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
                                     BufferedImage txt = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
                                     ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\" + name + ".png");
@@ -63,7 +64,7 @@ public class SGUISelectItemButtonPressedPacket {
                                     be.setProgress(580);
                                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                                 }else{
-                                    System.out.println("Canceled");
+                                    System.out.println("Canceled, not putting image");
                                 }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);

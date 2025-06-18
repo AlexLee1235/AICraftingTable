@@ -45,6 +45,8 @@ public class AICraftingTable {
                     continue;
                 ItemStack stack = new ItemStack(ItemInit.MAIN_ITEM.get());
                 stack.getOrCreateTag().putString("texture", key);
+                stack.setHoverName(Component.literal(key).withStyle(style -> style.withItalic(false)));
+
                 
                 list.add(1, stack);
             }

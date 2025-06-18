@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvider {
     private int progress=0;
+    public String target="";
     private final ItemStackHandler inventory = new ItemStackHandler(10) {
         @Override
         protected void onContentsChanged(int slot) {
