@@ -1,11 +1,8 @@
 package com.watermelon0117.aicraft.init;
 
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.blocks.AICraftingTableBlock;
-import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.Item;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
