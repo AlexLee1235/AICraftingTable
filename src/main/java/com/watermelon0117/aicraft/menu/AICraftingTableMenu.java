@@ -81,8 +81,53 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         return true;
     }
 
-    public ItemStack quickMoveStack(Player p_39391_, int p_39392_) {
-        return ItemStack.EMPTY;
+    public ItemStack quickMoveStack(Player player, int slotId) {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(slotId);
+        if (slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            if (slotId == 0) {  //shift take result
+                this.access.execute((p_39378_, p_39379_) -> {
+                    itemstack1.getItem().onCraftedBy(itemstack1, p_39378_, player);
+                });
+                if (!this.moveItemStackTo(itemstack1, 10, 46, true)) {
+                    return ItemStack.EMPTY;
+                }
+
+                slot.onQuickCraft(itemstack1, itemstack); //todo
+            } else if (slotId >= 10 && slotId < 46) {  //if click in inventory and hot bar
+                if (!this.moveItemStackTo(itemstack1, 1, 10, false)) {
+                    if (slotId < 37) {  //swap between inventory and hot bar
+                        if (!this.moveItemStackTo(itemstack1, 37, 46, false)) {
+                            return ItemStack.EMPTY;
+                        }
+                    } else if (!this.moveItemStackTo(itemstack1, 10, 37, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+            } else if (!this.moveItemStackTo(itemstack1, 10, 46, false)) {
+                //click in material, if inv full return
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+
+            if (itemstack1.getCount() == itemstack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onTake(player, itemstack1);
+            if (slotId == 0) {
+                player.drop(itemstack1, false);
+            }
+        }
+
+        return itemstack;
     }
     private CraftingContainer getDummyContainer(){
         CraftingContainer craftingContainer = new CraftingContainer(this, 3,3);

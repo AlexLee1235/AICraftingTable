@@ -73,7 +73,7 @@ public class CannyEdgeDetector {
         int[][] finalEdges=new int[3][];
         for (int channel = 0; channel < 2; channel++) {
             // Step 1: Convert to grayscale
-            grayscaleImage = toGrayscale(sourceImage);
+            grayscaleImage = pickChannel(sourceImage, channel);
             // --- MODIFIED: Conditionally apply Gaussian blur ---
             int[] imageForGradients;
             imageForGradients = grayscaleImage;
@@ -111,6 +111,29 @@ public class CannyEdgeDetector {
 
                 // Standard luminance conversion formula (Y' = 0.299R + 0.587G + 0.114B)
                 gray[y * width + x] = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+            }
+        }
+        return gray;
+    }
+    private int[] pickChannel(BufferedImage image, int i) {
+        int[] gray = new int[width * height];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Get pixel color as a single integer (e.g., in ARGB format)
+                int rgb = image.getRGB(x, y);
+
+                // Extract R, G, B components using bitwise operations
+                int r = (rgb >> 16) & 0xFF;
+                int g = (rgb >> 8) & 0xFF;
+                int b = rgb & 0xFF;
+
+                // Standard luminance conversion formula (Y' = 0.299R + 0.587G + 0.114B)
+                if (i == 0)
+                    gray[y * width + x] = r;
+                else if (i == 1)
+                    gray[y * width + x] = g;
+                else if (i == 2)
+                    gray[y * width + x] = b;
             }
         }
         return gray;
