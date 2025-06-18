@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.items;
 import com.watermelon0117.aicraft.*;
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -40,14 +41,14 @@ public class MainItem extends Item {
             } catch (IOException | InterruptedException e) {
                 player.sendSystemMessage(Component.literal(e.getMessage()));
             }*/
-            GPTItemGenerator generator=new GPTItemGenerator();
+            /*GPTItemGenerator generator=new GPTItemGenerator();
             try {
                 generator.generate(new String[]{"Iron Ingot", "Iron Ingot", "Iron Ingot",
                         "Iron Ingot", "Stick", "Iron Ingot",
                         "empty", "Stick", "empty"});
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
-            }
+            }*/
             /*player.sendSystemMessage(Component.literal("Start..."));
             imgClient.generateAsync(
                             "A 16x16 pixel art depiction of a blueberry with clearly separated background color",
@@ -75,6 +76,16 @@ public class MainItem extends Item {
         }
         ItemStack itemStack=player.getItemInHand(hand);
         return InteractionResultHolder.success(itemStack);
+    }
+
+    @Override
+    public Component getName(ItemStack itemStack) {
+        CompoundTag tag=itemStack.getTag();
+        String id="Main Item";
+        if(tag!=null){
+            id=tag.getString("texture");
+        }
+        return Component.literal(id);
     }
 
     @Override

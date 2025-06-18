@@ -59,7 +59,7 @@ public class SGUISelectItemButtonPressedPacket {
                                     MainItem.renderer.loadNewFile(name);
                                     ItemStack itemStack = new ItemStack(ItemInit.MAIN_ITEM.get());
                                     itemStack.getOrCreateTag().putString("texture", name);
-                                    itemStack.setHoverName(Component.literal(name).withStyle(style -> style.withItalic(false)));
+                                    //itemStack.setHoverName(Component.literal(name).withStyle(style -> style.withItalic(false)));
                                     be.getInventory().setStackInSlot(0, itemStack);
                                     be.setProgress(580);
                                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);

@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
@@ -98,7 +99,9 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         instance.draw(poseStack, buffers, false, light);
         poseStack.popPose();
     }
-
+    private static void vertex(VertexConsumer consumer, Matrix4f matrix4f, float x, float y,float z, float u, float v, int uv2){
+        consumer.vertex(matrix4f, x,y,z).color(255, 255, 255, 255).uv(u,v).uv2(uv2).endVertex();
+    }
     @OnlyIn(Dist.CLIENT)
     class DynamicItemInstance implements AutoCloseable {
         private BufferedImage image;
@@ -110,40 +113,72 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         }
         private void updateTexture() {
             if(this.texture==null) {
-                this.texture = new DynamicTexture(128, 128, true);
+                this.texture = new DynamicTexture(image.getWidth(), image.getWidth(), true);
                 ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
                 this.renderType = RenderType.text(resourcelocation);
             }
-            for(int i = 0; i < 128; ++i) {
-                for(int j = 0; j < 128; ++j) {
-                    int y=image.getHeight() - 1 - j * image.getHeight() / 128;
-                    int color = this.image.getRGB(i * image.getWidth() / 128, y);
+            for(int i = 0; i < image.getWidth(); ++i) {
+                for(int j = 0; j < image.getWidth(); ++j) {
+                    int color = this.image.getRGB(i, j);
                     int red = (color & 0x00ff0000) >> 16;
                     int blue = (color & 0x000000ff) << 16;
                     color = (color & 0xff00ff00) | red | blue;
-                    this.texture.getPixels().setPixelRGBA(i, j, color);
+                    this.texture.getPixels().setPixelRGBA(i, image.getWidth()-j-1, color);
                 }
             }
             this.texture.upload();
         }
-        void draw(PoseStack p_93292_, MultiBufferSource p_93293_, boolean p_93294_, int p_93295_) {
+        void draw(PoseStack p_93292_, MultiBufferSource p_93293_, boolean p_93294_, int uv2) {
             if (this.requiresUpload) {
                 this.updateTexture();
                 this.requiresUpload = false;
             }
             p_93292_.pushPose();
-            Matrix4f matrix4f = p_93292_.last().pose();
-            VertexConsumer vertexconsumer = p_93293_.getBuffer(this.renderType);
+            Matrix4f mat = p_93292_.last().pose();
+            VertexConsumer vc = p_93293_.getBuffer(this.renderType);
 
-            float z=0.5f;
-            vertexconsumer.vertex(matrix4f, 0.0F, 0.0F, z).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 1.0F, 0.0F, z).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 1.0F, 1.0F, z).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 0.0F, 1.0F, z).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 0.0F, 1.0F, z).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 1.0F, 1.0F, z).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 1.0F, 0.0F, z).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 0.0F, 0.0F, z).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(p_93295_).endVertex();
+            int grid = this.image.getHeight();
+            float h = 1.0F / grid;
+            float th2 = 1.0F / grid / 2.0F;
+            //RenderSystem.disableCull();
+            vertex(vc, mat, 0, 0, 0.5f + th2, 0, 0, uv2);
+            vertex(vc, mat, 1, 0, 0.5f + th2, 1, 0, uv2);
+            vertex(vc, mat, 1, 1, 0.5f + th2, 1, 1, uv2);
+            vertex(vc, mat, 0, 1, 0.5f + th2, 0, 1, uv2);
+
+            vertex(vc, mat, 0, 1, 0.5f - th2, 0, 1, uv2);
+            vertex(vc, mat, 1, 1, 0.5f - th2, 1, 1, uv2);
+            vertex(vc, mat, 1, 0, 0.5f - th2, 1, 0, uv2);
+            vertex(vc, mat, 0, 0, 0.5f - th2, 0, 0, uv2);
+
+            for (int i = 0; i < grid; i++) {
+                float y = (float) i / grid;
+                vertex(vc, mat, 0, y, 0.5F - th2, 0, y, uv2);
+                vertex(vc, mat, 1, y, 0.5F - th2, 1, y, uv2);
+                vertex(vc, mat, 1, y, 0.5F + th2, 1, y + h, uv2);
+                vertex(vc, mat, 0, y, 0.5F + th2, 0, y + h, uv2);
+            }
+            for (int i = 0; i < grid; i++) {
+                float y = (float) (i + 1) / grid;
+                vertex(vc, mat, 0, y, 0.5F + th2, 0, y, uv2);
+                vertex(vc, mat, 1, y, 0.5F + th2, 1, y, uv2);
+                vertex(vc, mat, 1, y, 0.5F - th2, 1, y - h, uv2);
+                vertex(vc, mat, 0, y, 0.5F - th2, 0, y - h, uv2);
+            }
+            for (int i = 0; i < grid; i++) {
+                float x = (float) i / grid;
+                vertex(vc, mat, x, 0, 0.5F + th2, x, 0, uv2);
+                vertex(vc, mat, x, 1, 0.5F + th2, x, 1, uv2);
+                vertex(vc, mat, x, 1, 0.5F - th2, x + h, 1, uv2);
+                vertex(vc, mat, x, 0, 0.5F - th2, x + h, 0, uv2);
+            }
+            for (int i = 0; i < grid; i++) {
+                float x = (float) (i + 1) / grid;
+                vertex(vc, mat, x, 0, 0.5F - th2, x, 0, uv2);
+                vertex(vc, mat, x, 1, 0.5F - th2, x, 1, uv2);
+                vertex(vc, mat, x, 1, 0.5F + th2, x - h, 1, uv2);
+                vertex(vc, mat, x, 0, 0.5F + th2, x - h, 0, uv2);
+            }
 
             p_93292_.popPose();
         }
