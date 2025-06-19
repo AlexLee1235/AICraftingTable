@@ -3,8 +3,7 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.GPTItemGenerator;
-import com.watermelon0117.aicraft.GPTItemGenerator2;
+import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
 import com.watermelon0117.aicraft.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
@@ -15,11 +14,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.Slot;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");

@@ -1,8 +1,10 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.gpt;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.OpenAIHttpClient;
+import com.watermelon0117.aicraft.Recipe;
 
 import java.io.IOException;
 import java.util.List;

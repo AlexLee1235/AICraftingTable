@@ -1,7 +1,6 @@
 package com.watermelon0117.aicraft.network;
 
-import com.watermelon0117.aicraft.GPTImageClient;
-import com.watermelon0117.aicraft.GPTItemGenerator;
+import com.watermelon0117.aicraft.gpt.GPTImageClient;
 import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
@@ -9,7 +8,6 @@ import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.Main;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -20,7 +18,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public class SGUISelectItemButtonPressedPacket {

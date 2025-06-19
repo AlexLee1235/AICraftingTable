@@ -1,7 +1,7 @@
 package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.*;
-import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.gpt.GPTImageClient;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -13,11 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class MainItem extends Item {
