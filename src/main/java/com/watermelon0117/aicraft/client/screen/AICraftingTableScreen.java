@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.GPTItemGenerator;
+import com.watermelon0117.aicraft.GPTItemGenerator2;
 import com.watermelon0117.aicraft.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
@@ -72,7 +73,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     public void btn3Press(Button button){selectItem(button.getMessage().getString());}
 
     public void btnPress(Button button) {
-        GPTItemGenerator generator = new GPTItemGenerator();
+        GPTItemGenerator2 generator = new GPTItemGenerator2();
         currentRecipe=new Recipe(menu);
         generatingText=true;
         optBtn1.visible=optBtn2.visible=optBtn3.visible=false;
@@ -90,7 +91,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             });
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-            test = "Error";
+            generatingText=false;
         }
     }
     private void setStage2(){
