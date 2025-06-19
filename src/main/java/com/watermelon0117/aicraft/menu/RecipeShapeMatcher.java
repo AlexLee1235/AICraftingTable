@@ -4,35 +4,38 @@ import net.minecraft.world.item.ItemStack;
 import java.util.*;
 
 public class RecipeShapeMatcher {
-    private static final String[] BASE_PATTERNS = {
+    private static final List<Map.Entry<String, String>> PATTERNS = List.of(
             // Tools
-            "III S  S ", // Pickaxe (top-left)
-            "II IS  S ", // Axe (left)
-            " II SI S ", // Axe (right)
-            " I  S  S ", // Shovel
-            "II  S  S ", // Hoe
-            " II S  S ", // Hoe (reversed)
-            " I  I  S ", // Sword
+            Map.entry("Pickaxe",   "III S  S "),
+            Map.entry("Axe",       "II IS  S "),
+            Map.entry("Axe",       " II SI S "),
+            Map.entry("Shovel",    " I  S  S "),
+            Map.entry("Hoe",       "II  S  S "),
+            Map.entry("Hoe",       " II S  S "),
+            Map.entry("Sword",     " I  I  S "),
 
             // Armor
-            "IIII I   ", // Helmet
-            "I IIIIIII", // Chestplate
-            "IIII II I", // Leggings
-            "I II I   "  // Boots
-    };
+            Map.entry("Helmet",    "IIII I   "),
+            Map.entry("Chestplate","I IIIIIII"),
+            Map.entry("Leggings",  "IIII II I"),
+            Map.entry("Boots",     "I II I   ")
+    );
 
-    public static boolean matchesAnyToolOrArmorShape(ItemStack[] grid) {
-        if (grid.length != 9) return false;
+    /**
+     * Returns the matched normalized shape name (e.g. "Axe", "Helmet"), or null if no match
+     */
+    public static String getMatchedToolOrArmorName(ItemStack[] grid) {
+        if (grid.length != 9) return null;
 
-        for (String base : BASE_PATTERNS) {
-            for (String shifted : shiftPattern(base)) {
+        for (Map.Entry<String, String> entry : PATTERNS) {
+            for (String shifted : shiftPattern(entry.getValue())) {
                 if (matchesPattern(grid, shifted)) {
-                    return true;
+                    return entry.getKey();
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
     private static boolean matchesPattern(ItemStack[] grid, String pattern) {

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class GPTItemGenerator3 extends BaseGPTItemGeneratorwParser{  //the only worked shape recognizing
+public class GPTItemGenerator3 extends BaseGPTItemGeneratorwParser{  //the only worked shape recognizing, maybe not
     private static final String inst="You are a Minecraft item designer.\n" +
             "\n" +
             "Given a crafting grid filled with [Material] forming a [Shape], generate three unique Minecraft-style item names. The names should reflect the item's potential function as a [Item Category], be practical in gameplay, and not overlap with existing game items.\n" +

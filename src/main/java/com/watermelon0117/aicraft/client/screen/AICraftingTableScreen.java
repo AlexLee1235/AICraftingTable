@@ -75,10 +75,9 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         generatingText = true;
         errorMessage = "";
         optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
-        /*
         generator.generate(currentRecipe).thenAccept(results -> {
             Recipe recipe2 = new Recipe(menu);
-            if (currentRecipe.equals(recipe2)) {
+            if (currentRecipe != null && currentRecipe.equals(recipe2)) {
                 optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
                 optBtn1.setMessage(Component.literal(results[0]));
                 optBtn2.setMessage(Component.literal(results[1]));
@@ -91,13 +90,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             generatingText = false;
             errorMessage = "Error";
             return null;
-        });*/
-        if(RecipeShapeMatcher.matchesAnyToolOrArmorShape(currentRecipe.items)){
+        });
+        /*if(RecipeShapeMatcher.getMatchedToolOrArmorName(currentRecipe.items) != null){
             optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
-            optBtn1.setMessage(Component.literal("hi"));
+            optBtn1.setMessage(Component.literal(RecipeShapeMatcher.getMatchedToolOrArmorName(currentRecipe.items)));
             optBtn2.setMessage(Component.literal(""));
             optBtn3.setMessage(Component.literal(""));
-        }
+            generatingText = false;
+        }*/
     }
     private void setStage2() {
         if (stage != 2) {
