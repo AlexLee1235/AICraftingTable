@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;

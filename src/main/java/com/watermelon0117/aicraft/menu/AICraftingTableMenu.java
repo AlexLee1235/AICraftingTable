@@ -1,14 +1,9 @@
 package com.watermelon0117.aicraft.menu;
 
-import com.watermelon0117.aicraft.CraftingSlotItemHandler;
-import com.watermelon0117.aicraft.ResultSlotItemHandler;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.MenuInit;
-import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
-import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -18,8 +13,6 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
-import net.minecraftforge.items.SlotItemHandler;
 
 import java.util.Optional;
 

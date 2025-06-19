@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.*;
 import com.watermelon0117.aicraft.gpt.GPTImageClient;
+import com.watermelon0117.aicraft.gpt.OpenAIHttpClient;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;

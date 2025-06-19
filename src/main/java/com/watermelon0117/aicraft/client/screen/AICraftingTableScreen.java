@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
-import com.watermelon0117.aicraft.Recipe;
+import com.watermelon0117.aicraft.menu.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SGUISelectItemButtonPressedPacket;

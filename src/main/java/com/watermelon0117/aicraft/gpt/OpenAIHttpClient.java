@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.gpt;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
@@ -9,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
