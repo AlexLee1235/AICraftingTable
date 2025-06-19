@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 public class GPTItemGenerator2 {  //normal naming style
     String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
@@ -21,7 +22,7 @@ public class GPTItemGenerator2 {  //normal naming style
             "1. Reconstruct the crafting layout mentally using the coordinates.  \n" +
             "2. Identify what the pattern resembles\n" +
             "3. Based on that shape and the material, infer the likely **function** of the item, make few different guesses.\n" +
-            "4. Invent 3 original item names that:\n" +
+            "4. Generate 3 item names that:\n" +
             "   - Reflect the shape and material\n" +
             "   - Sound plausible and useful in gameplay\n" +
             "   - Be simple and intuitive\n" +
@@ -69,12 +70,12 @@ public class GPTItemGenerator2 {  //normal naming style
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
     }
-    public CompletableFuture<String[]> generate(Recipe recipe) throws IOException, InterruptedException{
+    public CompletableFuture<String[]> generate(Recipe recipe) throws CompletionException{
         return generate(recipe.getDisplayNames());
     }
-    public CompletableFuture<String[]> generate(String[] input) throws IOException, InterruptedException {
+    public CompletableFuture<String[]> generate(String[] input) throws CompletionException {
         StringBuilder prompt = new StringBuilder(inst);
-        prompt.append("\"Filled Slots:\\n\"");
+        prompt.append("Filled Slots:\n");
         for (int i = 0; i < 9; i++) {
             if (!input[i].contentEquals("empty"))
                 prompt.append(String.format("- (%d,%d): %s\n", i / 3, i % 3, input[i]));
@@ -85,18 +86,24 @@ public class GPTItemGenerator2 {  //normal naming style
                 prompt.append("\n");
         }
         System.out.println(prompt);
-        return client.chat(prompt.toString()).thenCompose(rawResult->{
-            System.out.println(rawResult);
-            try {
-                return extractor.chat(inst2+rawResult);
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }).thenCompose(jsonResult->{
-            System.out.println(jsonResult);
-            ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
-            return CompletableFuture.completedFuture(new String[]{result.items.get(0), result.items.get(1), result.items.get(2)});
-        });
+        try {
+            return client.chat(prompt.toString()).thenCompose(rawResult->{
+                System.out.println(rawResult);
+                try {
+                    return extractor.chat(inst2+rawResult);
+                } catch (IOException | InterruptedException e) {
+                    throw new CompletionException(e);
+                }
+            }).thenCompose(jsonResult->{
+                System.out.println(jsonResult);
+                ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
+                if(result.error)
+                    throw new CompletionException(new IllegalStateException("Json extractor returned error"));
+                return CompletableFuture.completedFuture(new String[]{result.items.get(0), result.items.get(1), result.items.get(2)});
+            });
+        } catch (IOException | InterruptedException e) {
+            throw new CompletionException(e);
+        }
     }
     private static final class ItemResult{
         boolean error;

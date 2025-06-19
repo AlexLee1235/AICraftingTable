@@ -98,4 +98,5 @@ public class ResultSlotItemHandler extends SlotItemHandler {
         super.set(stack);
         menu.hasCraftResult=!stack.isEmpty();
     }
+
 }

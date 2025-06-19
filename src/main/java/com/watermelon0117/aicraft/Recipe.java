@@ -36,6 +36,12 @@ public class Recipe {
     private static boolean stackEqual(ItemStack self, ItemStack other){
         return self.getItem() == other.getItem() && ItemStack.tagMatches(self, other);
     }
+    public boolean isEmpty(){
+        for (int i = 0; i < 9; i++)
+            if(!items[i].isEmpty())
+                return false;
+        return true;
+    }
 
     @Override
     public boolean equals(Object o) {

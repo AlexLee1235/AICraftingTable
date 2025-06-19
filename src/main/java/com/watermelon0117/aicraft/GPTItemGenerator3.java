@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class GPTItemGenerator3 {
+public class GPTItemGenerator3 {  //the only worked shape recognizing
     String inst="You are a Minecraft item designer.\n" +
             "\n" +
             "Given a crafting grid filled with [Material] forming a [Shape], generate three unique Minecraft-style item names. The names should reflect the item's potential function as a [Item Category], be practical in gameplay, and not overlap with existing game items.\n" +
@@ -68,7 +68,7 @@ public class GPTItemGenerator3 {
         return generate(recipe.getDisplayNames());
     }
     public CompletableFuture<String[]> generate(String[] input) throws IOException, InterruptedException {
-        StringBuilder prompt = new StringBuilder("\"Filled Slots:\\n\"");
+        StringBuilder prompt = new StringBuilder("Filled Slots:\n");
         for (int i = 0; i < 9; i++) {
             if (!input[i].contentEquals("empty"))
                 prompt.append(String.format("- (%d,%d): %s\n", i / 3, i % 3, input[i]));
