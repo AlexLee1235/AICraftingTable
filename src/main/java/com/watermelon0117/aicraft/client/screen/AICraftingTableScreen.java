@@ -5,8 +5,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
+import com.watermelon0117.aicraft.gpt.GPTItemGenerator3;
 import com.watermelon0117.aicraft.menu.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
+import com.watermelon0117.aicraft.menu.RecipeShapeMatcher;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SGUISelectItemButtonPressedPacket;
 import net.minecraft.client.gui.components.Button;
@@ -66,13 +68,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
 
     public void btnPress(Button button) {
-        GPTItemGenerator2 generator = new GPTItemGenerator2();
+        GPTItemGenerator3 generator = new GPTItemGenerator3();
         currentRecipe = new Recipe(menu);
         if(currentRecipe.isEmpty())
             return;
         generatingText = true;
         errorMessage = "";
         optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
+        /*
         generator.generate(currentRecipe).thenAccept(results -> {
             Recipe recipe2 = new Recipe(menu);
             if (currentRecipe.equals(recipe2)) {
@@ -88,7 +91,13 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             generatingText = false;
             errorMessage = "Error";
             return null;
-        });
+        });*/
+        if(RecipeShapeMatcher.matchesAnyToolOrArmorShape(currentRecipe.items)){
+            optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
+            optBtn1.setMessage(Component.literal("hi"));
+            optBtn2.setMessage(Component.literal(""));
+            optBtn3.setMessage(Component.literal(""));
+        }
     }
     private void setStage2() {
         if (stage != 2) {
