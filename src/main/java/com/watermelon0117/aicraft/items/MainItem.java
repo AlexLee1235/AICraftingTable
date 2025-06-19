@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.items;
 
-import com.watermelon0117.aicraft.*;
+import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRenderer;
 import com.watermelon0117.aicraft.gpt.GPTImageClient;
 import com.watermelon0117.aicraft.gpt.OpenAIHttpClient;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;

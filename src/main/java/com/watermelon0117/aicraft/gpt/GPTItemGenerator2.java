@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-public class GPTItemGenerator2 {  //normal naming style
+public class GPTItemGenerator2 extends BaseGPTItemGeneratorwParser{  //normal naming style
     String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
             "You are identifying the most natural, direct, and commonly accepted name for an item crafted in Minecraft, based on a 3×3 recipe.\n" +
             "You are not inventing a new name.\n" +
@@ -52,29 +52,13 @@ public class GPTItemGenerator2 {  //normal naming style
             "{\"items\":[\"Iron Crucible\", \"Ore Hopper\", \"Molten Basin\"],\"error\":false}\n" +
             "\n" +
             "Now extract from this:\n";
-    private final Gson gson;
-    private final OpenAIHttpClient client = new OpenAIHttpClient("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",
-            "gpt-4o",  //gpt-4o gpt-4.1
-            0.0,
-            2048,
-            "You are a Minecraft crafting recipe solver",
-            "text");
-    private final OpenAIHttpClient extractor = new OpenAIHttpClient("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",
-            "gpt-4.1",  //gpt-4o gpt-4.1
-            0.0,
-            1024,
-            "You are a helpful assistant that extracts structured data from text.",
-            "json_object");
     public GPTItemGenerator2(){
-        this.gson = new GsonBuilder()
-                // map Java camelCase ↔︎ JSON snake_case automatically
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
+        super("You are a Minecraft crafting recipe solver");
     }
-    public CompletableFuture<String[]> generate(Recipe recipe) throws CompletionException{
-        return generate(recipe.getDisplayNames());
-    }
-    public CompletableFuture<String[]> generate(String[] input) throws CompletionException {
+
+    @Override
+    protected String buildPrompt(Recipe recipe) {
+        String[] input=recipe.getDisplayNames();
         StringBuilder prompt = new StringBuilder(inst);
         prompt.append("Filled Slots:\n");
         for (int i = 0; i < 9; i++) {
@@ -86,28 +70,6 @@ public class GPTItemGenerator2 {  //normal naming style
             if(i%3==2)
                 prompt.append("\n");
         }
-        System.out.println(prompt);
-        try {
-            return client.chat(prompt.toString()).thenCompose(rawResult->{
-                System.out.println(rawResult);
-                try {
-                    return extractor.chat(inst2+rawResult);
-                } catch (IOException | InterruptedException e) {
-                    throw new CompletionException(e);
-                }
-            }).thenCompose(jsonResult->{
-                System.out.println(jsonResult);
-                ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
-                if(result.error)
-                    throw new CompletionException(new IllegalStateException("Json extractor returned error"));
-                return CompletableFuture.completedFuture(new String[]{result.items.get(0), result.items.get(1), result.items.get(2)});
-            });
-        } catch (IOException | InterruptedException e) {
-            throw new CompletionException(e);
-        }
-    }
-    private static final class ItemResult{
-        boolean error;
-        List<String> items;
+        return prompt.toString();
     }
 }

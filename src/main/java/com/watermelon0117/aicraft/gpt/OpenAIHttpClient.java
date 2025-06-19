@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 public class OpenAIHttpClient {
 
@@ -49,7 +50,7 @@ public class OpenAIHttpClient {
                 .create();
     }
 
-    public CompletableFuture<String> chat(String message) throws IOException, InterruptedException {
+    public CompletableFuture<String> chat(String message) {
         ArrayList<Message> list=new ArrayList<>();
         list.add(new OpenAIHttpClient.Message("system", systemMessage));
         list.add(new OpenAIHttpClient.Message("user", message));

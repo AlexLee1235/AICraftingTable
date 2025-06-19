@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
 import com.watermelon0117.aicraft.menu.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
