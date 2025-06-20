@@ -8,10 +8,10 @@ import com.watermelon0117.aicraft.recipes.Recipe;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class BaseGPTItemGenerator {
+public abstract class BaseGPTIdeaGenerator {
     private final Gson gson;
     private final OpenAIHttpClient client;
-    public BaseGPTItemGenerator(String sysMsg){
+    public BaseGPTIdeaGenerator(String sysMsg){
         this.gson = new GsonBuilder()
                 // map Java camelCase ↔︎ JSON snake_case automatically
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)

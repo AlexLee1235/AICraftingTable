@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-public abstract class BaseGPTItemGeneratorwParser {
+public abstract class BaseGPTIdeaGeneratorwParser {
     String inst2="You will be given a block of text that includes 3 original Minecraft-style item names, possibly along with descriptions or reasoning.\n" +
             "\n" +
             "Your job is to extract just the item names and return them as a JSON format:\n" +
@@ -36,7 +36,7 @@ public abstract class BaseGPTItemGeneratorwParser {
             1024,
             "You are a helpful assistant that extracts structured data from text.",
             "json_object");
-    public BaseGPTItemGeneratorwParser(String sysMsg){
+    public BaseGPTIdeaGeneratorwParser(String sysMsg){
         this.gson = new GsonBuilder()
                 // map Java camelCase ↔︎ JSON snake_case automatically
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)

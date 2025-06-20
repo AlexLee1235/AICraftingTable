@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.gpt;
 
 import com.watermelon0117.aicraft.recipes.Recipe;
 
-public class GPTItemGenerator2 extends BaseGPTItemGeneratorwParser{  //normal naming style
+public class GPTIdeaGenerator2 extends BaseGPTIdeaGeneratorwParser {  //normal naming style
     String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
             "You are identifying the most natural, direct, and commonly accepted name for an item crafted in Minecraft, based on a 3×3 recipe.\n" +
             "You are not inventing a new name.\n" +
@@ -44,7 +44,7 @@ public class GPTItemGenerator2 extends BaseGPTItemGeneratorwParser{  //normal na
             "{\"items\":[\"Iron Crucible\", \"Ore Hopper\", \"Molten Basin\"],\"error\":false}\n" +
             "\n" +
             "Now extract from this:\n";
-    public GPTItemGenerator2(){
+    public GPTIdeaGenerator2(){
         super("You are a Minecraft crafting recipe solver");
     }
 

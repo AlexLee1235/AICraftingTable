@@ -1,103 +1,101 @@
 package com.watermelon0117.aicraft.items;
 
+import com.google.common.collect.ImmutableMap;
+import com.mojang.datafixers.util.Pair;
 import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRenderer;
 import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
 import com.watermelon0117.aicraft.gpt.OpenAIHttpClient;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CampfireBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class MainItem extends Item {
     public static MyBlockEntityWithoutLevelRenderer renderer = new MyBlockEntityWithoutLevelRenderer();
-    OpenAIHttpClient client = new OpenAIHttpClient("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",
-            "gpt-4o",
-            1.0,
-            1024,
-            "You are MinecraftGPT, you answer question related to minecraft.");
-    OpenAIImageClient imgClient = new OpenAIImageClient("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");
     public MainItem(Properties p_41383_) {
         super(p_41383_);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        if (!level.isClientSide) {
-            /*try {
-                String reply = client.chat("Hi, what's your name?");
-                player.sendSystemMessage(Component.literal(reply));
-            } catch (IOException | InterruptedException e) {
-                player.sendSystemMessage(Component.literal(e.getMessage()));
-            }*/
-            /*GPTItemGenerator generator=new GPTItemGenerator();
-            try {
-                generator.generate(new String[]{"Iron Ingot", "Iron Ingot", "Iron Ingot",
-                        "Iron Ingot", "Stick", "Iron Ingot",
-                        "empty", "Stick", "empty"});
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }*/
-            /*player.sendSystemMessage(Component.literal("Start..."));
-            imgClient.generateAsync(
-                            "A 16x16 pixel art depiction of a blueberry with clearly separated background color",
-                            "1024x1024", "opaque", "low", "medium")
-                    .thenAccept(bytes -> {
-                        try {
-                            Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
-                            BufferedImage txt = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
-                            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\blueberry.png");
-                            player.sendSystemMessage(Component.literal("Done"));
-                            renderer.loadNewFile("blueberry");
-                            ItemStack itemStack = new ItemStack(ItemInit.MAIN_ITEM.get());
-                            itemStack.getOrCreateTag().putString("texture", "blueberry");
-                            player.getInventory().add(itemStack);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .exceptionally(ex -> {
-                        ex.printStackTrace();
-                        return null;
-                    });*/
-            //BufferedImage texture = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\gpt\\12.png");
-            //renderer.update("default", texture);
-        }
-        //ItemStack itemStack=player.getItemInHand(hand);
-        //return InteractionResultHolder.success(itemStack);
-        return super.use(level,player,hand);
+        return super.use(level, player, hand);
     }
-
+    public InteractionResult useOn(UseOnContext context) {
+        CompoundTag tag = context.getItemInHand().getOrCreateTag();
+        if (tag.getBoolean("isAxe"))
+            return axeUseOn(context);
+        if (tag.getBoolean("isShovel"))
+            return shovelUseOn(context);
+        if (tag.getBoolean("isHoe"))
+            return hoeUseOn(context);
+        return InteractionResult.PASS;
+    }
+    public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
+        return true;
+    }
+    private static boolean isCorrectTool(ItemStack stack, BlockState state){
+        CompoundTag tag = stack.getOrCreateTag();
+        boolean ret = false;
+        if (tag.getBoolean("isPickaxe"))
+            ret = ret || state.is(BlockTags.MINEABLE_WITH_PICKAXE);
+        if (tag.getBoolean("isAxe"))
+            ret = ret || state.is(BlockTags.MINEABLE_WITH_AXE);
+        if (tag.getBoolean("isShovel"))
+            ret = ret || state.is(BlockTags.MINEABLE_WITH_SHOVEL);
+        if (tag.getBoolean("isHoe"))
+            ret = ret || state.is(BlockTags.MINEABLE_WITH_HOE);
+        return ret;
+    }
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
-        return state.is(BlockTags.MINEABLE_WITH_PICKAXE) && net.minecraftforge.common.TierSortingRegistry.isCorrectTierForDrops(Tiers.STONE, state);
+        CompoundTag tag = stack.getOrCreateTag();
+        return isCorrectTool(stack, state) && net.minecraftforge.common.TierSortingRegistry.isCorrectTierForDrops(Tiers.values()[tag.getByte("tier")], state);
     }
     @Override
     public float getDestroySpeed(ItemStack itemStack, BlockState state) {
-        return state.is(BlockTags.MINEABLE_WITH_PICKAXE) ? Tiers.IRON.getSpeed() : 1.0F;
+        CompoundTag tag = itemStack.getOrCreateTag();
+        return isCorrectTool(itemStack, state) ? Tiers.values()[tag.getByte("tier")].getSpeed() : 1.0F;
     }
     public boolean hurtEnemy(ItemStack p_40994_, LivingEntity p_40995_, LivingEntity p_40996_) {
-        p_40994_.hurtAndBreak(2, p_40996_, (p_41007_) -> {
+        p_40994_.hurtAndBreak(2, p_40996_, (p_41007_) -> {  //todo
             p_41007_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
         return true;
     }
     public boolean mineBlock(ItemStack p_40998_, Level p_40999_, BlockState p_41000_, BlockPos p_41001_, LivingEntity p_41002_) {
         if (!p_40999_.isClientSide && p_41000_.getDestroySpeed(p_40999_, p_41001_) != 0.0F) {
-            p_40998_.hurtAndBreak(1, p_41002_, (p_40992_) -> {
+            p_40998_.hurtAndBreak(1, p_41002_, (p_40992_) -> {  //todo
                 p_40992_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
             });
         }
@@ -105,12 +103,19 @@ public class MainItem extends Item {
     }
     @Override
     public boolean isDamageable(ItemStack stack) {
-        return true;
+        CompoundTag tag = stack.getOrCreateTag();
+        return (tag.getBoolean("isPickaxe") ||
+                tag.getBoolean("isAxe") ||
+                tag.getBoolean("isShovel")) ||
+                tag.getBoolean("isHoe") ||
+                tag.getBoolean("isMelee");
     }
     @Override
     public int getMaxDamage(ItemStack stack) {
-        return 100;
+        CompoundTag tag = stack.getOrCreateTag();
+        return Tiers.values()[tag.getByte("tier")].getUses();
     }
+
 
     @Override
     public boolean isEdible() {
@@ -118,7 +123,20 @@ public class MainItem extends Item {
     }
     @Override
     public @Nullable FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
-        return (new FoodProperties.Builder()).nutrition(3).build();
+        CompoundTag tag = stack.getOrCreateTag();
+        if(!tag.getBoolean("isFood"))
+            return null;
+        return (new FoodProperties.Builder())
+                .nutrition(tag.getByte("nutrition"))
+                .build();
+    }
+    public UseAnim getUseAnimation(ItemStack p_41358_) {
+        CompoundTag tag = p_41358_.getOrCreateTag();
+        if(tag.getBoolean("isFood"))
+            return UseAnim.EAT;
+        if(tag.getBoolean("isDrink"))
+            return UseAnim.DRINK;
+        return super.getUseAnimation(p_41358_);
     }
 
     @Override
@@ -139,5 +157,113 @@ public class MainItem extends Item {
                 return renderer;
             }
         });
+    }
+    private InteractionResult axeUseOn(UseOnContext p_40529_){
+        Level level = p_40529_.getLevel();
+        BlockPos blockpos = p_40529_.getClickedPos();
+        Player player = p_40529_.getPlayer();
+        BlockState blockstate = level.getBlockState(blockpos);
+        Optional<BlockState> optional = Optional.ofNullable(blockstate.getToolModifiedState(p_40529_, net.minecraftforge.common.ToolActions.AXE_STRIP, false));
+        Optional<BlockState> optional1 = optional.isPresent() ? Optional.empty() : Optional.ofNullable(blockstate.getToolModifiedState(p_40529_, net.minecraftforge.common.ToolActions.AXE_SCRAPE, false));
+        Optional<BlockState> optional2 = optional.isPresent() || optional1.isPresent() ? Optional.empty() : Optional.ofNullable(blockstate.getToolModifiedState(p_40529_, net.minecraftforge.common.ToolActions.AXE_WAX_OFF, false));
+        ItemStack itemstack = p_40529_.getItemInHand();
+        Optional<BlockState> optional3 = Optional.empty();
+        if (optional.isPresent()) {
+            level.playSound(player, blockpos, SoundEvents.AXE_STRIP, SoundSource.BLOCKS, 1.0F, 1.0F);
+            optional3 = optional;
+        } else if (optional1.isPresent()) {
+            level.playSound(player, blockpos, SoundEvents.AXE_SCRAPE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.levelEvent(player, 3005, blockpos, 0);
+            optional3 = optional1;
+        } else if (optional2.isPresent()) {
+            level.playSound(player, blockpos, SoundEvents.AXE_WAX_OFF, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.levelEvent(player, 3004, blockpos, 0);
+            optional3 = optional2;
+        }
+
+        if (optional3.isPresent()) {
+            if (player instanceof ServerPlayer) {
+                CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, itemstack);
+            }
+
+            level.setBlock(blockpos, optional3.get(), 11);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, optional3.get()));
+            if (player != null) {
+                itemstack.hurtAndBreak(1, player, (p_150686_) -> {
+                    p_150686_.broadcastBreakEvent(p_40529_.getHand());
+                });
+            }
+
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        } else {
+            return InteractionResult.PASS;
+        }
+    }
+    private InteractionResult shovelUseOn(UseOnContext p_43119_) {
+        Level level = p_43119_.getLevel();
+        BlockPos blockpos = p_43119_.getClickedPos();
+        BlockState blockstate = level.getBlockState(blockpos);
+        if (p_43119_.getClickedFace() == Direction.DOWN) {
+            return InteractionResult.PASS;
+        } else {
+            Player player = p_43119_.getPlayer();
+            BlockState blockstate1 = blockstate.getToolModifiedState(p_43119_, net.minecraftforge.common.ToolActions.SHOVEL_FLATTEN, false);
+            BlockState blockstate2 = null;
+            if (blockstate1 != null && level.isEmptyBlock(blockpos.above())) {
+                level.playSound(player, blockpos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1.0F, 1.0F);
+                blockstate2 = blockstate1;
+            } else if (blockstate.getBlock() instanceof CampfireBlock && blockstate.getValue(CampfireBlock.LIT)) {
+                if (!level.isClientSide()) {
+                    level.levelEvent((Player)null, 1009, blockpos, 0);
+                }
+
+                CampfireBlock.dowse(p_43119_.getPlayer(), level, blockpos, blockstate);
+                blockstate2 = blockstate.setValue(CampfireBlock.LIT, Boolean.valueOf(false));
+            }
+
+            if (blockstate2 != null) {
+                if (!level.isClientSide) {
+                    level.setBlock(blockpos, blockstate2, 11);
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, blockstate2));
+                    if (player != null) {
+                        p_43119_.getItemInHand().hurtAndBreak(1, player, (p_43122_) -> {
+                            p_43122_.broadcastBreakEvent(p_43119_.getHand());
+                        });
+                    }
+                }
+
+                return InteractionResult.sidedSuccess(level.isClientSide);
+            } else {
+                return InteractionResult.PASS;
+            }
+        }
+    }
+    private InteractionResult hoeUseOn(UseOnContext p_41341_) {
+        Level level = p_41341_.getLevel();
+        BlockPos blockpos = p_41341_.getClickedPos();
+        BlockState toolModifiedState = level.getBlockState(blockpos).getToolModifiedState(p_41341_, net.minecraftforge.common.ToolActions.HOE_TILL, false);
+        Pair<Predicate<UseOnContext>, Consumer<UseOnContext>> pair = toolModifiedState == null ? null : Pair.of(ctx -> true, HoeItem.changeIntoState(toolModifiedState));
+        if (pair == null) {
+            return InteractionResult.PASS;
+        } else {
+            Predicate<UseOnContext> predicate = pair.getFirst();
+            Consumer<UseOnContext> consumer = pair.getSecond();
+            if (predicate.test(p_41341_)) {
+                Player player = p_41341_.getPlayer();
+                level.playSound(player, blockpos, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+                if (!level.isClientSide) {
+                    consumer.accept(p_41341_);
+                    if (player != null) {
+                        p_41341_.getItemInHand().hurtAndBreak(1, player, (p_150845_) -> {
+                            p_150845_.broadcastBreakEvent(p_41341_.getHand());
+                        });
+                    }
+                }
+
+                return InteractionResult.sidedSuccess(level.isClientSide);
+            } else {
+                return InteractionResult.PASS;
+            }
+        }
     }
 }

@@ -3,7 +3,7 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
+import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
@@ -64,7 +64,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
 
     public void btnPress(Button button) {
-        GPTItemGenerator2 generator = new GPTItemGenerator2();
+        GPTIdeaGenerator2 generator = new GPTIdeaGenerator2();
         currentRecipe = new Recipe(menu);
         if(currentRecipe.isEmpty())
             return;
