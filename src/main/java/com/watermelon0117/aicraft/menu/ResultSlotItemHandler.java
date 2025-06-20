@@ -62,7 +62,7 @@ public class ResultSlotItemHandler extends SlotItemHandler {
     public void onTake(Player p_150638_, ItemStack p_150639_) {
         System.out.println("take");
         System.out.println(p_150639_.getDisplayName());
-        if(p_150639_.is(ItemInit.MAIN_ITEM.get())){
+        if(p_150639_.is(ItemInit.MAIN_ITEM.get()) || p_150639_.is(ItemInit.MAIN_FOOD_ITEM.get())){
             System.out.println("1");
             for (int i = 0; i < 9; i++) {
                 if(!this.craftSlots.getStackInSlot(i + 1).isEmpty())
