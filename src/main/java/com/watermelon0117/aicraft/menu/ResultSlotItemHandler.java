@@ -60,16 +60,13 @@ public class ResultSlotItemHandler extends SlotItemHandler {
         return nonnulllist;
     }
     public void onTake(Player p_150638_, ItemStack p_150639_) {
-        System.out.println("take");
         System.out.println(p_150639_.getDisplayName());
         if(p_150639_.is(ItemInit.MAIN_ITEM.get()) || p_150639_.is(ItemInit.MAIN_FOOD_ITEM.get())){
-            System.out.println("1");
             for (int i = 0; i < 9; i++) {
                 if(!this.craftSlots.getStackInSlot(i + 1).isEmpty())
                     this.craftSlots.getStackInSlot(i + 1).shrink(1);
             }
         }else {
-            System.out.println("2");
             this.checkTakeAchievements(p_150639_);
             net.minecraftforge.common.ForgeHooks.setCraftingPlayer(p_150638_);
             NonNullList<ItemStack> nonnulllist = callRecipeManager();
