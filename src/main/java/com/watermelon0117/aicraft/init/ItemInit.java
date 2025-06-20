@@ -15,5 +15,6 @@ public class ItemInit {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, AICraftingTable.MODID);
 
 	public static final RegistryObject<Item> MAIN_ITEM = ITEMS.register("main_item", () -> new MainItem(new Item.Properties().tab(AICraftingTable.TAB)));
+	public static final RegistryObject<Item> MAIN_FOOD_ITEM = ITEMS.register("main_food_item", () -> new MainFoodItem(new Item.Properties().tab(AICraftingTable.TAB)));
 /*PROGRAM INSERT POINT*/
 }
