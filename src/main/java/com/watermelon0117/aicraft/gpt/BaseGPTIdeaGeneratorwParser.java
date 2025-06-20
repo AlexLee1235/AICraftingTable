@@ -56,12 +56,12 @@ public abstract class BaseGPTIdeaGeneratorwParser {
         return client.chat(prompt.toString()).thenCompose(rawResult->{
             System.out.println(rawResult);
             return extractor.chat(inst2+rawResult);
-        }).thenCompose(jsonResult->{
+        }).thenApply(jsonResult->{
             System.out.println(jsonResult);
             ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
             if(result.error)
-                throw new CompletionException(new IllegalStateException("Json extractor returned error"));
-            return CompletableFuture.completedFuture(new String[]{result.items.get(0), result.items.get(1), result.items.get(2)});
+                throw new IllegalStateException("Json extractor says input has error");
+            return new String[]{result.items.get(0), result.items.get(1), result.items.get(2)};
         });
     }
     private static final class ItemResult{

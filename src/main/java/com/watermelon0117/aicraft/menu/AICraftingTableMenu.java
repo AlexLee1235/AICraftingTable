@@ -142,11 +142,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             itemstack = craftingrecipe.assemble(container);
         }else {
             Recipe recipe=new Recipe(menu);
-            String name=RecipeManager.match(recipe.getDisplayNames());
-            if(name!=null){
-                itemstack=new ItemStack(ItemInit.MAIN_ITEM.get());
-                itemstack.getOrCreateTag().putString("texture", name);
-            }
+            itemstack=RecipeManager.match(recipe.getDisplayNames());
         }
         return itemstack;
     }

@@ -28,11 +28,11 @@ public abstract class BaseGPTIdeaGenerator {
     }
     protected abstract String buildPrompt(Recipe recipe);
     public CompletableFuture<String[]> generate(String prompt) {
-        return client.chat(prompt).thenCompose(rawResult->{
+        return client.chat(prompt).thenApply(rawResult->{
             //System.out.println(rawResult);
             ItemResult result = gson.fromJson(rawResult, ItemResult.class);
             //System.out.println(result.reasoning);
-            return CompletableFuture.completedFuture(new String[]{result.items.get(0).name, result.items.get(1).name, result.items.get(2).name});
+            return new String[]{result.items.get(0).name, result.items.get(1).name, result.items.get(2).name};
         });
     }
     private static final class ItemResult{

@@ -1,5 +1,8 @@
 package com.watermelon0117.aicraft.recipes;
 
+import com.watermelon0117.aicraft.init.ItemInit;
+import net.minecraft.world.item.ItemStack;
+
 import java.io.*;
 import java.util.*;
 
@@ -14,8 +17,14 @@ public class RecipeManager {
     }
 
     /** 1. Match a recipe and return crafted item name */
-    public static String match(String[] recipe) {
-        return recipeMap.get(toKey(recipe));
+    public static ItemStack match(String[] recipe) {
+        String name = recipeMap.get(toKey(recipe));
+        ItemStack itemstack = ItemStack.EMPTY;
+        if (name != null) {
+            itemstack = new ItemStack(ItemInit.MAIN_ITEM.get());
+            itemstack.getOrCreateTag().putString("texture", name);
+        }
+        return itemstack;
     }
 
     /** 2. Load all recipes from file (silently fails if error) */
