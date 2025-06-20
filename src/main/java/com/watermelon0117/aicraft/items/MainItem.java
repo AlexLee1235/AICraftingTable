@@ -13,10 +13,12 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -111,11 +113,20 @@ public class MainItem extends Item {
     }
 
     @Override
+    public boolean isEdible() {
+        return true;
+    }
+    @Override
+    public @Nullable FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
+        return (new FoodProperties.Builder()).nutrition(3).build();
+    }
+
+    @Override
     public Component getName(ItemStack itemStack) {
-        CompoundTag tag=itemStack.getTag();
-        String id="Main Item";
-        if(tag!=null){
-            id=tag.getString("texture");
+        CompoundTag tag = itemStack.getTag();
+        String id = "Main Item";
+        if (tag != null && !tag.getString("texture").contentEquals("")) {
+            id = tag.getString("texture");
         }
         return Component.literal(id);
     }

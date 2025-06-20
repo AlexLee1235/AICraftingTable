@@ -26,10 +26,12 @@ import java.util.Map;
 
 public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
     public final Map<String, DynamicItemInstance> maps = new HashMap<>();
+
     public MyBlockEntityWithoutLevelRenderer() {
-        super(null,null);
+        super(null, null);
     }
-    public void loadFromFile(){
+
+    public void loadFromFile() {
         File folder = new File("C:\\achieve\\AICraftingTable\\temp");
         File[] files = folder.listFiles();
         if (files == null) {
@@ -42,10 +44,10 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
                 try {
                     BufferedImage image = ImageIO.read(file);
                     if (image != null) {
-                        String name=file.getName().replace(".png","");
+                        String name = file.getName().replace(".png", "");
                         System.out.println("Loaded image: " + name +
                                 " (" + image.getWidth() + "x" + image.getHeight() + ")");
-                        this.maps.put(name,new DynamicItemInstance(image));
+                        this.maps.put(name, new DynamicItemInstance(image));
                     } else {
                         System.out.println("Skipped (not an image): " + file.getName());
                     }
@@ -56,8 +58,9 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
             }
         }
     }
-    public void loadNewFile(String name){
-        File file=new File("C:\\achieve\\AICraftingTable\\temp\\"+name+".png");
+
+    public void loadNewFile(String name) {
+        File file = new File("C:\\achieve\\AICraftingTable\\temp\\" + name + ".png");
         if (file.isFile()) {
             try {
                 BufferedImage image = ImageIO.read(file);
@@ -74,60 +77,65 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
             }
         }
     }
+
     @Override
-    public void renderByItem(ItemStack itemStack,ItemTransforms.TransformType ctx,PoseStack poseStack,MultiBufferSource buffers,
+    public void renderByItem(ItemStack itemStack, ItemTransforms.TransformType ctx, PoseStack poseStack, MultiBufferSource buffers,
                              int light, int overlay) {
         poseStack.pushPose();
-        if(!this.maps.containsKey("default")){
-            BufferedImage img = new BufferedImage(128,128, BufferedImage.TYPE_INT_ARGB);
+        if (!this.maps.containsKey("default")) {
+            BufferedImage img = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = img.createGraphics();
             g2d.setColor(new Color(255, 255, 255, 255));  // white
             g2d.fillRect(0, 0, 128, 128);
             g2d.dispose();
             this.maps.put("default", new DynamicItemInstance(img));
         }
-        CompoundTag tag=itemStack.getTag();
-        String id="default";
-        if(tag!=null){
-            id=tag.getString("texture");
+        CompoundTag tag = itemStack.getTag();
+        String id = "default";
+        if (tag != null) {
+            id = tag.getString("texture");
         }
-        if(!this.maps.containsKey(id)) {
-            System.out.println(id + " not exist");
+        if (!this.maps.containsKey(id)) {
             id = "default";
         }
-        DynamicItemInstance instance=this.maps.get(id);
+        DynamicItemInstance instance = this.maps.get(id);
         instance.draw(poseStack, buffers, false, light);
         poseStack.popPose();
     }
-    private static void vertex(VertexConsumer consumer, Matrix4f matrix4f, float x, float y,float z, float u, float v, int uv2){
-        consumer.vertex(matrix4f, x,y,z).color(255, 255, 255, 255).uv(u,v).uv2(uv2).endVertex();
+
+    private static void vertex(VertexConsumer consumer, Matrix4f matrix4f, float x, float y, float z, float u, float v, int uv2) {
+        consumer.vertex(matrix4f, x, y, z).color(255, 255, 255, 255).uv(u, v).uv2(uv2).endVertex();
     }
+
     @OnlyIn(Dist.CLIENT)
     class DynamicItemInstance implements AutoCloseable {
         private BufferedImage image;
         private DynamicTexture texture;
         private RenderType renderType;
         private boolean requiresUpload = true;
+
         DynamicItemInstance(BufferedImage image) {
             this.image = image;
         }
+
         private void updateTexture() {
-            if(this.texture==null) {
+            if (this.texture == null) {
                 this.texture = new DynamicTexture(image.getWidth(), image.getWidth(), true);
                 ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
                 this.renderType = RenderType.text(resourcelocation);
             }
-            for(int i = 0; i < image.getWidth(); ++i) {
-                for(int j = 0; j < image.getWidth(); ++j) {
+            for (int i = 0; i < image.getWidth(); ++i) {
+                for (int j = 0; j < image.getWidth(); ++j) {
                     int color = this.image.getRGB(i, j);
                     int red = (color & 0x00ff0000) >> 16;
                     int blue = (color & 0x000000ff) << 16;
                     color = (color & 0xff00ff00) | red | blue;
-                    this.texture.getPixels().setPixelRGBA(i, image.getWidth()-j-1, color);
+                    this.texture.getPixels().setPixelRGBA(i, image.getWidth() - j - 1, color);
                 }
             }
             this.texture.upload();
         }
+
         void draw(PoseStack p_93292_, MultiBufferSource p_93293_, boolean p_93294_, int uv2) {
             if (this.requiresUpload) {
                 this.updateTexture();
@@ -182,6 +190,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
 
             p_93292_.popPose();
         }
+
         public void close() {
             this.texture.close();
         }
