@@ -118,28 +118,6 @@ public class MainItem extends Item {
 
 
     @Override
-    public boolean isEdible() {
-        return true;
-    }
-    @Override
-    public @Nullable FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
-        CompoundTag tag = stack.getOrCreateTag();
-        if(!tag.getBoolean("isFood"))
-            return null;
-        return (new FoodProperties.Builder())
-                .nutrition(tag.getByte("nutrition"))
-                .build();
-    }
-    public UseAnim getUseAnimation(ItemStack p_41358_) {
-        CompoundTag tag = p_41358_.getOrCreateTag();
-        if(tag.getBoolean("isFood"))
-            return UseAnim.EAT;
-        if(tag.getBoolean("isDrink"))
-            return UseAnim.DRINK;
-        return super.getUseAnimation(p_41358_);
-    }
-
-    @Override
     public Component getName(ItemStack itemStack) {
         CompoundTag tag = itemStack.getTag();
         String id = "Main Item";
