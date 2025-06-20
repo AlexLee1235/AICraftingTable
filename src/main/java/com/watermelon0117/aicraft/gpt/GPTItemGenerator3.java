@@ -1,13 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.menu.Recipe;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import com.watermelon0117.aicraft.Recipe;
 
 public class GPTItemGenerator3 extends BaseGPTItemGeneratorwParser{  //the only worked shape recognizing, maybe not
     private static final String inst="You are a Minecraft item designer.\n" +

@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.event;
 
 import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.RecipeManager;
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.init.EntityInit;
 import com.watermelon0117.aicraft.init.ItemInit;
@@ -55,6 +56,7 @@ public class EventHandler {
             if (event.getEntity().level.isClientSide) {
                 System.out.println("client");
                 MainItem.renderer.loadFromFile();
+                RecipeManager.loadFromFile();
             } else {
                 System.out.println("server");
             }

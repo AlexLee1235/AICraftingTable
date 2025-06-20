@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.network;
 
+import com.watermelon0117.aicraft.RecipeManager;
 import com.watermelon0117.aicraft.gpt.GPTImageGenerator;
 import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
 import com.watermelon0117.aicraft.ImageGridProcessor;
@@ -68,6 +69,7 @@ public class SGUISelectItemButtonPressedPacket {
                                     MainItem.renderer.loadNewFile(name);
                                     ItemStack itemStack = new ItemStack(ItemInit.MAIN_ITEM.get());
                                     itemStack.getOrCreateTag().putString("texture", name);
+                                    RecipeManager.addRecipe(name, recipe);
                                     be.getInventory().setStackInSlot(0, itemStack);
                                     be.setProgress(580);
                                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);

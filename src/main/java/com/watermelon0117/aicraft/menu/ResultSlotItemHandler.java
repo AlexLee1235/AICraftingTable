@@ -97,6 +97,7 @@ public class ResultSlotItemHandler extends SlotItemHandler {
     public void set(@NotNull ItemStack stack) {
         super.set(stack);
         menu.hasCraftResult=!stack.isEmpty();
+        //System.out.println("hi2");
     }
 
 }

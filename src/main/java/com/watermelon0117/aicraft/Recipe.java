@@ -1,5 +1,6 @@
-package com.watermelon0117.aicraft.menu;
+package com.watermelon0117.aicraft;
 
+import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;

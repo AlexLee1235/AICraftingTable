@@ -3,12 +3,9 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
-import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator3;
-import com.watermelon0117.aicraft.menu.Recipe;
+import com.watermelon0117.aicraft.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
-import com.watermelon0117.aicraft.menu.RecipeShapeMatcher;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SGUISelectItemButtonPressedPacket;
 import net.minecraft.client.gui.components.Button;
@@ -50,7 +47,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.optBtn3 = addRenderableWidget(new Button(leftPos + 98, topPos + 50, 70, 17,
                 Component.literal("None"), this::optBtnPress));
         optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
-
         if (menu.hasCraftResult)
             setStage2();
         else {

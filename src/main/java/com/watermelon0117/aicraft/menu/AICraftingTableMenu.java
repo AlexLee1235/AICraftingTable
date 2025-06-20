@@ -1,6 +1,9 @@
 package com.watermelon0117.aicraft.menu;
 
+import com.watermelon0117.aicraft.Recipe;
+import com.watermelon0117.aicraft.RecipeManager;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
+import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.init.MenuInit;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
@@ -63,6 +66,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         for (int l = 0; l < 9; ++l) {
             this.addSlot(new Slot(inventory, l, 8 + l * 18, 142));
         }
+        this.hasCraftResult=!this.getSlot(0).getItem().isEmpty();
 
     }
 
@@ -122,25 +126,36 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
 
         return itemstack;
     }
-    private CraftingContainer getDummyContainer(){
-        CraftingContainer craftingContainer = new CraftingContainer(this, 3,3);
+    private static CraftingContainer getDummyContainer(AICraftingTableMenu menu){
+        CraftingContainer craftingContainer = new CraftingContainer(menu, 3,3);
         for (int i = 0; i < 9; i++) {
-            craftingContainer.setItem(i, this.blockEntity.getInventory().getStackInSlot(i + 1));
+            craftingContainer.setItem(i, menu.blockEntity.getInventory().getStackInSlot(i + 1));
         }
         return craftingContainer;
     }
-    protected void slotChangedCraftingGrid(AbstractContainerMenu menu, Level level, Player player) {
-        if (!level.isClientSide) {
-            CraftingContainer container=getDummyContainer();
-            ServerPlayer serverplayer = (ServerPlayer)player;
-            ItemStack itemstack = ItemStack.EMPTY;
-            Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, container, level);
-            if (optional.isPresent()) {
-                CraftingRecipe craftingrecipe = optional.get();
-                itemstack = craftingrecipe.assemble(container);
+    public static ItemStack callRecipeManager(AICraftingTableMenu menu, Level level){
+        CraftingContainer container=getDummyContainer(menu);
+        ItemStack itemstack = ItemStack.EMPTY;
+        Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, container, level);
+        if (optional.isPresent()) {
+            CraftingRecipe craftingrecipe = optional.get();
+            itemstack = craftingrecipe.assemble(container);
+        }else {
+            Recipe recipe=new Recipe(menu);
+            String name=RecipeManager.match(recipe.getDisplayNames());
+            if(name!=null){
+                itemstack=new ItemStack(ItemInit.MAIN_ITEM.get());
+                itemstack.getOrCreateTag().putString("texture", name);
             }
+        }
+        return itemstack;
+    }
+    protected static void slotChangedCraftingGrid(AICraftingTableMenu menu, Level level, Player player) {
+        if (!level.isClientSide) {
+            ServerPlayer serverplayer = (ServerPlayer)player;
+            ItemStack itemstack = callRecipeManager(menu, level);
 
-            this.blockEntity.getInventory().setStackInSlot(0,itemstack);
+            menu.blockEntity.getInventory().setStackInSlot(0,itemstack);
             menu.setRemoteSlot(0, itemstack);
             serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, itemstack));
         }
