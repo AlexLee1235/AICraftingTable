@@ -5,6 +5,7 @@ import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.items.ItemStackHandler;
@@ -59,12 +60,16 @@ public class ResultSlotItemHandler extends SlotItemHandler {
         return nonnulllist;
     }
     public void onTake(Player p_150638_, ItemStack p_150639_) {
+        System.out.println("take");
+        System.out.println(p_150639_.getDisplayName());
         if(p_150639_.is(ItemInit.MAIN_ITEM.get())){
+            System.out.println("1");
             for (int i = 0; i < 9; i++) {
                 if(!this.craftSlots.getStackInSlot(i + 1).isEmpty())
                     this.craftSlots.getStackInSlot(i + 1).shrink(1);
             }
         }else {
+            System.out.println("2");
             this.checkTakeAchievements(p_150639_);
             net.minecraftforge.common.ForgeHooks.setCraftingPlayer(p_150638_);
             NonNullList<ItemStack> nonnulllist = callRecipeManager();
@@ -97,7 +102,10 @@ public class ResultSlotItemHandler extends SlotItemHandler {
     public void set(@NotNull ItemStack stack) {
         super.set(stack);
         menu.hasCraftResult=!stack.isEmpty();
-        //System.out.println("hi2");
     }
 
+    @Override
+    public void setChanged() {
+        super.setChanged();
+    }
 }

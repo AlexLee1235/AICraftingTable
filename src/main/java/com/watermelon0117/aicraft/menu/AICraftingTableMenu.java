@@ -1,7 +1,7 @@
 package com.watermelon0117.aicraft.menu;
 
-import com.watermelon0117.aicraft.Recipe;
-import com.watermelon0117.aicraft.RecipeManager;
+import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.RecipeManager;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.init.MenuInit;
@@ -31,6 +31,8 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     private final Player player;
     public final AICraftingTableBlockEntity blockEntity;
     public boolean hasCraftResult;
+
+    public Recipe currentRecipe;
     //Client Constructor
     public AICraftingTableMenu(int id, Inventory inventory, FriendlyByteBuf buf){
         this(id, inventory, inventory.player.level.getBlockEntity(buf.readBlockPos()));
@@ -66,8 +68,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         for (int l = 0; l < 9; ++l) {
             this.addSlot(new Slot(inventory, l, 8 + l * 18, 142));
         }
-        this.hasCraftResult=!this.getSlot(0).getItem().isEmpty();
-
+        this.hasCraftResult = !this.getSlot(0).getItem().isEmpty();
     }
 
     public void removed(Player p_39389_) {
@@ -91,8 +92,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(itemstack1, 10, 46, true)) {
                     return ItemStack.EMPTY;
                 }
-
-                slot.onQuickCraft(itemstack1, itemstack); //todo
+                slot.onQuickCraft(itemstack1, itemstack);
             } else if (slotId >= 10 && slotId < 46) {  //if click in inventory and hot bar
                 if (!this.moveItemStackTo(itemstack1, 1, 10, false)) {
                     if (slotId < 37) {  //swap between inventory and hot bar
@@ -118,12 +118,12 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(player, itemstack1);
+            slot.onTake(player, itemstack);
             if (slotId == 0) {
                 player.drop(itemstack1, false);
             }
         }
-
+        //System.out.println("return"+itemstack.getDisplayName());
         return itemstack;
     }
     private static CraftingContainer getDummyContainer(AICraftingTableMenu menu){
@@ -160,14 +160,16 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, itemstack));
         }
     }
-    private void handleInterrupt(AbstractContainerMenu menu, Level level, Player player){
+    private void handleInterrupt(AbstractContainerMenu menu, Level level, Player player) {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer) player;
             if (this.blockEntity.getProgress() > 0) {
-                this.blockEntity.setProgress(0);
-                this.blockEntity.getInventory().setStackInSlot(0, ItemStack.EMPTY);
-                menu.setRemoteSlot(0, ItemStack.EMPTY);
-                serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, ItemStack.EMPTY));
+                if (currentRecipe != null && !currentRecipe.equals(new Recipe(this))) {
+                    this.blockEntity.setProgress(0);
+                    this.blockEntity.getInventory().setStackInSlot(0, ItemStack.EMPTY);
+                    menu.setRemoteSlot(0, ItemStack.EMPTY);
+                    serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, ItemStack.EMPTY));
+                }
             }
         }
     }
@@ -176,11 +178,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         this.access.execute((level, pos) -> {
             handleInterrupt(this, level, this.player);
             slotChangedCraftingGrid(this, level, this.player);
+            currentRecipe=new Recipe(this);
         });
     }
-
-    public int getResultSlotIndex() {
-        return 0;
-    }
-
 }

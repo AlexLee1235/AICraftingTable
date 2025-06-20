@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.Recipe;
+import com.watermelon0117.aicraft.recipes.Recipe;
 
 public class GPTItemGenerator extends BaseGPTItemGenerator{
     private static String inst1="### Goal  \n" +

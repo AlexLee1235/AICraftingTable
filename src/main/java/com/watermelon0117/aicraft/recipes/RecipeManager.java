@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.recipes;
 
 import java.io.*;
 import java.util.*;

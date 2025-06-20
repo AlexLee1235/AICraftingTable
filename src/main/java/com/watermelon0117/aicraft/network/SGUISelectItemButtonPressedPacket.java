@@ -1,8 +1,7 @@
 package com.watermelon0117.aicraft.network;
 
-import com.watermelon0117.aicraft.RecipeManager;
+import com.watermelon0117.aicraft.recipes.RecipeManager;
 import com.watermelon0117.aicraft.gpt.GPTImageGenerator;
-import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
 import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;

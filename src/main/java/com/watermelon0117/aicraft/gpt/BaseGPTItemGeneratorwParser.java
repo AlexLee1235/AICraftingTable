@@ -3,7 +3,7 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.Recipe;
+import com.watermelon0117.aicraft.recipes.Recipe;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

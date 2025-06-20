@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.Recipe;
+import com.watermelon0117.aicraft.recipes.Recipe;
 
 public class GPTItemGenerator3 extends BaseGPTItemGeneratorwParser{  //the only worked shape recognizing, maybe not
     private static final String inst="You are a Minecraft item designer.\n" +

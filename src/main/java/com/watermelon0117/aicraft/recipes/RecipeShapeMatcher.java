@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.menu;
+package com.watermelon0117.aicraft.recipes;
 
 import net.minecraft.world.item.ItemStack;
 import java.util.*;

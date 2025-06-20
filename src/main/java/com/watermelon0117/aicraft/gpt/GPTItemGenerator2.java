@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.Recipe;
+import com.watermelon0117.aicraft.recipes.Recipe;
 
 public class GPTItemGenerator2 extends BaseGPTItemGeneratorwParser{  //normal naming style
     String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
