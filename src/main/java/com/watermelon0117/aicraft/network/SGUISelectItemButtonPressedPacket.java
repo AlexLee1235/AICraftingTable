@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.network;
 
-import com.watermelon0117.aicraft.gpt.GPTImageClient;
+import com.watermelon0117.aicraft.gpt.GPTImageGenerator;
+import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
 import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
@@ -23,18 +24,29 @@ import java.util.function.Supplier;
 public class SGUISelectItemButtonPressedPacket {
     private final BlockPos pos;
     private final String name;
-    GPTImageClient imgClient = new GPTImageClient("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");
+    private final String[] recipe;
+    GPTImageGenerator imgClient = new GPTImageGenerator();
 
-    public SGUISelectItemButtonPressedPacket(BlockPos pos, String name){
+    public SGUISelectItemButtonPressedPacket(BlockPos pos, String name, String[] recipe){
         this.pos=pos;
         this.name=name;
+        this.recipe=recipe;
     }
     public SGUISelectItemButtonPressedPacket(FriendlyByteBuf buf){
-        this(buf.readBlockPos(), buf.readUtf());
+        String[] recipe=new String[9];
+        this.pos=buf.readBlockPos();
+        this.name=buf.readUtf();
+        for (int i = 0; i < 9; i++) {
+            recipe[i]=buf.readUtf();
+        }
+        this.recipe=recipe;
     }
     public void encode(FriendlyByteBuf buf){
         buf.writeBlockPos(pos);
         buf.writeUtf(name);
+        for (int i = 0; i < 9; i++) {
+            buf.writeUtf(recipe[i]);
+        }
     }
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         ServerPlayer player = contextSupplier.get().getSender();
@@ -45,7 +57,7 @@ public class SGUISelectItemButtonPressedPacket {
                 be.target = name;
                 player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                 player.sendSystemMessage(Component.literal("Start..."));
-                imgClient.generateItem(name).thenAccept(bytes -> {
+                imgClient.generateItem(name, recipe).thenAccept(bytes -> {
                             try {
                                 if (be.target.contentEquals(name) && be.getProgress() != 0) {
                                     Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
-public final class GPTImageClient {
+public final class OpenAIImageClient {
 
     private static final URI ENDPOINT =
             URI.create("https://api.openai.com/v1/images/generations");
@@ -21,7 +21,7 @@ public final class GPTImageClient {
     private final HttpClient http;
     private final Gson gson;
 
-    public GPTImageClient(String apiKey) {
+    public OpenAIImageClient(String apiKey) {
         if (apiKey == null || apiKey.isBlank())
             throw new IllegalArgumentException("API key must not be null/blank");
 
@@ -36,10 +36,7 @@ public final class GPTImageClient {
 
     /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
 
-    public CompletableFuture<byte[]> generateItem(String name){
-        return generateAsync("A 16x16 pixel art depiction of a "+name+" with clearly separated background color",
-                "1024x1024", "opaque", "low", "medium");
-    }
+
     public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality) {
         Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality);
         String json  = gson.toJson(body);

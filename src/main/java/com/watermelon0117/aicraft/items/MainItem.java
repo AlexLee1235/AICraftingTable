@@ -1,17 +1,21 @@
 package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRenderer;
-import com.watermelon0117.aicraft.gpt.GPTImageClient;
+import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
 import com.watermelon0117.aicraft.gpt.OpenAIHttpClient;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.function.Consumer;
@@ -23,7 +27,7 @@ public class MainItem extends Item {
             1.0,
             1024,
             "You are MinecraftGPT, you answer question related to minecraft.");
-    GPTImageClient imgClient = new GPTImageClient("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");
+    OpenAIImageClient imgClient = new OpenAIImageClient("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");
     public MainItem(Properties p_41383_) {
         super(p_41383_);
     }
@@ -73,6 +77,37 @@ public class MainItem extends Item {
         //ItemStack itemStack=player.getItemInHand(hand);
         //return InteractionResultHolder.success(itemStack);
         return super.use(level,player,hand);
+    }
+
+    @Override
+    public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+        return state.is(BlockTags.MINEABLE_WITH_PICKAXE) && net.minecraftforge.common.TierSortingRegistry.isCorrectTierForDrops(Tiers.STONE, state);
+    }
+    @Override
+    public float getDestroySpeed(ItemStack itemStack, BlockState state) {
+        return state.is(BlockTags.MINEABLE_WITH_PICKAXE) ? Tiers.IRON.getSpeed() : 1.0F;
+    }
+    public boolean hurtEnemy(ItemStack p_40994_, LivingEntity p_40995_, LivingEntity p_40996_) {
+        p_40994_.hurtAndBreak(2, p_40996_, (p_41007_) -> {
+            p_41007_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
+        });
+        return true;
+    }
+    public boolean mineBlock(ItemStack p_40998_, Level p_40999_, BlockState p_41000_, BlockPos p_41001_, LivingEntity p_41002_) {
+        if (!p_40999_.isClientSide && p_41000_.getDestroySpeed(p_40999_, p_41001_) != 0.0F) {
+            p_40998_.hurtAndBreak(1, p_41002_, (p_40992_) -> {
+                p_40992_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
+            });
+        }
+        return true;
+    }
+    @Override
+    public boolean isDamageable(ItemStack stack) {
+        return true;
+    }
+    @Override
+    public int getMaxDamage(ItemStack stack) {
+        return 100;
     }
 
     @Override

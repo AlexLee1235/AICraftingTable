@@ -63,7 +63,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     private void optBtnPress(Button button) {
         String s = button.getMessage().getString();
-        PacketHandler.sendToServer(new SGUISelectItemButtonPressedPacket(this.menu.blockEntity.getBlockPos(), s));
+        PacketHandler.sendToServer(new SGUISelectItemButtonPressedPacket(this.menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
         setStage2();
     }
 
