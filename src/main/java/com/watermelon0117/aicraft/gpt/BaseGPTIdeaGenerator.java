@@ -23,10 +23,10 @@ public abstract class BaseGPTIdeaGenerator {
                 sysMsg,
                 "json_object");
     }
+    protected abstract String buildPrompt(Recipe recipe);
     public CompletableFuture<String[]> generate(Recipe recipe) {
         return generate(buildPrompt(recipe));
     }
-    protected abstract String buildPrompt(Recipe recipe);
     public CompletableFuture<String[]> generate(String prompt) {
         return client.chat(prompt).thenApply(rawResult->{
             //System.out.println(rawResult);

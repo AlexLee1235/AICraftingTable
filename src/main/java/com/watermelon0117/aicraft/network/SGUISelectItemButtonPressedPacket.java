@@ -63,8 +63,6 @@ public class SGUISelectItemButtonPressedPacket {
                 player.sendSystemMessage(Component.literal("Start..."));
                 generator.generate(name, recipe, be, b -> b.target.contentEquals(name) && b.getProgress() != 0).thenAccept(itemStack -> {
                             if (be.target.contentEquals(name) && be.getProgress() != 0) {
-                                RecipeManager.addRecipe(name, recipe);
-
                                 player.sendSystemMessage(Component.literal("Done"));
                                 be.getInventory().setStackInSlot(0, itemStack);
                                 be.setProgress(580);

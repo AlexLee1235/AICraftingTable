@@ -48,10 +48,10 @@ public abstract class BaseGPTIdeaGeneratorwParser {
                 sysMsg,
                 "text");
     }
+    protected abstract String buildPrompt(Recipe recipe);
     public CompletableFuture<String[]> generate(Recipe recipe) {
         return generate(buildPrompt(recipe));
     }
-    protected abstract String buildPrompt(Recipe recipe);
     public CompletableFuture<String[]> generate(String prompt) {
         return client.chat(prompt.toString()).thenCompose(rawResult->{
             System.out.println(rawResult);

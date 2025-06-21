@@ -50,7 +50,7 @@ public class GPTIdeaGenerator2 extends BaseGPTIdeaGeneratorwParser {  //normal n
 
     @Override
     protected String buildPrompt(Recipe recipe) {
-        String[] input=recipe.getDisplayNames();
+        String[] input = recipe.getDisplayNames();
         StringBuilder prompt = new StringBuilder(inst);
         prompt.append("Filled Slots:\n");
         for (int i = 0; i < 9; i++) {
@@ -59,7 +59,7 @@ public class GPTIdeaGenerator2 extends BaseGPTIdeaGeneratorwParser {  //normal n
         }
         for (int i = 0; i < 9; i++) {
             prompt.append(input[i].contentEquals("empty") ? "[]" : String.format("[%s]", input[i]));
-            if(i%3==2)
+            if (i % 3 == 2)
                 prompt.append("\n");
         }
         return prompt.toString();
