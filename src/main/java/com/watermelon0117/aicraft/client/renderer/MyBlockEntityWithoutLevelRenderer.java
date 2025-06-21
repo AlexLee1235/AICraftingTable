@@ -90,10 +90,10 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
             g2d.dispose();
             this.maps.put("default", new DynamicItemInstance(img));
         }
-        CompoundTag tag = itemStack.getTag();
-        String id = "default";
-        if (tag != null) {
-            id = tag.getString("texture");
+        CompoundTag tag = itemStack.getOrCreateTag();
+        String id = tag.getString("texture");
+        if (id.isEmpty()) {
+            id = "default";
         }
         if (!this.maps.containsKey(id)) {
             id = "default";

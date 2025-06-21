@@ -21,7 +21,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public class GPTItemGenerator {
-    private static final String inst="given a minecraft item and it's crafting recipe, please answer following questions:\n" +
+    private static final String inst=
+            "given a minecraft item and it's crafting recipe, please answer following questions:\n" +
             "is_shapeless_crafting?\n" +
             "is_tool?\n" +
             "tier(equivalent in wooden, stone, iron, diamond, netherite, golden)?\n" +
@@ -74,9 +75,9 @@ public class GPTItemGenerator {
         return client.chat(buildPrompt(name, recipe)).thenCompose(rawJson -> {
             System.out.println(rawJson);
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
-            ItemStack itemStack = new ItemStack(ItemInit.MAIN_ITEM.get());
+            ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());
             itemStack.getOrCreateTag().putString("texture", name);
-
+            setTags(itemStack, json);
             // do something to itemStack based on rawJson
             return imgClient.generateItem(name, recipe/*prompt from json*/).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
@@ -101,7 +102,17 @@ public class GPTItemGenerator {
         if (json.is_tool || json.is_melee_weapon || json.is_suitable_for_breaking_stone || json.is_suitable_for_breaking_woods || json.is_suitable_for_breaking_dirts || json.is_suitable_to_plow) {
             tag.putByte("tier", getTier(json));
         }
+        //food
+        if(json.is_edible){
+            tag.putByte("nutrition", (byte) json.nutrition_value);
+            if(json.food_is_solid_or_liquid!=null &&json.food_is_solid_or_liquid.contentEquals("liquid"))
+                tag.putBoolean("isDrink", true);
+            else
+                tag.putBoolean("isFood", true);
+            if(json.gives_effect){
 
+            }
+        }
     }
     private static byte getTier(ItemResult json) {
         if (json.tier == null) {
@@ -139,7 +150,5 @@ public class GPTItemGenerator {
         boolean gives_effect;
         String given_effect;
         String food_is_solid_or_liquid;
-        boolean does_it_return_item_when_eaten;
-        String returned_item_when_eaten;
     }
 }

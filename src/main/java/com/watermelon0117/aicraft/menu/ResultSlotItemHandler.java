@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -62,8 +63,15 @@ public class ResultSlotItemHandler extends SlotItemHandler {
     public void onTake(Player p_150638_, ItemStack p_150639_) {
         if(p_150639_.is(ItemInit.MAIN_ITEM.get()) || p_150639_.is(ItemInit.MAIN_FOOD_ITEM.get())){
             for (int i = 0; i < 9; i++) {
-                if(!this.craftSlots.getStackInSlot(i + 1).isEmpty())
-                    this.craftSlots.getStackInSlot(i + 1).shrink(1);
+                if(!this.craftSlots.getStackInSlot(i + 1).isEmpty()) {
+                    if (this.craftSlots.getStackInSlot(i + 1).is(Items.WATER_BUCKET) ||
+                            this.craftSlots.getStackInSlot(i + 1).is(Items.LAVA_BUCKET) ||
+                            this.craftSlots.getStackInSlot(i + 1).is(Items.MILK_BUCKET)
+                    )
+                        this.craftSlots.setStackInSlot(i + 1, new ItemStack(Items.BUCKET));
+                    else
+                        this.craftSlots.getStackInSlot(i + 1).shrink(1);
+                }
             }
         }else {
             this.checkTakeAchievements(p_150639_);
