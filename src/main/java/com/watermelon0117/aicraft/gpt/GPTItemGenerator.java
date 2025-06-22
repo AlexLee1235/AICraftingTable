@@ -9,6 +9,7 @@ import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.recipes.RecipeManager;
+import com.watermelon0117.aicraft.recipes.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
@@ -77,11 +78,11 @@ public class GPTItemGenerator {
             ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());
             itemStack.getOrCreateTag().putString("texture", name);
             setTags(itemStack, json);
-            // do something to itemStack based on rawJson
             return imgClient.generateItem(name, recipe/*prompt from json*/).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
                     applyTexture(textureBytes, name);
-                    RecipeManager.addRecipe(name, recipe/*shapeless*/);
+                    RecipeManager.addRecipe(name, recipe, json.is_shapeless_crafting);
+                    SpecialItemManager.addItem(name, itemStack);
                 }
                 return itemStack;
             });

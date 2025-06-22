@@ -10,21 +10,33 @@ public class RecipeManager {
     private static final File FILE = new File("C:\\achieve\\AICraftingTable\\recipes.txt");
     private static final Map<String, String> recipeMap = new HashMap<>();
 
-    private static String toKey(String[] recipe) {
+    private static String toShapedKey(String[] recipe) {
         if (recipe.length != 9)
             throw new IllegalArgumentException("Recipe must be 9 items.");
-        return String.join(",", recipe).toLowerCase();
+        return "shaped:" + String.join(",", recipe).toLowerCase();
     }
 
-    /** 1. Match a recipe and return crafted item name */
+    private static String toShapelessKey(String[] recipe) {
+        if (recipe.length != 9)
+            throw new IllegalArgumentException("Recipe must be 9 items.");
+        List<String> list = Arrays.asList(recipe.clone());
+        list.replaceAll(String::toLowerCase);
+        list.sort(String::compareTo); // sort ingredients
+        return "shapeless:" + String.join(",", list);
+    }
+
+    /** 1. Match shaped or shapeless recipe */
     public static ItemStack match(String[] recipe) {
-        String name = recipeMap.get(toKey(recipe));
-        ItemStack itemstack = ItemStack.EMPTY;
-        if (name != null) {
-            itemstack = new ItemStack(ItemInit.MAIN_ITEM.get());
-            itemstack.getOrCreateTag().putString("texture", name);
+        String name = recipeMap.get(toShapedKey(recipe));
+        if (name == null) {
+            name = recipeMap.get(toShapelessKey(recipe));
         }
-        return itemstack;
+        if (name != null) {
+            ItemStack itemstack = new ItemStack(ItemInit.MAIN_ITEM.get());
+            itemstack.getOrCreateTag().putString("texture", name);
+            return itemstack;
+        }
+        return ItemStack.EMPTY;
     }
 
     /** 2. Load all recipes from file (silently fails if error) */
@@ -35,27 +47,45 @@ public class RecipeManager {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("=", 2);
-                if (parts.length != 2) continue;
+                String[] parts = line.split("=", 3);
+                if (parts.length != 3) continue;
 
-                String name = parts[0].trim();
-                String[] items = parts[1].split(",", -1);
+                String type = parts[0].trim(); // "shaped" or "shapeless"
+                String name = parts[1].trim();
+                String[] items = parts[2].split(",", -1);
                 if (items.length != 9) continue;
 
-                recipeMap.put(String.join(",", items).toLowerCase(), name);
+                String key = (type.equals("shaped") ? toShapedKey(items) : toShapelessKey(items));
+                recipeMap.put(key, name);
             }
         } catch (IOException ignored) {
             // silently fail
         }
     }
 
-    /** 3. Add a recipe and save to file (throws RuntimeException on error) */
-    public static void addRecipe(String name, String[] recipe) {
-        if (recipe.length != 9)
-            throw new IllegalArgumentException("Recipe must be 9 items.");
-
-        recipeMap.put(toKey(recipe), name);
+    /** 3a. Add shaped recipe */
+    public static void addRecipe(String name, String[] recipe, boolean shpaeless) {
+        if(shpaeless)
+            recipeMap.put(toShapelessKey(recipe), name);
+        else
+            recipeMap.put(toShapedKey(recipe), name);
         saveToFile();
+    }
+
+    /** Save all recipes to file (throws RuntimeException on failure) */
+    private static void saveToFile() {
+        ensureFileExists();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE))) {
+            for (Map.Entry<String, String> entry : recipeMap.entrySet()) {
+                String key = entry.getKey();
+                String type = key.startsWith("shapeless:") ? "shapeless" : "shaped";
+                String items = key.substring(key.indexOf(':') + 1);
+                writer.write(type + "=" + entry.getValue() + "=" + items);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write recipe file", e);
+        }
     }
 
     /** Ensure file and parent directories exist (throws RuntimeException on failure) */
@@ -76,17 +106,5 @@ public class RecipeManager {
             throw new RuntimeException("I/O error while creating file", e);
         }
     }
-
-    /** Save all recipes to file (throws RuntimeException on failure) */
-    private static void saveToFile() {
-        ensureFileExists();
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE))) {
-            for (Map.Entry<String, String> entry : recipeMap.entrySet()) {
-                writer.write(entry.getValue() + "=" + entry.getKey());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write recipe file", e);
-        }
-    }
 }
+
