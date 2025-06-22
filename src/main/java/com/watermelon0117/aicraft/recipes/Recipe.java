@@ -4,6 +4,7 @@ import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class Recipe {
     public ItemStack[] items=new ItemStack[9];
@@ -32,6 +33,12 @@ public class Recipe {
                 list[i]=strip(items[i].getDisplayName().getString());
         }
         return list;
+    }
+    public static String getUniqueNames(String[] input) {
+        return Arrays.stream(input)
+                .distinct()
+                .filter(s -> !s.contentEquals("empty"))
+                .collect(Collectors.joining(", "));
     }
     private static boolean stackEqual(ItemStack self, ItemStack other){
         return self.getItem() == other.getItem() && ItemStack.tagMatches(self, other);

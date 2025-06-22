@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft.items;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
 import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRenderer;
 import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
@@ -22,6 +24,9 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
@@ -34,6 +39,7 @@ import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.common.extensions.IForgeItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -115,7 +121,35 @@ public class MainItem extends Item {
         CompoundTag tag = stack.getOrCreateTag();
         return Tiers.values()[tag.getByte("tier")].getUses();
     }
-
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot p_43274_, ItemStack stack) {
+        if(!this.isDamageable(stack))
+            return ImmutableMultimap.of();
+        CompoundTag tag = stack.getOrCreateTag();
+        double num1=tag.getDouble("attackDamage");
+        double num2=tag.getDouble("attackSpeed");
+        double attackDamage=num1 + Tiers.values()[tag.getByte("tier")].getAttackDamageBonus();
+        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+        builder.put(Attributes.ATTACK_DAMAGE,
+                new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier",
+                        attackDamage, AttributeModifier.Operation.ADDITION));
+        builder.put(Attributes.ATTACK_SPEED,
+                new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier",
+                        num2, AttributeModifier.Operation.ADDITION));
+        return p_43274_ == EquipmentSlot.MAINHAND ? builder.build() : ImmutableMultimap.of();
+    }
+    /*@Override
+    public boolean isRepairable(ItemStack stack) {
+        return this.isDamageable(stack);
+    }
+    private static String strip(String s){
+        return s.replace("[","").replace("]","");
+    }
+    @Override
+    public boolean isValidRepairItem(ItemStack stack, ItemStack material) {
+        CompoundTag tag = stack.getOrCreateTag();
+        return tag.getString("repairMaterial").contentEquals(strip(material.getDisplayName().getString()));
+    }*/
 
     @Override
     public Component getName(ItemStack itemStack) {

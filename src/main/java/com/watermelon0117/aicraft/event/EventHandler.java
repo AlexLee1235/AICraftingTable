@@ -18,7 +18,6 @@ public class EventHandler {
     }
     @SubscribeEvent
     public static void CommandEvent(CommandEvent event){
-        System.out.println("CommandEvent");
     }
     @SubscribeEvent
     public static void EntityJoinLevelEvent(EntityJoinLevelEvent event){
