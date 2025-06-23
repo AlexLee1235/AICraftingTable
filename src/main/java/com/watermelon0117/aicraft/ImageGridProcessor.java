@@ -16,13 +16,16 @@ import java.util.stream.IntStream;
 public class ImageGridProcessor {
     private static final int WHITE_RGB = Color.WHITE.getRGB();
     private static final int BLACK_RGB = Color.BLACK.getRGB();
-    private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(1,100,200);
+    private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(100,200);
 
     public static BufferedImage process(String path) {
         try {
             // 1. Read Image
             BufferedImage image = readImage(path);
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
+
+            saveImage(CannyEdgeDetector.overlayCannyEdges(image,100,200),
+                    "C:\\achieve\\AICraftingTable\\process\\edges_image.png");
 
             // 2. Edge Detection
             BufferedImage edges = edgeDetection(image);
@@ -317,15 +320,16 @@ public class ImageGridProcessor {
         for (int i = 0; i < lines.size() - 1; i++) {
             int start = lines.get(i);
             int end = lines.get(i + 1);
-            double diff = end - start;
-            int count = (int) Math.round(diff / gridSize);
-
+            double d = end - start;
+            double count = d / gridSize;
+            int insertCount = (int) Math.round(count) - 1;
+            if (insertCount < 0)
+                continue;
+            double dist = d / (insertCount + 1);
             newLines.add(start);
-            if (count > 1) {
-                double step = diff / count;
-                for (int j = 1; j < count; j++) {
-                    newLines.add((int) Math.round(start + j * step));
-                }
+
+            for (int j = 0; j < insertCount; j++) {
+                newLines.add((int) (start + dist * (j + 1)));
             }
         }
         newLines.add(lines.get(lines.size() - 1));

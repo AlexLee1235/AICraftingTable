@@ -60,7 +60,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     }
 
     public void loadNewFile(String name) {
-        File file = new File("C:\\achieve\\AICraftingTable\\temp\\" + name + ".png");
+        File file = new File("C:\\achieve\\AICraftingTable\\data\\textures\\" + name + ".png");
         if (file.isFile()) {
             try {
                 BufferedImage image = ImageIO.read(file);
@@ -92,10 +92,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         }
         CompoundTag tag = itemStack.getOrCreateTag();
         String id = tag.getString("texture");
-        if (id.isEmpty()) {
-            id = "default";
-        }
-        if (!this.maps.containsKey(id)) {
+        if (id.isEmpty() || !this.maps.containsKey(id)) {
             id = "default";
         }
         DynamicItemInstance instance = this.maps.get(id);

@@ -63,7 +63,7 @@ public class GPTItemGenerator {
             Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
             Files.write(Path.of("C:\\achieve\\AICraftingTable\\image\\" + name + ".png"), bytes);
             BufferedImage txt = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
-            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\temp\\" + name + ".png");
+            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\data\\textures\\" + name + ".png");
             MainItem.renderer.loadNewFile(name);
         } catch (IOException e) {
             throw new RuntimeException(e);
