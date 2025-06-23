@@ -7,7 +7,7 @@ import java.io.*;
 import java.util.*;
 
 public class RecipeManager {
-    private static final File FILE = new File("C:\\achieve\\AICraftingTable\\recipes.txt");
+    private static final File FILE = new File("C:\\achieve\\AICraftingTable\\data\\recipes.txt");
     private static final Map<String, String> recipeMap = new HashMap<>();
 
     private static String toShapedKey(String[] recipe) {

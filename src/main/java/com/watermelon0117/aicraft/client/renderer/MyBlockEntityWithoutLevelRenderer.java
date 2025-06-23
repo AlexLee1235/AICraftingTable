@@ -32,7 +32,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     }
 
     public void loadFromFile() {
-        File folder = new File("C:\\achieve\\AICraftingTable\\temp");
+        File folder = new File("C:\\achieve\\AICraftingTable\\data\\textures");
         File[] files = folder.listFiles();
         if (files == null) {
             System.out.println("Folder not found or empty.");

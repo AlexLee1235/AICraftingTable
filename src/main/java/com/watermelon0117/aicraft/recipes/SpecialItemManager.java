@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SpecialItemManager {
-    private static final File DIR = new File("C:\\achieve\\AICraftingTable\\special_items");
+    private static final File DIR = new File("C:\\achieve\\AICraftingTable\\data\\tags");
     private static final Map<String, CompoundTag> itemMap = new HashMap<>();
 
     /** Save item to file and map */
