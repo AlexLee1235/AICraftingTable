@@ -1,8 +1,12 @@
 package com.watermelon0117.aicraft.gpt;
 
 import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.RecipeShapeMatcher;
+import net.minecraft.world.item.ItemStack;
 
-public class GPTIdeaGenerator2 extends BaseGPTIdeaGeneratorwParser {  //normal naming style
+import java.util.concurrent.CompletableFuture;
+
+public class GPTIdeaGenerator2 {  //normal naming style
     String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
             "You are identifying the most natural, direct, and commonly accepted name for an item crafted in Minecraft, based on a 3×3 recipe.\n" +
             "You are not inventing a new name.\n" +
@@ -44,11 +48,7 @@ public class GPTIdeaGenerator2 extends BaseGPTIdeaGeneratorwParser {  //normal n
             "{\"items\":[\"Iron Crucible\", \"Ore Hopper\", \"Molten Basin\"],\"error\":false}\n" +
             "\n" +
             "Now extract from this:\n";
-    public GPTIdeaGenerator2(){
-        super("You are a Minecraft crafting recipe solver");
-    }
-
-    @Override
+    BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver");
     protected String buildPrompt(Recipe recipe) {
         String[] input = recipe.getDisplayNames();
         StringBuilder prompt = new StringBuilder(inst);
@@ -63,5 +63,18 @@ public class GPTIdeaGenerator2 extends BaseGPTIdeaGeneratorwParser {  //normal n
                 prompt.append("\n");
         }
         return prompt.toString();
+    }
+    protected String[] postProcess(Recipe recipe, String[] items) {
+        String material = RecipeShapeMatcher.getMaterial(recipe.items);
+        if (material != null) {
+            String type = RecipeShapeMatcher.getMatchedToolOrArmorName(recipe.items);
+            if (!items[0].contains(type) && !items[1].contains(type) && !items[2].contains(type)) {
+                items[2] = material + " " + type;
+            }
+        }
+        return items;
+    }
+    public CompletableFuture<String[]> generate(Recipe recipe){
+        return generator.generate(buildPrompt(recipe)).thenApply(items-> postProcess(recipe, items));
     }
 }

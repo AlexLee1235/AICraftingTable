@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 public class GPTItemGenerator {
     private static final String inst=
             "given a minecraft item, please answer following questions:\n" +
-            "is_shapeless_crafting(decide by if the item should be shapeless crafting)?\n" +
+            "is_shapeless_crafting(true if item is structured or false if mixing)?\n" +
             "is_tool?\n" +
             "tier(equivalent in wooden, stone, iron, diamond, netherite, golden)?\n" +
             "is_suitable_for_breaking_stone(like pickaxe)?\n" +

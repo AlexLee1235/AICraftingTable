@@ -2,7 +2,9 @@ package com.watermelon0117.aicraft.gpt;
 
 import com.watermelon0117.aicraft.recipes.Recipe;
 
-public class GPTIdeaGenerator extends BaseGPTIdeaGenerator {
+import java.util.concurrent.CompletableFuture;
+
+public class GPTIdeaGenerator {
     private static String inst1="### Goal  \n" +
             "From the 3 × 3 crafting recipe below, invent **one to three item names** that could reasonably be produced by that pattern.  \n" +
             "*Key requirement*: in your `\"reasoning\"` sentence(s) you **must reference at least one concrete geometric feature** you observe (e.g. “horizontal row of three ingots”, “L-shape of planks”, “vertical shaft of sticks”).  \n" +
@@ -24,10 +26,7 @@ public class GPTIdeaGenerator extends BaseGPTIdeaGenerator {
             "    { \"name\": \"string\" }\n" +
             "  ]\n" +
             "}";
-    public GPTIdeaGenerator(){
-        super("You are an expert Minecraft item designer.");
-    }
-    @Override
+    BaseGPTIdeaGenerator generator=new BaseGPTIdeaGenerator("You are an expert Minecraft item designer.");
     protected String buildPrompt(Recipe recipe) {
         String[] input = recipe.getDisplayNames();
         StringBuilder prompt = new StringBuilder(inst1);
@@ -37,5 +36,8 @@ public class GPTIdeaGenerator extends BaseGPTIdeaGenerator {
         }
         prompt.append(inst2);
         return prompt.toString();
+    }
+    public CompletableFuture<String[]> generate(Recipe recipe){
+        return generator.generate(buildPrompt(recipe));
     }
 }

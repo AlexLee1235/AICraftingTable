@@ -12,13 +12,13 @@ public class RecipeShapeMatcher {
             Map.entry("Shovel",    " I  S  S "),
             Map.entry("Hoe",       "II  S  S "),
             Map.entry("Hoe",       " II S  S "),
-            Map.entry("Sword",     " I  I  S "),
+            Map.entry("Sword",     " I  I  S ")
 
             // Armor
-            Map.entry("Helmet",    "IIII I   "),
+            /*Map.entry("Helmet",    "IIII I   "),
             Map.entry("Chestplate","I IIIIIII"),
             Map.entry("Leggings",  "IIII II I"),
-            Map.entry("Boots",     "I II I   ")
+            Map.entry("Boots",     "I II I   ")*/
     );
 
     /**
@@ -118,5 +118,48 @@ public class RecipeShapeMatcher {
         }
 
         return results;
+    }
+    private static String strip(String s){
+        return s.replace("[","").replace("]","");
+    }
+    public static String getMaterial(ItemStack[] grid) {
+        if (grid.length != 9) return null;
+
+        for (Map.Entry<String, String> entry : PATTERNS) {
+            for (String shifted : shiftPattern(entry.getValue())) {
+                ItemStack material = tryMatchAndGetMaterial(grid, shifted);
+                if (!material.isEmpty()) {
+                    return strip(material.getDisplayName().getString());
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Like matchesPattern, but returns the material stack when the recipe fits, or EMPTY when it does not */
+    private static ItemStack tryMatchAndGetMaterial(ItemStack[] grid, String pattern) {
+        ItemStack ing = ItemStack.EMPTY, stick = ItemStack.EMPTY;
+
+        for (int i = 0; i < 9; i++) {
+            char expected = pattern.charAt(i);
+            ItemStack actual = grid[i];
+
+            switch (expected) {
+                case ' ' -> {
+                    if (!actual.isEmpty()) return ItemStack.EMPTY;
+                }
+                case 'I' -> {
+                    if (actual.isEmpty()) return ItemStack.EMPTY;
+                    if (ing.isEmpty()) ing = actual;
+                    else if (!ItemStack.isSameItemSameTags(actual, ing)) return ItemStack.EMPTY;
+                }
+                case 'S' -> {
+                    if (actual.isEmpty()) return ItemStack.EMPTY;
+                    if (stick.isEmpty()) stick = actual;
+                    else if (!ItemStack.isSameItemSameTags(actual, stick)) return ItemStack.EMPTY;
+                }
+            }
+        }
+        return ing;   // will be EMPTY if the loop never saw an 'I'
     }
 }

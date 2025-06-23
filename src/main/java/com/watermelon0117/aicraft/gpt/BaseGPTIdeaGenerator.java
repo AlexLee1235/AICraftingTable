@@ -8,7 +8,7 @@ import com.watermelon0117.aicraft.recipes.Recipe;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class BaseGPTIdeaGenerator {
+public class BaseGPTIdeaGenerator {
     private final Gson gson;
     private final OpenAIHttpClient client;
     public BaseGPTIdeaGenerator(String sysMsg){
@@ -22,10 +22,6 @@ public abstract class BaseGPTIdeaGenerator {
                 1024,
                 sysMsg,
                 "json_object");
-    }
-    protected abstract String buildPrompt(Recipe recipe);
-    public CompletableFuture<String[]> generate(Recipe recipe) {
-        return generate(buildPrompt(recipe));
     }
     public CompletableFuture<String[]> generate(String prompt) {
         return client.chat(prompt).thenApply(rawResult->{

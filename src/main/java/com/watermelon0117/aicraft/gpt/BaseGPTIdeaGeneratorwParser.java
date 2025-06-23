@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-public abstract class BaseGPTIdeaGeneratorwParser {
+public class BaseGPTIdeaGeneratorwParser {
     String inst2="You will be given a block of text that includes 3 original Minecraft-style item names, possibly along with descriptions or reasoning.\n" +
             "\n" +
             "Your job is to extract just the item names and return them as a JSON format:\n" +
@@ -47,10 +47,6 @@ public abstract class BaseGPTIdeaGeneratorwParser {
                 2048,
                 sysMsg,
                 "text");
-    }
-    protected abstract String buildPrompt(Recipe recipe);
-    public CompletableFuture<String[]> generate(Recipe recipe) {
-        return generate(buildPrompt(recipe));
     }
     public CompletableFuture<String[]> generate(String prompt) {
         return client.chat(prompt.toString()).thenCompose(rawResult->{

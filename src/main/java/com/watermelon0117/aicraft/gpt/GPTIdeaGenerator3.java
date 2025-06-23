@@ -2,7 +2,9 @@ package com.watermelon0117.aicraft.gpt;
 
 import com.watermelon0117.aicraft.recipes.Recipe;
 
-public class GPTIdeaGenerator3 extends BaseGPTIdeaGeneratorwParser {  //the only worked shape recognizing, maybe not
+import java.util.concurrent.CompletableFuture;
+
+public class GPTIdeaGenerator3 {  //the only worked shape recognizing, maybe not
     private static final String inst="You are a Minecraft item designer.\n" +
             "\n" +
             "Given a crafting grid filled with [Material] forming a [Shape], generate three unique Minecraft-style item names. The names should reflect the item's potential function as a [Item Category], be practical in gameplay, and not overlap with existing game items.\n" +
@@ -21,10 +23,8 @@ public class GPTIdeaGenerator3 extends BaseGPTIdeaGeneratorwParser {  //the only
             "Input format:\n" +
             "Filled Slots:\n" +
             "- (row, col): Item name\n";
-    public GPTIdeaGenerator3(){
-        super(inst);
-    }
-    @Override
+    BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser(inst);
+
     protected String buildPrompt(Recipe recipe) {
         String[] input=recipe.getDisplayNames();
         StringBuilder prompt = new StringBuilder("Filled Slots:\n");
@@ -38,5 +38,8 @@ public class GPTIdeaGenerator3 extends BaseGPTIdeaGeneratorwParser {  //the only
                 prompt.append("\n");
         }
         return prompt.toString();
+    }
+    public CompletableFuture<String[]> generate(Recipe recipe){
+        return generator.generate(buildPrompt(recipe));
     }
 }

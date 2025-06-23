@@ -3,7 +3,9 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
+import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator3;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
@@ -87,13 +89,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             errorMessage = "Error";
             return null;
         });
-        /*if(RecipeShapeMatcher.getMatchedToolOrArmorName(currentRecipe.items) != null){
-            optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
-            optBtn1.setMessage(Component.literal(RecipeShapeMatcher.getMatchedToolOrArmorName(currentRecipe.items)));
-            optBtn2.setMessage(Component.literal(""));
-            optBtn3.setMessage(Component.literal(""));
-            generatingText = false;
-        }*/
     }
     private void setStage2() {
         if (stage != 2) {
