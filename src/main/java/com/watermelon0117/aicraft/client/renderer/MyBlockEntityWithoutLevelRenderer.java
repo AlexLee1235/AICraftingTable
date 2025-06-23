@@ -95,6 +95,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         if (id.isEmpty() || !this.maps.containsKey(id)) {
             id = "default";
         }
+        System.out.println(ctx.toString());
         DynamicItemInstance instance = this.maps.get(id);
         instance.draw(poseStack, buffers, false, light);
         poseStack.popPose();
