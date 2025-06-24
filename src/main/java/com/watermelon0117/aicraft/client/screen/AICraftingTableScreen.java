@@ -81,8 +81,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
     public void setIdeaOpts(String[] recipe, String[] idea) {
         System.out.println("setIdeaOpts");
-        System.out.println(Arrays.toString(recipe));
-        System.out.println(Arrays.toString(new Recipe(menu).getDisplayNames()));
         if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
             optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
             optBtn1.setMessage(Component.literal(idea[0]));
