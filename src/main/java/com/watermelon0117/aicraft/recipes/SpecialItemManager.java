@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.recipes;
 
+import com.watermelon0117.aicraft.FileUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.world.item.ItemStack;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SpecialItemManager {
-    private static final File DIR = new File("C:\\achieve\\AICraftingTable\\data\\tags");
+    private static File DIR;
     private static final Map<String, CompoundTag> itemMap = new HashMap<>();
 
     /** Save item to file and map */
@@ -34,6 +35,7 @@ public class SpecialItemManager {
     }
     /** Load all items from files */
     public static void loadFromFile() {
+        DIR = FileUtil.getItemTagFolder();
         itemMap.clear();
         if (!DIR.exists()) return;
         File[] files = DIR.listFiles((dir, name) -> name.endsWith(".nbt"));

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
+import com.watermelon0117.aicraft.FileUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -13,6 +14,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -21,23 +23,18 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
     public final Map<String, DynamicItemInstance> maps = new HashMap<>();
 
-    public MyBlockEntityWithoutLevelRenderer() {
-        super(null, null);
-    }
+    public MyBlockEntityWithoutLevelRenderer() { super(null, null); }
 
     public void loadFromFile() {
-        File folder = new File("C:\\achieve\\AICraftingTable\\data\\textures");
+        File folder = FileUtil.getTextureFolder();
         File[] files = folder.listFiles();
-        if (files == null) {
-            System.out.println("Folder not found or empty.");
-            return;
-        }
 
         for (File file : files) {
             if (file.isFile()) {
@@ -45,8 +42,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
                     BufferedImage image = ImageIO.read(file);
                     if (image != null) {
                         String name = file.getName().replace(".png", "");
-                        System.out.println("Loaded image: " + name +
-                                " (" + image.getWidth() + "x" + image.getHeight() + ")");
+                        System.out.printf("Loaded image: %s(%dx%d)\n", name, image.getWidth(), image.getHeight());
                         this.maps.put(name, new DynamicItemInstance(image));
                     } else {
                         System.out.println("Skipped (not an image): " + file.getName());
@@ -60,7 +56,9 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     }
 
     public void loadNewFile(String name) {
-        File file = new File("C:\\achieve\\AICraftingTable\\data\\textures\\" + name + ".png");
+        File file = new File(FileUtil.getTextureFolder(), name + ".png");
+        System.out.println("loadNewFile");
+        System.out.println(file);
         if (file.isFile()) {
             try {
                 BufferedImage image = ImageIO.read(file);

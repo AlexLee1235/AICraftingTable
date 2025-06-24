@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.FileUtil;
 import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
@@ -15,9 +16,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
@@ -59,10 +60,10 @@ public class GPTItemGenerator {
     }
     private static void applyTexture(byte[] bytes, String name) {
         try {
-            Files.write(Path.of("C:\\achieve\\AICraftingTable\\process\\source.png"), bytes);
-            Files.write(Path.of("C:\\achieve\\AICraftingTable\\image\\" + name + ".png"), bytes);
-            BufferedImage txt = ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\process\\source.png");
-            ImageGridProcessor.saveImage(txt, "C:\\achieve\\AICraftingTable\\data\\textures\\" + name + ".png");
+            Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
+            Files.write(FileUtil.getArchiveFolder(name + ".png").toPath(), bytes);
+            BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes));
+            ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), name + ".png"));
             MainItem.renderer.loadNewFile(name);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.recipes;
 
+import com.watermelon0117.aicraft.FileUtil;
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.world.item.ItemStack;
 
@@ -10,8 +11,7 @@ public class RecipeManager {
 
     /*──────────────────────────── File & Storage ───────────────────────────*/
 
-    private static final File FILE =
-            new File("C:\\achieve\\AICraftingTable\\data\\recipes.txt");
+    private static File FILE;
 
     /** key → crafted-item-name */
     private static final Map<String, String> recipeMap = new HashMap<>();
@@ -106,6 +106,7 @@ public class RecipeManager {
 
     /** 2️⃣  Load recipes from disk; silently ignore corrupt lines. */
     public static void loadFromFile() {
+        FILE = FileUtil.getRecipeFile();
         recipeMap.clear();
         if (!FILE.exists()) return;
 

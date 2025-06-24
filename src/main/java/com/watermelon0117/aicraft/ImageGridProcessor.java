@@ -4,11 +4,11 @@ import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -18,27 +18,26 @@ public class ImageGridProcessor {
     private static final int BLACK_RGB = Color.BLACK.getRGB();
     private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(100,200);
 
-    public static BufferedImage process(String path) {
+    public static BufferedImage process(BufferedImage image) {
         try {
             // 1. Read Image
-            BufferedImage image = readImage(path);
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
 
             saveImage(CannyEdgeDetector.overlayCannyEdges(image,100,200),
-                    "C:\\achieve\\AICraftingTable\\process\\edges_image.png");
+                    FileUtil.getTempFolder("edges_image.png"));
 
             // 2. Edge Detection
             BufferedImage edges = edgeDetection(image);
-            saveImage(edges, "C:\\achieve\\AICraftingTable\\process\\edges.png");
+            saveImage(edges, FileUtil.getTempFolder("edges.png"));
 
             // Remove Background
             image=removeBackgroundAuto(image, edges);
 
             // 3. Extract Lines using Morphological Operations
             BufferedImage verticalLines = extractVerticalLines(edges);
-            saveImage(verticalLines, "C:\\achieve\\AICraftingTable\\process\\vertical_lines.png");
+            saveImage(verticalLines, FileUtil.getTempFolder("vertical_lines.png"));
             BufferedImage horizontalLines = extractHorizontalLines(edges);
-            saveImage(horizontalLines, "C:\\achieve\\AICraftingTable\\process\\horizontal_lines.png");
+            saveImage(horizontalLines, FileUtil.getTempFolder("horizontal_lines.png"));
 
             // 4. Create Histograms
             int[] xHistogram = histogramNonZero(verticalLines, 'x');
@@ -74,13 +73,13 @@ public class ImageGridProcessor {
 
             // 8. Draw Grid and Save
             BufferedImage gridImage = drawGridLines(image, xLines, yLines);
-            saveImage(gridImage, "C:\\achieve\\AICraftingTable\\process\\grid_image.png");
+            saveImage(gridImage, FileUtil.getTempFolder("grid_image.png"));
 
             // 9. Average Colors in Grid
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
             System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
             BufferedImage pixels = padImageCentered(gridColors, calcPaddingSize(gridColors.getWidth(), gridColors.getHeight(), 1));
-            saveImage(pixels, "C:\\achieve\\AICraftingTable\\process\\grid_colors.png");
+            saveImage(pixels, FileUtil.getTempFolder("grid_colors.png"));
             return pixels;
         } catch (IOException e) {
             System.err.println("An error occurred: " + e.getMessage());
@@ -92,11 +91,15 @@ public class ImageGridProcessor {
     /**
      * Reads an image and ensures it has an Alpha channel.
      */
-    public static BufferedImage readImage(String filePath) throws IOException {
-        File file = new File(filePath);
+    public static BufferedImage readImageFromBytes(byte[] data) throws IOException {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(data)) {
+            return ImageIO.read(bais);  // may return null if not a supported format
+        }
+    }
+    public static BufferedImage readImage(File file) throws IOException {
         BufferedImage originalImage = ImageIO.read(file);
         if (originalImage == null) {
-            throw new IOException("Could not read image from path: " + filePath);
+            throw new IOException("Could not read image from path: " + file);
         }
 
         // Ensure image is of type ARGB
@@ -114,8 +117,7 @@ public class ImageGridProcessor {
     /**
      * Saves a BufferedImage to a file.
      */
-    public static void saveImage(BufferedImage image, String outputPath) throws IOException {
-        File outputFile = new File(outputPath);
+    public static void saveImage(BufferedImage image, File outputFile) throws IOException {
         ImageIO.write(image, "png", outputFile);
     }
 

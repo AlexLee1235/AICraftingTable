@@ -29,7 +29,6 @@ public class AICraftingTable {
         FluidInit.FLUID_TYPES.register(bus);
         FluidInit.FLUIDS.register(bus);
         MenuInit.MENU_TYPES.register(bus);
-        ImageGridProcessor.process("C:\\achieve\\AICraftingTable\\image\\Mystic Apple.png");
     }
  
     public static final CreativeModeTab TAB = new CreativeModeTab(MODID) {
