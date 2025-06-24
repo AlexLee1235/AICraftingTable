@@ -30,12 +30,13 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private int stage = 1;
     private Recipe currentRecipe;
     private boolean generatingText = false;
-    private String errorMessage="";
+    private String errorMessage = "";
 
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
     }
-    private void createWidgets(){
+
+    private void createWidgets() {
         mainBtn = addRenderableWidget(new Button(leftPos + 67, topPos + 34, 26, 17,
                 Component.literal(""), this::btnPress) {
             @Override
@@ -55,6 +56,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         reBtn = addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
                 Component.literal(""), this::reBtnPress));
     }
+
     protected void init() {
         super.init();
         titleLabelX = 29;
@@ -75,19 +77,22 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         } else
             System.out.println("Can't regen because no item");
     }
+
     private void optBtnPress(Button button) {
         String s = button.getMessage().getString();
         PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
         setStage2();
     }
+
     public void btnPress(Button button) {
-        if(currentRecipe.isEmpty())
+        if (currentRecipe.isEmpty())
             return;
         generatingText = true;
         errorMessage = "";
         hideOpts();
         PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe));
     }
+
     public void setIdeaOpts(String[] recipe, String[] idea) {
         if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
             showOpts();
@@ -98,11 +103,13 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             System.out.println("Canceled, not putting ideas");
         generatingText = false;
     }
-    public void setIdeaErr(String msg){
+
+    public void setIdeaErr(String msg) {
         System.out.println(msg);
         generatingText = false;
         errorMessage = msg;
     }
+
     private void setStage2() {
         if (stage != 2) {
             //System.out.println("setStage2");
@@ -112,6 +119,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             generatingText = false;
         }
     }
+
     private void setStage1() {
         if (stage != 1) {
             //System.out.println("setStage1");
@@ -121,6 +129,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             generatingText = false;
         }
     }
+
     public void containerTick() {
         super.containerTick();
         if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0) {
@@ -135,12 +144,15 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             currentRecipe = new Recipe(menu);
         }
     }
-    private void showOpts(){
+
+    private void showOpts() {
         optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
     }
-    private void hideOpts(){
+
+    private void hideOpts() {
         optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
     }
+
     public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
         renderBackground(p_98479_);
         if (stage == 1) {
@@ -156,6 +168,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             font.draw(p_98479_, Component.literal("Generating"), (float) leftPos + 102, (float) topPos + 20, 4210752);
         font.draw(p_98479_, Component.literal(errorMessage), (float) leftPos + 102, (float) topPos + 40, 4210752);
     }
+
     protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -176,7 +189,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             }
         }
     }
-    private static String strip(String s){
-        return s.replace("[","").replace("]","");
+
+    private static String strip(String s) {
+        return s.replace("[", "").replace("]", "");
     }
 }

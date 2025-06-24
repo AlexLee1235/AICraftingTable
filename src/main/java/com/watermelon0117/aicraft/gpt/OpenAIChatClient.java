@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.gpt;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
-import java.io.IOException;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,9 +11,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
-public class OpenAIHttpClient {
+public class OpenAIChatClient {
 
     private static final URI CHAT_URI =
             URI.create("https://api.openai.com/v1/chat/completions");
@@ -26,10 +25,10 @@ public class OpenAIHttpClient {
     public final int maxTokens;
     public final String systemMessage;
     public final String response_format;
-    public OpenAIHttpClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage){
+    public OpenAIChatClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage){
         this(apiKey,model,temperature,maxTokens,systemMessage,"text");
     }
-    public OpenAIHttpClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage, String response_format) {
+    public OpenAIChatClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage, String response_format) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalArgumentException("API key must not be null/blank");
         }
@@ -52,8 +51,8 @@ public class OpenAIHttpClient {
 
     public CompletableFuture<String> chat(String message) {
         ArrayList<Message> list=new ArrayList<>();
-        list.add(new OpenAIHttpClient.Message("system", systemMessage));
-        list.add(new OpenAIHttpClient.Message("user", message));
+        list.add(new OpenAIChatClient.Message("system", systemMessage));
+        list.add(new OpenAIChatClient.Message("user", message));
         return chat(list);
     }
     private CompletableFuture<String> chat(List<Message> messages) {
