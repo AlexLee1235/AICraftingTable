@@ -24,7 +24,7 @@ import java.util.Arrays;
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
-    private Button button, optBtn1, optBtn2, optBtn3;
+    private Button button, optBtn1, optBtn2, optBtn3, reBtn;
     private int stage = 1;
     private Recipe currentRecipe;
     private boolean generatingText = false;
@@ -53,6 +53,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.optBtn3 = addRenderableWidget(new Button(leftPos + 98, topPos + 50, 70, 17,
                 Component.literal("None"), this::optBtnPress));
         optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
+        reBtn = addWidget(new Button(leftPos+155,topPos+49,6,6,Component.literal(""),this::reBtnPress))
         if (menu.hasCraftResult)
             setStage2();
         else {
@@ -63,13 +64,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }
         currentRecipe = new Recipe(menu);
     }
+    private void reBtnPress(Button button) {
 
+    }
     private void optBtnPress(Button button) {
         String s = button.getMessage().getString();
         PacketHandler.sendToServer(new SSelectIdeaPacket(this.menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
         setStage2();
     }
-
     public void btnPress(Button button) {
         if(currentRecipe.isEmpty())
             return;
@@ -171,10 +173,5 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                 this.blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
             }
         }
-    }
-
-    @Override
-    protected void slotClicked(Slot p_97778_, int p_97779_, int p_97780_, ClickType p_97781_) {
-        super.slotClicked(p_97778_,p_97779_,p_97780_,p_97781_);
     }
 }
