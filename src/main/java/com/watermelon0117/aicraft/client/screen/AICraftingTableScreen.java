@@ -3,13 +3,11 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
-import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator3;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
-import com.watermelon0117.aicraft.network.SGUISelectItemButtonPressedPacket;
+import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -61,7 +59,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     private void optBtnPress(Button button) {
         String s = button.getMessage().getString();
-        PacketHandler.sendToServer(new SGUISelectItemButtonPressedPacket(this.menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
+        PacketHandler.sendToServer(new SSelectIdeaPacket(this.menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
         setStage2();
     }
 

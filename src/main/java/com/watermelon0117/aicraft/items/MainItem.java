@@ -8,6 +8,7 @@ import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRende
 import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
 import com.watermelon0117.aicraft.gpt.OpenAIHttpClient;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -117,6 +118,10 @@ public class MainItem extends Item {
                 tag.getBoolean("isMelee");
     }
     @Override
+    public int getMaxStackSize(ItemStack stack) {
+        return isDamageable(stack) ? 1 : 64;
+    }
+    @Override
     public int getMaxDamage(ItemStack stack) {
         CompoundTag tag = stack.getOrCreateTag();
         return Tiers.values()[tag.getByte("tier")].getUses();
@@ -159,6 +164,11 @@ public class MainItem extends Item {
             id = tag.getString("texture");
         }
         return Component.literal(id);
+    }
+
+    @Override
+    public Object getRenderPropertiesInternal() {
+        return super.getRenderPropertiesInternal();
     }
 
     @Override

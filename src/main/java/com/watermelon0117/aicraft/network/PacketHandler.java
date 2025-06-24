@@ -17,10 +17,15 @@ public class PacketHandler {
             .simpleChannel();
     public static void register(){
         int index=0;
-        INSTANCE.messageBuilder(SGUISelectItemButtonPressedPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(SGUISelectItemButtonPressedPacket::encode)
-                .decoder(SGUISelectItemButtonPressedPacket::new)
-                .consumerMainThread(SGUISelectItemButtonPressedPacket::handle)
+        INSTANCE.messageBuilder(SSelectIdeaPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(SSelectIdeaPacket::encode)
+                .decoder(SSelectIdeaPacket::new)
+                .consumerMainThread(SSelectIdeaPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(SGenIdeaPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(SGenIdeaPacket::encode)
+                .decoder(SGenIdeaPacket::new)
+                .consumerMainThread(SGenIdeaPacket::handle)
                 .add();
     }
 

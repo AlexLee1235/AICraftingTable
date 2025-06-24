@@ -1,7 +1,9 @@
 {
   "parent": "builtin/entity",
   "gui_light": "front",
-
+  "textures": {
+    "particle": "minecraft:item/apple"
+  },
   "display": {
     "ground": {
       "rotation": [ 0, 0, 0 ],

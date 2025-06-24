@@ -1,40 +1,30 @@
 package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
-import com.watermelon0117.aicraft.recipes.RecipeManager;
-import com.watermelon0117.aicraft.gpt.GPTImageGenerator;
-import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
-import com.watermelon0117.aicraft.init.ItemInit;
-import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.function.Supplier;
 
-public class SGUISelectItemButtonPressedPacket {
+public class SSelectIdeaPacket {
     private final BlockPos pos;
     private final String name;
     private final String[] recipe;
     GPTItemGenerator generator = new GPTItemGenerator();
 
-    public SGUISelectItemButtonPressedPacket(BlockPos pos, String name, String[] recipe) {
+    public SSelectIdeaPacket(BlockPos pos, String name, String[] recipe) {
         this.pos = pos;
         this.name = name;
         this.recipe = recipe;
     }
 
-    public SGUISelectItemButtonPressedPacket(FriendlyByteBuf buf) {
+    public SSelectIdeaPacket(FriendlyByteBuf buf) {
         String[] recipe = new String[9];
         this.pos = buf.readBlockPos();
         this.name = buf.readUtf();
