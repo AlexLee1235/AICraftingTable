@@ -98,10 +98,6 @@ public class RecipeManager {
     /** 1️⃣  Try to craft; returns EMPTY if nothing matches. */
     public static ItemStack match(String[] grid) {
         String name = recipeMap.get(toShapedKey(grid));
-        System.out.println(toShapedKey(grid));
-        for(String key:recipeMap.keySet()){
-            System.out.println(key);
-        }
         if (name == null) name = recipeMap.get(toShapelessKey(grid));
         if (name == null) return ItemStack.EMPTY;
 

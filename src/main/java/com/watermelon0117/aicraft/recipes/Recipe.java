@@ -17,6 +17,9 @@ public class Recipe {
         for (int i = 0; i < 9; i++)
             items[i] = menu.slots.get(i+1).getItem();
     }
+    public Recipe(ItemStack[] items) {
+        this.items = items;
+    }
     public void setItem(int i, ItemStack itemStack) {
         items[i] = itemStack;
     }

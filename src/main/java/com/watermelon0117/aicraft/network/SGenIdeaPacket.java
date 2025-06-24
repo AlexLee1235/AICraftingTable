@@ -1,10 +1,14 @@
 package com.watermelon0117.aicraft.network;
 
+import com.watermelon0117.aicraft.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
+import com.watermelon0117.aicraft.recipes.Recipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -12,18 +16,18 @@ import java.util.function.Supplier;
 
 public class SGenIdeaPacket {
     private final BlockPos pos;
-    private final String[] recipe;
+    private final ItemStack[] recipe;
 
-    public SGenIdeaPacket(BlockPos pos, String[] recipe) {
+    public SGenIdeaPacket(BlockPos pos, Recipe recipe) {
         this.pos = pos;
-        this.recipe = recipe;
+        this.recipe = recipe.items;
     }
 
     public SGenIdeaPacket(FriendlyByteBuf buf) {
-        String[] recipe = new String[9];
+        ItemStack[] recipe = new ItemStack[9];
         this.pos = buf.readBlockPos();
         for (int i = 0; i < 9; i++) {
-            recipe[i] = buf.readUtf();
+            recipe[i] = buf.readItem();
         }
         this.recipe = recipe;
     }
@@ -31,7 +35,7 @@ public class SGenIdeaPacket {
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
         for (int i = 0; i < 9; i++) {
-            buf.writeUtf(recipe[i]);
+            buf.writeItemStack(recipe[i], true);
         }
     }
 
@@ -39,10 +43,17 @@ public class SGenIdeaPacket {
         GPTIdeaGenerator2 generator = new GPTIdeaGenerator2();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
-            BlockEntity blockEntity = player.level.getBlockEntity(pos);
-            if (blockEntity instanceof AICraftingTableBlockEntity be) {
-
-            }
+            System.out.println("handle packet");
+            generator.generate(new Recipe(recipe)).thenAccept(results -> {
+                System.out.println("sending packet to player");
+                PacketHandler.sendToPlayer(
+                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), results, false), player);
+            }).exceptionally(e -> {
+                e.printStackTrace();
+                PacketHandler.sendToPlayer(
+                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), new String[]{"", "", ""}, true), player);
+                return null;
+            });
         }
     }
 }

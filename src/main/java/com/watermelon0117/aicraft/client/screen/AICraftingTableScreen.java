@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
+import com.watermelon0117.aicraft.network.SGenIdeaPacket;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
@@ -15,6 +16,10 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+
+import java.util.Arrays;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
@@ -56,6 +61,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             else
                 setStage1();
         }
+        currentRecipe = new Recipe(menu);
     }
 
     private void optBtnPress(Button button) {
@@ -65,29 +71,32 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
 
     public void btnPress(Button button) {
-        GPTIdeaGenerator2 generator = new GPTIdeaGenerator2();
-        currentRecipe = new Recipe(menu);
         if(currentRecipe.isEmpty())
             return;
         generatingText = true;
         errorMessage = "";
         optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
-        generator.generate(currentRecipe).thenAccept(results -> {
-            Recipe recipe2 = new Recipe(menu);
-            if (currentRecipe != null && currentRecipe.equals(recipe2)) {
-                optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
-                optBtn1.setMessage(Component.literal(results[0]));
-                optBtn2.setMessage(Component.literal(results[1]));
-                optBtn3.setMessage(Component.literal(results[2]));
-            } else
-                System.out.println("Canceled");
-            generatingText = false;
-        }).exceptionally(e -> {
-            e.printStackTrace();
-            generatingText = false;
-            errorMessage = "Error";
-            return null;
-        });
+        System.out.println("sending packet");
+        PacketHandler.sendToServer(new SGenIdeaPacket(this.menu.blockEntity.getBlockPos(), currentRecipe));
+    }
+    public void setIdeaOpts(String[] recipe, String[] idea) {
+        System.out.println("setIdeaOpts");
+        System.out.println(Arrays.toString(recipe));
+        System.out.println(Arrays.toString(new Recipe(menu).getDisplayNames()));
+        if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
+            optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
+            optBtn1.setMessage(Component.literal(idea[0]));
+            optBtn2.setMessage(Component.literal(idea[1]));
+            optBtn3.setMessage(Component.literal(idea[2]));
+        } else
+            System.out.println("Canceled, not putting ideas");
+        generatingText = false;
+    }
+    public void setIdeaErr(String msg){
+        System.out.println("setIdeaErr");
+        System.out.println(msg);
+        generatingText = false;
+        errorMessage = msg;
     }
     private void setStage2() {
         if (stage != 2) {
@@ -98,7 +107,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             this.optBtn2.visible = false;
             this.optBtn3.visible = false;
             generatingText = false;
-            currentRecipe = null;
         }
     }
     private void setStage1() {
@@ -110,12 +118,10 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             this.optBtn2.visible = false;
             this.optBtn3.visible = false;
             generatingText = false;
-            currentRecipe = null;
         }
     }
     public void containerTick() {
         super.containerTick();
-        System.out.println(Minecraft.getInstance().screen.getTitle().getString());
         if (menu.hasCraftResult) {
             setStage2();
         } else {
@@ -124,15 +130,13 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             else
                 setStage1();
         }
-        if (currentRecipe != null) {
-            if (!currentRecipe.equals(new Recipe(menu))) {
-                setStage1();
-                this.optBtn1.visible = false;
-                this.optBtn2.visible = false;
-                this.optBtn3.visible = false;
-                generatingText = false;
-                currentRecipe = null;
-            }
+        if (!currentRecipe.equals(new Recipe(menu))) {
+            setStage1();
+            this.optBtn1.visible = false;
+            this.optBtn2.visible = false;
+            this.optBtn3.visible = false;
+            generatingText = false;
+            currentRecipe = new Recipe(menu);
         }
     }
     public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
@@ -169,5 +173,10 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                 this.blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
             }
         }
+    }
+
+    @Override
+    protected void slotClicked(Slot p_97778_, int p_97779_, int p_97780_, ClickType p_97781_) {
+        super.slotClicked(p_97778_,p_97779_,p_97780_,p_97781_);
     }
 }

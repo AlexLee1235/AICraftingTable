@@ -160,7 +160,8 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer) player;
             if (this.blockEntity.getProgress() > 0) {
-                if (currentRecipe != null && !currentRecipe.equals(new Recipe(this))) {
+                if (currentRecipe == null || !currentRecipe.equals(new Recipe(this))) {
+                    System.out.println("stop by handleInterrupt");
                     this.blockEntity.setProgress(0);
                     this.blockEntity.getInventory().setStackInSlot(0, ItemStack.EMPTY);
                     menu.setRemoteSlot(0, ItemStack.EMPTY);
