@@ -53,7 +53,7 @@ public class AICraftingTableBlock extends Block implements EntityBlock {
             BlockEntity blockentity = level.getBlockEntity(pos);
             if (blockentity instanceof AICraftingTableBlockEntity) {
                 if (level instanceof ServerLevel) {
-                    Containers.dropContents(level, pos, ((AICraftingTableBlockEntity)blockentity).getItemList());
+                    Containers.dropContents(level, pos, ((AICraftingTableBlockEntity)blockentity).getDropList());
                 }
                 level.updateNeighbourForOutputSignal(pos, this);
             }

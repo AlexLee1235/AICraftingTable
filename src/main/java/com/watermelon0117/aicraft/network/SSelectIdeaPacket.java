@@ -16,6 +16,7 @@ public class SSelectIdeaPacket {
     private final BlockPos pos;
     private final String name;
     private final String[] recipe;
+    private static int incrementID = 0;
 
     public SSelectIdeaPacket(BlockPos pos, String name, String[] recipe) {
         this.pos = pos;
@@ -48,11 +49,12 @@ public class SSelectIdeaPacket {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
                 be.setProgress(1);
-                be.target = name;
+                int id = incrementID++;
+                be.taskID = id;
                 player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                 player.sendSystemMessage(Component.literal("Start..."));
-                generator.generate(name, recipe, be, b -> b.target.contentEquals(name) && b.getProgress() != 0).thenAccept(itemStack -> {
-                            if (be.target.contentEquals(name) && be.getProgress() != 0) {
+                generator.generate(name, recipe, be, b -> b.taskID == id && b.getProgress() != 0).thenAccept(itemStack -> {
+                            if (be.taskID == id && be.getProgress() != 0) {
                                 player.sendSystemMessage(Component.literal("Done"));
                                 be.getInventory().setStackInSlot(0, itemStack);
                                 be.setProgress(580);

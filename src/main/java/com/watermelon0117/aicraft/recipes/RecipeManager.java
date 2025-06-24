@@ -101,9 +101,7 @@ public class RecipeManager {
         if (name == null) name = recipeMap.get(toShapelessKey(grid));
         if (name == null) return ItemStack.EMPTY;
 
-        ItemStack out = new ItemStack(ItemInit.MAIN_ITEM.get());
-        out.getOrCreateTag().putString("texture", name);
-        return out;
+        return SpecialItemManager.getItem(name);
     }
 
     /** 2️⃣  Load recipes from disk; silently ignore corrupt lines. */

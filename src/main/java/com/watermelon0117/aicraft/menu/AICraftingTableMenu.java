@@ -69,6 +69,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(inventory, l, 8 + l * 18, 142));
         }
         this.hasCraftResult = !this.getSlot(0).getItem().isEmpty();
+        currentRecipe=new Recipe(this);
     }
 
     public void removed(Player p_39389_) {
@@ -160,7 +161,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer) player;
             if (this.blockEntity.getProgress() > 0) {
-                if (currentRecipe == null || !currentRecipe.equals(new Recipe(this))) {
+                if (!currentRecipe.equals(new Recipe(this))) {
                     System.out.println("stop by handleInterrupt");
                     this.blockEntity.setProgress(0);
                     this.blockEntity.getInventory().setStackInSlot(0, ItemStack.EMPTY);

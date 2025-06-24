@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvider {
     private int progress=0;
-    public String target="";
+    public int taskID=0;
     private final ItemStackHandler inventory = new ItemStackHandler(10) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -101,9 +101,9 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public LazyOptional<ItemStackHandler> getOptional(){
         return this.optional;
     }
-    public NonNullList<ItemStack> getItemList(){
+    public NonNullList<ItemStack> getDropList(){
         NonNullList<ItemStack> ret=NonNullList.create();
-        for (int i = 0; i < inventory.getSlots(); i++) {
+        for (int i = 1; i < inventory.getSlots(); i++) {
             ret.add(inventory.getStackInSlot(i));
         }
         return ret;
@@ -112,9 +112,6 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
         if (level != null && !level.isClientSide) {
             if (this.progress != 0 && this.progress<580)
                 this.progress += 1;
-            if(this.progress==580){
-                //inventory.setStackInSlot(0, new ItemStack(ItemInit.MAIN_ITEM.get()));
-            }
             level.sendBlockUpdated(getBlockPos(), level.getBlockState(getBlockPos()), level.getBlockState(getBlockPos()), Block.UPDATE_ALL);
         }
     }
@@ -122,8 +119,8 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public int getProgress() {
         return progress;
     }
-    public void setProgress(int v){
-        progress=v;
+    public void setProgress(int v) {
+        progress = v;
         level.sendBlockUpdated(getBlockPos(), level.getBlockState(getBlockPos()), level.getBlockState(getBlockPos()), Block.UPDATE_ALL);
     }
 }

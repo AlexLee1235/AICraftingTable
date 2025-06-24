@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
+import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.network.SGenIdeaPacket;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
@@ -18,13 +19,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
-    private Button button, optBtn1, optBtn2, optBtn3, reBtn;
+    private Button mainBtn, optBtn1, optBtn2, optBtn3, reBtn;
     private int stage = 1;
     private Recipe currentRecipe;
     private boolean generatingText = false;
@@ -33,11 +35,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
     }
-
-    protected void init() {
-        super.init();
-        this.titleLabelX = 29;
-        this.button = addRenderableWidget(new Button(leftPos + 67, topPos + 34, 26, 17,
+    private void createWidgets(){
+        mainBtn = addRenderableWidget(new Button(leftPos + 67, topPos + 34, 26, 17,
                 Component.literal(""), this::btnPress) {
             @Override
             public void render(PoseStack p_93657_, int p_93658_, int p_93659_, float p_93660_) {
@@ -46,30 +45,39 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                 }
             }
         });
-        this.optBtn1 = addRenderableWidget(new Button(leftPos + 98, topPos + 16, 70, 17,
+        optBtn1 = addRenderableWidget(new Button(leftPos + 98, topPos + 16, 70, 17,
                 Component.literal("None"), this::optBtnPress));
-        this.optBtn2 = addRenderableWidget(new Button(leftPos + 98, topPos + 33, 70, 17,
+        optBtn2 = addRenderableWidget(new Button(leftPos + 98, topPos + 33, 70, 17,
                 Component.literal("None"), this::optBtnPress));
-        this.optBtn3 = addRenderableWidget(new Button(leftPos + 98, topPos + 50, 70, 17,
+        optBtn3 = addRenderableWidget(new Button(leftPos + 98, topPos + 50, 70, 17,
                 Component.literal("None"), this::optBtnPress));
         optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
-        reBtn = addWidget(new Button(leftPos+155,topPos+49,6,6,Component.literal(""),this::reBtnPress))
-        if (menu.hasCraftResult)
+        reBtn = addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
+                Component.literal(""), this::reBtnPress));
+    }
+    protected void init() {
+        super.init();
+        titleLabelX = 29;
+        createWidgets();
+        if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
             setStage2();
-        else {
-            if (menu.blockEntity.getProgress() > 0)
-                setStage2();
-            else
-                setStage1();
-        }
+        else
+            setStage1();
         currentRecipe = new Recipe(menu);
     }
-    private void reBtnPress(Button button) {
 
+    private void reBtnPress(Button button) {
+        ItemStack itemStack = menu.slots.get(0).getItem();
+        if (itemStack.is(ItemInit.MAIN_ITEM.get()) || itemStack.is(ItemInit.MAIN_FOOD_ITEM.get())) {
+            String s = strip(itemStack.getDisplayName().getString());
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
+            setStage2();
+        } else
+            System.out.println("Can't regen because no item");
     }
     private void optBtnPress(Button button) {
         String s = button.getMessage().getString();
-        PacketHandler.sendToServer(new SSelectIdeaPacket(this.menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
+        PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
         setStage2();
     }
     public void btnPress(Button button) {
@@ -77,14 +85,12 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             return;
         generatingText = true;
         errorMessage = "";
-        optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
-        System.out.println("sending packet");
-        PacketHandler.sendToServer(new SGenIdeaPacket(this.menu.blockEntity.getBlockPos(), currentRecipe));
+        hideOpts();
+        PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe));
     }
     public void setIdeaOpts(String[] recipe, String[] idea) {
-        System.out.println("setIdeaOpts");
         if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
-            optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
+            showOpts();
             optBtn1.setMessage(Component.literal(idea[0]));
             optBtn2.setMessage(Component.literal(idea[1]));
             optBtn3.setMessage(Component.literal(idea[2]));
@@ -93,7 +99,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         generatingText = false;
     }
     public void setIdeaErr(String msg){
-        System.out.println("setIdeaErr");
         System.out.println(msg);
         generatingText = false;
         errorMessage = msg;
@@ -102,10 +107,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (stage != 2) {
             //System.out.println("setStage2");
             stage = 2;
-            this.button.visible = false;
-            this.optBtn1.visible = false;
-            this.optBtn2.visible = false;
-            this.optBtn3.visible = false;
+            mainBtn.visible = false;
+            hideOpts();
             generatingText = false;
         }
     }
@@ -113,46 +116,45 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (stage != 1) {
             //System.out.println("setStage1");
             stage = 1;
-            this.button.visible = true;
-            this.optBtn1.visible = false;
-            this.optBtn2.visible = false;
-            this.optBtn3.visible = false;
+            mainBtn.visible = true;
+            hideOpts();
             generatingText = false;
         }
     }
     public void containerTick() {
         super.containerTick();
-        if (menu.hasCraftResult) {
+        if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0) {
             setStage2();
         } else {
-            if (menu.blockEntity.getProgress() > 0)
-                setStage2();
-            else
-                setStage1();
+            setStage1();
         }
         if (!currentRecipe.equals(new Recipe(menu))) {
             setStage1();
-            this.optBtn1.visible = false;
-            this.optBtn2.visible = false;
-            this.optBtn3.visible = false;
+            hideOpts();
             generatingText = false;
             currentRecipe = new Recipe(menu);
         }
     }
+    private void showOpts(){
+        optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
+    }
+    private void hideOpts(){
+        optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
+    }
     public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
-        this.renderBackground(p_98479_);
+        renderBackground(p_98479_);
         if (stage == 1) {
-            var slot = this.menu.slots.get(0);
-            this.menu.slots.remove(0);
+            var slot = menu.slots.get(0);
+            menu.slots.remove(0);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
-            this.menu.slots.add(0, slot);
+            menu.slots.add(0, slot);
         } else {
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
         }
-        this.renderTooltip(p_98479_, p_98480_, p_98481_);
+        renderTooltip(p_98479_, p_98480_, p_98481_);
         if (generatingText)
-            this.font.draw(p_98479_, Component.literal("Generating"), (float) this.leftPos + 102, (float) this.topPos + 20, 4210752);
-        this.font.draw(p_98479_, Component.literal(errorMessage), (float) this.leftPos + 102, (float) this.topPos + 40, 4210752);
+            font.draw(p_98479_, Component.literal("Generating"), (float) leftPos + 102, (float) topPos + 20, 4210752);
+        font.draw(p_98479_, Component.literal(errorMessage), (float) leftPos + 102, (float) topPos + 40, 4210752);
     }
     protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -161,17 +163,20 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_1);
         else if (stage == 2)
             RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_2);
-        int i = this.leftPos;
-        int j = (this.height - this.imageHeight) / 2;
-        this.blit(p_98474_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        int i = leftPos;
+        int j = (height - imageHeight) / 2;
+        blit(p_98474_, i, j, 0, 0, imageWidth, imageHeight);
         if (stage == 2)
-            this.blit(p_98474_, i + 66, j + 34, 0, 167, this.menu.blockEntity.getProgress() / 10, 16);
+            blit(p_98474_, i + 66, j + 34, 0, 167, menu.blockEntity.getProgress() / 10, 16);
         if (stage == 1) {
-            if (this.generatingText) {
-                this.blit(p_98474_, i + 67, j + 34, 0, 185, 27, 18);
-            } else if (this.button.isHoveredOrFocused()) {
-                this.blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
+            if (generatingText) {
+                blit(p_98474_, i + 67, j + 34, 0, 185, 27, 18);
+            } else if (mainBtn.isHoveredOrFocused()) {
+                blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
             }
         }
+    }
+    private static String strip(String s){
+        return s.replace("[","").replace("]","");
     }
 }
