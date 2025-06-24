@@ -16,7 +16,6 @@ public class SSelectIdeaPacket {
     private final BlockPos pos;
     private final String name;
     private final String[] recipe;
-    GPTItemGenerator generator = new GPTItemGenerator();
 
     public SSelectIdeaPacket(BlockPos pos, String name, String[] recipe) {
         this.pos = pos;
@@ -43,6 +42,7 @@ public class SSelectIdeaPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
+        GPTItemGenerator generator = new GPTItemGenerator();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);

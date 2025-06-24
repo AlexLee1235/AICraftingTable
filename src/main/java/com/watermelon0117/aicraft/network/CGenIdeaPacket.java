@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,33 +11,32 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class SGenIdeaPacket {
+public class CGenIdeaPacket {
     private final BlockPos pos;
-    private final String[] recipe;
+    private final String[] ideas;
 
-    public SGenIdeaPacket(BlockPos pos, String[] recipe) {
+    public CGenIdeaPacket(BlockPos pos, String[] ideas) {
         this.pos = pos;
-        this.recipe = recipe;
+        this.ideas = ideas;
     }
 
-    public SGenIdeaPacket(FriendlyByteBuf buf) {
-        String[] recipe = new String[9];
+    public CGenIdeaPacket(FriendlyByteBuf buf) {
+        String[] ideas = new String[9];
         this.pos = buf.readBlockPos();
-        for (int i = 0; i < 9; i++) {
-            recipe[i] = buf.readUtf();
+        for (int i = 0; i < 3; i++) {
+            ideas[i] = buf.readUtf();
         }
-        this.recipe = recipe;
+        this.ideas = ideas;
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
-        for (int i = 0; i < 9; i++) {
-            buf.writeUtf(recipe[i]);
+        for (int i = 0; i < 3; i++) {
+            buf.writeUtf(ideas[i]);
         }
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        GPTIdeaGenerator2 generator = new GPTIdeaGenerator2();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);

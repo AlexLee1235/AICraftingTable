@@ -8,6 +8,7 @@ import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -114,6 +115,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
     public void containerTick() {
         super.containerTick();
+        System.out.println(Minecraft.getInstance().screen.getTitle().getString());
         if (menu.hasCraftResult) {
             setStage2();
         } else {
