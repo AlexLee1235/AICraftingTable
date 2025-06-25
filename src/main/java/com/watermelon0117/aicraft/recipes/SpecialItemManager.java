@@ -62,7 +62,15 @@ public class SpecialItemManager {
             throw new RuntimeException("Failed to save item: " + name, e);
         }
     }
-
+    public static void removeItem(String name) {
+        itemMap.remove(name);
+        ensureDir();
+        File file = new File(DIR, name + ".nbt");
+        System.out.println("deleted "+file);
+        if (file.exists() && !file.delete()) {
+            throw new RuntimeException("Failed to delete item file: " + file);
+        }
+    }
     /** Ensure save directory exists */
     private static void ensureDir() {
         if (!DIR.exists() && !DIR.mkdirs()) {

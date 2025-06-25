@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft.recipes;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
 import java.util.*;
 
 public class RecipeShapeMatcher {
@@ -39,7 +41,7 @@ public class RecipeShapeMatcher {
     }
 
     private static boolean matchesPattern(ItemStack[] grid, String pattern) {
-        ItemStack ing = null, stick = null;
+        ItemStack ing = null, stick = new ItemStack(Items.STICK);
 
         for (int i = 0; i < 9; i++) {
             char expected = pattern.charAt(i);
@@ -53,7 +55,6 @@ public class RecipeShapeMatcher {
                 else if (!ItemStack.isSameItemSameTags(actual, ing)) return false;
             } else if (expected == 'S') {
                 if (actual.isEmpty()) return false;
-                if (stick == null) stick = actual;
                 else if (!ItemStack.isSameItemSameTags(actual, stick)) return false;
             }
         }
@@ -138,7 +139,7 @@ public class RecipeShapeMatcher {
 
     /** Like matchesPattern, but returns the material stack when the recipe fits, or EMPTY when it does not */
     private static ItemStack tryMatchAndGetMaterial(ItemStack[] grid, String pattern) {
-        ItemStack ing = ItemStack.EMPTY, stick = ItemStack.EMPTY;
+        ItemStack ing = ItemStack.EMPTY, stick = new ItemStack(Items.STICK);
 
         for (int i = 0; i < 9; i++) {
             char expected = pattern.charAt(i);
@@ -155,7 +156,6 @@ public class RecipeShapeMatcher {
                 }
                 case 'S' -> {
                     if (actual.isEmpty()) return ItemStack.EMPTY;
-                    if (stick.isEmpty()) stick = actual;
                     else if (!ItemStack.isSameItemSameTags(actual, stick)) return ItemStack.EMPTY;
                 }
             }

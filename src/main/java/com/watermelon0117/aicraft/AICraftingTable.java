@@ -43,41 +43,6 @@ public class AICraftingTable {
             for(ItemStack stack: SpecialItemManager.getAllItems()){
                 list.add(1, stack);
             }
-            ItemStack stack = new ItemStack(ItemInit.MAIN_ITEM.get());
-            stack.getOrCreateTag().putBoolean("isPickaxe",true);
-            stack.getOrCreateTag().putByte("tier", (byte) 1);
-            stack.setHoverName(Component.literal("stone pickaxe"));
-            list.add(1, stack);
-
-            stack = new ItemStack(ItemInit.MAIN_ITEM.get());
-            stack.getOrCreateTag().putBoolean("isPickaxe",true);
-            stack.getOrCreateTag().putByte("tier", (byte) 2);
-            stack.setHoverName(Component.literal("iron pickaxe"));
-            list.add(1, stack);
-
-            stack = new ItemStack(ItemInit.MAIN_ITEM.get());
-            stack.getOrCreateTag().putBoolean("isAxe",true);
-            stack.getOrCreateTag().putByte("tier", (byte) 1);
-            stack.setHoverName(Component.literal("stone axe"));
-            list.add(1, stack);
-
-            stack = new ItemStack(ItemInit.MAIN_ITEM.get());
-            stack.getOrCreateTag().putBoolean("isAxe",true);
-            stack.getOrCreateTag().putByte("tier", (byte) 2);
-            stack.setHoverName(Component.literal("iron axe"));
-            list.add(1, stack);
-
-            stack = new ItemStack(ItemInit.MAIN_ITEM.get());
-            stack.getOrCreateTag().putBoolean("isShovel",true);
-            stack.getOrCreateTag().putByte("tier", (byte) 2);
-            stack.setHoverName(Component.literal("iron shovel"));
-            list.add(1, stack);
-
-            stack = new ItemStack(ItemInit.MAIN_ITEM.get());
-            stack.getOrCreateTag().putBoolean("isHoe",true);
-            stack.getOrCreateTag().putByte("tier", (byte) 2);
-            stack.setHoverName(Component.literal("iron hoe"));
-            list.add(1, stack);
         }
     };
 }
