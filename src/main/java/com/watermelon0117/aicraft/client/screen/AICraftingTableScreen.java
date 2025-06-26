@@ -12,6 +12,8 @@ import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CraftingScreen;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +27,9 @@ import java.util.Arrays;
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
+    private static final ResourceLocation RECIPE_BUTTON_LOCATION = new ResourceLocation("textures/gui/recipe_button.png");
     private Button mainBtn;
+    private CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
     private OptionsComponent options;
     private enum State{
         INITIAL,
@@ -58,8 +62,16 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         super.init();
         titleLabelX = 29;
         createWidgets();
+        this.recipeBookComponent.init(this.width, this.height, this.minecraft);
         options = addRenderableWidget(new OptionsComponent());
         options.init(leftPos,topPos,this::optBtnPress);
+        this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
+            this.recipeBookComponent.toggleVisibility();
+            this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+            ((ImageButton)p_98484_).setPosition(this.leftPos + 5, this.height / 2 - 49);
+        }));
+        this.addWidget(this.recipeBookComponent);
+        this.setInitialFocus(this.recipeBookComponent);
         if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
             setProgress();
         else
@@ -117,7 +129,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe));
         }
     }
-
+    public boolean mouseClicked(double p_98452_, double p_98453_, int p_98454_) {
+        if (this.recipeBookComponent.mouseClicked(p_98452_, p_98453_, p_98454_)) {
+            this.setFocused(this.recipeBookComponent);
+            return true;
+        } else {
+            return super.mouseClicked(p_98452_, p_98453_, p_98454_);
+        }
+    }
     public void handleIdeaPacket(String[] recipe, String[] idea, boolean err, String errMsg) {
         if (state == State.GENERATING) {
             if (err) {
@@ -148,10 +167,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (state != State.PROGRESS) {
             var slot = menu.slots.get(0);
             menu.slots.remove(0);
+            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
+            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
             menu.slots.add(0, slot);
         } else {
+            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
+            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
         }
         renderTooltip(p_98479_, p_98480_, p_98481_);
         if (state == State.GENERATING)
@@ -177,6 +200,12 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         } else if (mainBtn.isHoveredOrFocused()) {
             blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
         }
+    }
+
+    @Override
+    protected void slotClicked(Slot p_97778_, int p_97779_, int p_97780_, ClickType p_97781_) {
+        super.slotClicked(p_97778_, p_97779_, p_97780_, p_97781_);
+        this.recipeBookComponent.slotClicked(p_97778_);
     }
 
     private static String strip(String s) {
