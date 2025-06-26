@@ -17,11 +17,11 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
     public boolean visible=false;
     public void init(int leftPos, int topPos, Button.OnPress optBtnPress){
         optBtn1 = new Button(leftPos + 98, topPos + 16, 70, 17,
-                Component.literal("None"), optBtnPress);
+                Component.empty(), optBtnPress);
         optBtn2 = new Button(leftPos + 98, topPos + 33, 70, 17,
-                Component.literal("None"), optBtnPress);
+                Component.empty(), optBtnPress);
         optBtn3 = new Button(leftPos + 98, topPos + 50, 70, 17,
-                Component.literal("None"), optBtnPress);
+                Component.empty(), optBtnPress);
     }
     @Override
     public void render(PoseStack p_94669_, int p_94670_, int p_94671_, float p_94672_) {

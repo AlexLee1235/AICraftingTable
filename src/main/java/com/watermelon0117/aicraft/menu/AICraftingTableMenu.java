@@ -148,7 +148,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     }
     public static ItemStack callRecipeManager(AICraftingTableMenu menu, Level level){
         CraftingContainer container=getDummyContainer(menu);
-        ItemStack itemstack = ItemStack.EMPTY;
+        ItemStack itemstack;
         Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, container, level);
         if (optional.isPresent()) {
             CraftingRecipe craftingrecipe = optional.get();

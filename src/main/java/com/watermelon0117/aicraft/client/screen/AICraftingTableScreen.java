@@ -55,7 +55,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             }
         });
         addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
-                Component.literal(""), this::reBtnPress));
+                Component.empty(), this::reBtnPress));
     }
 
     protected void init() {
