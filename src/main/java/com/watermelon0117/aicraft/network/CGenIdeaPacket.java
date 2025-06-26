@@ -17,12 +17,14 @@ public class CGenIdeaPacket {
     private final String[] recipe;
     private final String[] ideas;
     private final boolean err;
+    private final String errMsg;
 
-    public CGenIdeaPacket(BlockPos pos, String[] recipe, String[] ideas, boolean err) {
+    public CGenIdeaPacket(BlockPos pos, String[] recipe, String[] ideas, boolean err, String errMsg) {
         this.pos = pos;
         this.recipe = recipe;
         this.ideas = ideas;
         this.err = err;
+        this.errMsg = errMsg;
     }
 
     public CGenIdeaPacket(FriendlyByteBuf buf) {
@@ -38,6 +40,7 @@ public class CGenIdeaPacket {
         }
         this.ideas = ideas;
         this.err = buf.readBoolean();
+        this.errMsg = buf.readUtf();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -49,13 +52,12 @@ public class CGenIdeaPacket {
             buf.writeUtf(ideas[i]);
         }
         buf.writeBoolean(err);
+        buf.writeUtf(errMsg);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        System.out.println("handle packet to player");
         if (Minecraft.getInstance().screen instanceof AICraftingTableScreen screen) {
-            System.out.println("handle packet to player2");
-            screen.handleIdeaPacket(recipe, ideas, err);
+            screen.handleIdeaPacket(recipe, ideas, err, errMsg);
         }
     }
 }

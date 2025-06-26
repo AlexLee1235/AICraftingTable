@@ -20,6 +20,10 @@ public class Recipe {
     public Recipe(ItemStack[] items) {
         this.items = items;
     }
+    public Recipe(Recipe other){
+        for (int i = 0; i < 9; i++)
+            items[i] = other.items[i].copy();
+    }
     public void setItem(int i, ItemStack itemStack) {
         items[i] = itemStack;
     }
@@ -69,4 +73,13 @@ public class Recipe {
     public int hashCode() {
         return Arrays.hashCode(items);
     }
+
+    @Override
+    public String toString() {
+        return "Recipe{" +
+                "items=" + Arrays.toString(getDisplayNames()) +
+                '}';
+    }
+
+
 }

@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.menu;
 
+import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.recipes.RecipeManager;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
@@ -10,6 +11,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
@@ -21,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.LevelResource;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -77,15 +80,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         currentRecipe=new Recipe(this);
     }
 
-    public void removed(Player p_39389_) {
-        super.removed(p_39389_);
-    }
-
-    public boolean stillValid(Player p_39368_) {
-        return true;
-    }
-
-    public ItemStack quickMoveStack(Player player, int slotId) {
+    private ItemStack delegateQuickMoveStack(Player player, int slotId){
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotId);
         if (slot.hasItem()) {
@@ -132,6 +127,18 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         //System.out.println("return"+itemstack.getDisplayName());
         return itemstack;
     }
+    public ItemStack quickMoveStack(Player player, int slotId) {
+        Recipe recipe=new Recipe(currentRecipe);
+        ItemStack itemStack=delegateQuickMoveStack(player,slotId);
+        handleInterrupt(recipe,this,player.level,player);
+        return itemStack;
+    }
+
+    @Override
+    public boolean stillValid(Player p_38874_) {
+        return stillValid(access, p_38874_, BlockInit.AI_CRAFTING_TABLE.get());
+    }
+
     private static CraftingContainer getDummyContainer(AICraftingTableMenu menu){
         CraftingContainer craftingContainer = new CraftingContainer(menu, 3,3);
         for (int i = 0; i < 9; i++) {
@@ -162,7 +169,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, itemstack));
         }
     }
-    private void handleInterrupt(AbstractContainerMenu menu, Level level, Player player) {
+    private void handleInterrupt(Recipe currentRecipe, AbstractContainerMenu menu, Level level, Player player) {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer) player;
             if (this.blockEntity.getProgress() > 0) {
@@ -179,15 +186,9 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
 
     public void slotsChanged() {
         this.access.execute((level, pos) -> {
-            handleInterrupt(this, level, this.player);
+            handleInterrupt(currentRecipe, this, level, this.player);
             slotChangedCraftingGrid(this, level, this.player);
             currentRecipe=new Recipe(this);
         });
-    }
-    public void fillCraftSlotsStackedContents(StackedContents p_39374_) {
-        for (int i = 1; i < 10; i++) {
-            ItemStack itemStack=this.getSlot(i).getItem();
-            p_39374_.accountSimpleStack(itemStack);
-        }
     }
 }

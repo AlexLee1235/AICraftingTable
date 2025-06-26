@@ -16,6 +16,8 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;
@@ -23,15 +25,15 @@ import java.util.Arrays;
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
-    private Button mainBtn, reBtn;
+    private Button mainBtn;
     private OptionsComponent options;
-    enum State{
+    private enum State{
         INITIAL,
         GENERATING,
         GENERATED,
         PROGRESS
     }
-    State state;
+    private State state;
     private Recipe currentRecipe;
     private String errorMessage = "";
 
@@ -48,17 +50,15 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                     this.isHovered = p_93658_ >= this.x && p_93659_ >= this.y && p_93658_ < this.x + this.width && p_93659_ < this.y + this.height;
             }
         });
-        options = addRenderableWidget(new OptionsComponent());
-        options.visible=false;
-        reBtn = addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
+        addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
                 Component.literal(""), this::reBtnPress));
     }
 
     protected void init() {
         super.init();
         titleLabelX = 29;
-
         createWidgets();
+        options = addRenderableWidget(new OptionsComponent());
         options.init(leftPos,topPos,this::optBtnPress);
         if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
             setProgress();
@@ -118,10 +118,10 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }
     }
 
-    public void handleIdeaPacket(String[] recipe, String[] idea, boolean err) {
+    public void handleIdeaPacket(String[] recipe, String[] idea, boolean err, String errMsg) {
         if (state == State.GENERATING) {
             if (err) {
-                errorMessage = "error";
+                errorMessage = errMsg;
                 setInitial();
             } else {
                 if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
@@ -134,11 +134,11 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     public void containerTick() {
         super.containerTick();
-        if (menu.hasCraftResult || menu.blockEntity.getProgress() != 0) {
-
-        }
         if (!currentRecipe.equals(new Recipe(menu))) {
-            setInitial();
+            if (menu.hasCraftResult)
+                setProgress();
+            else
+                setInitial();
             currentRecipe = new Recipe(menu);
         }
     }

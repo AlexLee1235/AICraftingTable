@@ -43,15 +43,13 @@ public class SGenIdeaPacket {
         GPTIdeaGenerator2 generator = new GPTIdeaGenerator2();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
-            System.out.println("handle packet");
             generator.generate(new Recipe(recipe)).thenAccept(results -> {
-                System.out.println("sending packet to player");
                 PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), results, false), player);
+                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), results, false, ""), player);
             }).exceptionally(e -> {
                 e.printStackTrace();
                 PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), new String[]{"", "", ""}, true), player);
+                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), new String[]{"", "", ""}, true, e.getMessage()), player);
                 return null;
             });
         }
