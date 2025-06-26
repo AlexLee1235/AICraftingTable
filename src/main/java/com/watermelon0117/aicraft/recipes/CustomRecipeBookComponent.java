@@ -52,7 +52,6 @@ public class CustomRecipeBookComponent extends GuiComponent implements PlaceReci
     protected AICraftingTableMenu menu;
     protected Minecraft minecraft;
     private final CustomRecipeBookPage recipeBookPage = new CustomRecipeBookPage();
-    private final StackedContents stackedContents = new StackedContents();
     private int timesInventoryChanged;
     private boolean visible;
 
@@ -75,21 +74,14 @@ public class CustomRecipeBookComponent extends GuiComponent implements PlaceReci
         this.xOffset = 86;
         int i = (this.width - 147) / 2 - this.xOffset;
         int j = (this.height - 166) / 2;
-        this.stackedContents.clear();
-        this.minecraft.player.getInventory().fillStackedContents(this.stackedContents);
-        this.menu.fillCraftSlotsStackedContents(this.stackedContents);
         this.recipeBookPage.init(this.minecraft, i, j);
         this.recipeBookPage.addListener(this);
 
-        this.updateCollections(false);
+        this.updateCollections();
     }
 
     public boolean changeFocus(boolean p_100372_) {
         return false;
-    }
-
-    public void removed() {
-        this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
     public int updateScreenPosition(int p_181402_, int p_181403_) {
@@ -125,34 +117,21 @@ public class CustomRecipeBookComponent extends GuiComponent implements PlaceReci
     public void slotClicked(@Nullable Slot p_100315_) {
         if (p_100315_ != null && p_100315_.index < 10) {
             this.ghostRecipe.clear();
-            if (this.isVisible()) {
-                this.updateStackedContents();
-            }
         }
 
     }
 
-    private void updateCollections(boolean p_100383_) {
-        List<RecipeCollection> list = this.book.getCollection(RecipeBookCategories.CRAFTING_MISC);
-
-        this.recipeBookPage.updateCollections(list, p_100383_);
+    private void updateCollections() {
+        this.recipeBookPage.updateCollections(list);
     }
 
     public void tick() {
         if (this.isVisible()) {
             if (this.timesInventoryChanged != this.minecraft.player.getInventory().getTimesChanged()) {
-                this.updateStackedContents();
                 this.timesInventoryChanged = this.minecraft.player.getInventory().getTimesChanged();
             }
 
         }
-    }
-
-    private void updateStackedContents() {
-        this.stackedContents.clear();
-        this.minecraft.player.getInventory().fillStackedContents(this.stackedContents);
-        this.menu.fillCraftSlotsStackedContents(this.stackedContents);
-        this.updateCollections(false);
     }
 
     public void render(PoseStack p_100319_, int p_100320_, int p_100321_, float p_100322_) {
@@ -166,36 +145,9 @@ public class CustomRecipeBookComponent extends GuiComponent implements PlaceReci
             int j = (this.height - 166) / 2;
             this.blit(p_100319_, i, j, 1, 1, 147, 166);
 
-
             this.recipeBookPage.render(p_100319_, i, j, p_100320_, p_100321_, p_100322_);
             p_100319_.popPose();
         }
-    }
-
-    public void renderTooltip(PoseStack p_100362_, int p_100363_, int p_100364_, int p_100365_, int p_100366_) {
-        if (this.isVisible()) {
-            this.recipeBookPage.renderTooltip(p_100362_, p_100365_, p_100366_);
-
-            this.renderGhostRecipeTooltip(p_100362_, p_100363_, p_100364_, p_100365_, p_100366_);
-        }
-    }
-
-    private void renderGhostRecipeTooltip(PoseStack p_100375_, int p_100376_, int p_100377_, int p_100378_, int p_100379_) {
-        ItemStack itemstack = null;
-
-        for(int i = 0; i < this.ghostRecipe.size(); ++i) {
-            GhostRecipe.GhostIngredient ghostrecipe$ghostingredient = this.ghostRecipe.get(i);
-            int j = ghostrecipe$ghostingredient.getX() + p_100376_;
-            int k = ghostrecipe$ghostingredient.getY() + p_100377_;
-            if (p_100378_ >= j && p_100379_ >= k && p_100378_ < j + 16 && p_100379_ < k + 16) {
-                itemstack = ghostrecipe$ghostingredient.getItem();
-            }
-        }
-
-        if (itemstack != null && this.minecraft.screen != null) {
-            this.minecraft.screen.renderComponentTooltip(p_100375_, this.minecraft.screen.getTooltipFromItem(itemstack), p_100378_, p_100379_, itemstack);
-        }
-
     }
 
     public void renderGhostRecipe(PoseStack p_100323_, int p_100324_, int p_100325_, boolean p_100326_, float p_100327_) {
@@ -249,7 +201,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements PlaceReci
 
     public void recipesUpdated() {
         if (this.isVisible()) {
-            this.updateCollections(false);
+            this.updateCollections();
         }
 
     }

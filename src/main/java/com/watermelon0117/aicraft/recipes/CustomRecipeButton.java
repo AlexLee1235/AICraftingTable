@@ -69,10 +69,6 @@ public class CustomRecipeButton extends AbstractWidget {
     }
 
     private List<net.minecraft.world.item.crafting.Recipe<?>> getOrderedRecipes() {
-        List<net.minecraft.world.item.crafting.Recipe<?>> list = this.collection.getDisplayRecipes(true);
-        if (!this.book.isFiltering(this.menu)) {
-            list.addAll(this.collection.getDisplayRecipes(false));
-        }
 
         return list;
     }
