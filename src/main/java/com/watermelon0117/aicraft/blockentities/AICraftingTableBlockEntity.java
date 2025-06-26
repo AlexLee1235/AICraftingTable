@@ -42,8 +42,6 @@ public class AICraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public AICraftingTableBlockEntity(BlockPos p_155229_, BlockState p_155230_) {
         super(BlockEntityInit.AI_CRAFTING_TABLE_BE.get(), p_155229_, p_155230_);
     }
-
-
     @Override
     public void load(CompoundTag nbt) {
         super.load(nbt);

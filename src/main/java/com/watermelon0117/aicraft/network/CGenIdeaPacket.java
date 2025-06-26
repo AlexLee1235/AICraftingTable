@@ -55,10 +55,7 @@ public class CGenIdeaPacket {
         System.out.println("handle packet to player");
         if (Minecraft.getInstance().screen instanceof AICraftingTableScreen screen) {
             System.out.println("handle packet to player2");
-            if (!err)
-                screen.setIdeaOpts(recipe, ideas);
-            else
-                screen.setIdeaErr("Error");
+            screen.handleIdeaPacket(recipe, ideas, err);
         }
     }
 }

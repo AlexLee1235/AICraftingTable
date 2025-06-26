@@ -3,40 +3,37 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.network.SGenIdeaPacket;
-import com.watermelon0117.aicraft.recipes.CustomRecipeBookComponent;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CraftingScreen;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.LevelResource;
 
 import java.util.Arrays;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
-    private Button mainBtn, optBtn1, optBtn2, optBtn3, reBtn;
-    private int stage = 1;
+    private Button mainBtn, reBtn;
+    private OptionsComponent options;
+    enum State{
+        INITIAL,
+        GENERATING,
+        GENERATED,
+        PROGRESS
+    }
+    State state;
     private Recipe currentRecipe;
-    private boolean generatingText = false;
     private String errorMessage = "";
-    private final CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
 
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
@@ -47,18 +44,12 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                 Component.literal(""), this::btnPress) {
             @Override
             public void render(PoseStack p_93657_, int p_93658_, int p_93659_, float p_93660_) {
-                if (this.visible) {
+                if (this.visible)
                     this.isHovered = p_93658_ >= this.x && p_93659_ >= this.y && p_93658_ < this.x + this.width && p_93659_ < this.y + this.height;
-                }
             }
         });
-        optBtn1 = addRenderableWidget(new Button(leftPos + 98, topPos + 16, 70, 17,
-                Component.literal("None"), this::optBtnPress));
-        optBtn2 = addRenderableWidget(new Button(leftPos + 98, topPos + 33, 70, 17,
-                Component.literal("None"), this::optBtnPress));
-        optBtn3 = addRenderableWidget(new Button(leftPos + 98, topPos + 50, 70, 17,
-                Component.literal("None"), this::optBtnPress));
-        optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
+        options = addRenderableWidget(new OptionsComponent());
+        options.visible=false;
         reBtn = addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
                 Component.literal(""), this::reBtnPress));
     }
@@ -66,21 +57,38 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void init() {
         super.init();
         titleLabelX = 29;
-        this.recipeBookComponent.init(this.width, this.height, this.minecraft, false, this.menu);
-        this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-        this.addWidget(this.recipeBookComponent);
-        this.setInitialFocus(this.recipeBookComponent);
-        this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
-            this.recipeBookComponent.toggleVisibility();
-            this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-            ((ImageButton)p_98484_).setPosition(this.leftPos + 5, this.height / 2 - 49);
-        }));
+
         createWidgets();
+        options.init(leftPos,topPos,this::optBtnPress);
         if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
-            setStage2();
+            setProgress();
         else
-            setStage1();
+            setInitial();
         currentRecipe = new Recipe(menu);
+    }
+    private void setInitial() {
+        mainBtn.visible = true;
+        options.visible = false;
+        state = State.INITIAL;
+    }
+    private void setProgress() {
+        mainBtn.visible = false;
+        options.visible = false;
+        state = State.PROGRESS;
+    }
+    private void setGenerating() {
+        if (state != State.INITIAL && state != State.GENERATING && state != State.GENERATED)
+            throw new IllegalStateException("setGenerating");
+        options.visible = false;
+        errorMessage = "";
+        state = State.GENERATING;
+    }
+    private void setGenerated(String[] idea) {
+        if (state != State.GENERATING)
+            throw new IllegalStateException("setGenerating");
+        options.visible = true;
+        options.setMessage(idea);
+        state = State.GENERATED;
     }
 
     private void reBtnPress(Button button) {
@@ -88,103 +96,65 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (itemStack.is(ItemInit.MAIN_ITEM.get()) || itemStack.is(ItemInit.MAIN_FOOD_ITEM.get())) {
             String s = strip(itemStack.getDisplayName().getString());
             PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
-            setStage2();
+            setProgress();
         } else
             System.out.println("Can't regen because no item");
     }
 
     private void optBtnPress(Button button) {
-        String s = button.getMessage().getString();
-        PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
-        setStage2();
-    }
-
-    public void btnPress(Button button) {
-        if (currentRecipe.isEmpty())
-            return;
-        generatingText = true;
-        errorMessage = "";
-        hideOpts();
-        PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe));
-    }
-
-    public void setIdeaOpts(String[] recipe, String[] idea) {
-        if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
-            showOpts();
-            optBtn1.setMessage(Component.literal(idea[0]));
-            optBtn2.setMessage(Component.literal(idea[1]));
-            optBtn3.setMessage(Component.literal(idea[2]));
-        } else
-            System.out.println("Canceled, not putting ideas");
-        generatingText = false;
-    }
-
-    public void setIdeaErr(String msg) {
-        System.out.println(msg);
-        generatingText = false;
-        errorMessage = msg;
-    }
-
-    private void setStage2() {
-        if (stage != 2) {
-            //System.out.println("setStage2");
-            stage = 2;
-            mainBtn.visible = false;
-            hideOpts();
-            generatingText = false;
+        if (state == State.GENERATED) {
+            String s = button.getMessage().getString();
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
+            setProgress();
         }
     }
 
-    private void setStage1() {
-        if (stage != 1) {
-            //System.out.println("setStage1");
-            stage = 1;
-            mainBtn.visible = true;
-            hideOpts();
-            generatingText = false;
+    public void btnPress(Button button) {
+        if (state == State.INITIAL || state == State.GENERATED) {
+            if (currentRecipe.isEmpty())
+                return;
+            setGenerating();
+            PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe));
+        }
+    }
+
+    public void handleIdeaPacket(String[] recipe, String[] idea, boolean err) {
+        if (state == State.GENERATING) {
+            if (err) {
+                errorMessage = "error";
+                setInitial();
+            } else {
+                if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
+                    setGenerated(idea);
+                } else
+                    System.out.println("Canceled, not putting ideas");
+            }
         }
     }
 
     public void containerTick() {
         super.containerTick();
-        if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0) {
-            setStage2();
-        } else {
-            setStage1();
+        if (menu.hasCraftResult || menu.blockEntity.getProgress() != 0) {
+
         }
         if (!currentRecipe.equals(new Recipe(menu))) {
-            setStage1();
-            hideOpts();
-            generatingText = false;
+            setInitial();
             currentRecipe = new Recipe(menu);
         }
-        this.recipeBookComponent.tick();
-    }
-
-    private void showOpts() {
-        optBtn1.visible = optBtn2.visible = optBtn3.visible = true;
-    }
-
-    private void hideOpts() {
-        optBtn1.visible = optBtn2.visible = optBtn3.visible = false;
     }
 
     public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
         renderBackground(p_98479_);
-        if (stage == 1) {
+        if (state != State.PROGRESS) {
             var slot = menu.slots.get(0);
             menu.slots.remove(0);
-            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
-            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
             menu.slots.add(0, slot);
         } else {
-            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
-            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
         }
         renderTooltip(p_98479_, p_98480_, p_98481_);
-        if (generatingText)
+        if (state == State.GENERATING)
             font.draw(p_98479_, Component.literal("Generating"), (float) leftPos + 102, (float) topPos + 20, 4210752);
         font.draw(p_98479_, Component.literal(errorMessage), (float) leftPos + 102, (float) topPos + 40, 4210752);
     }
@@ -192,21 +162,20 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        if (stage == 1)
+        if (state == State.INITIAL || state == State.GENERATING || state == State.GENERATED)
             RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_1);
-        else if (stage == 2)
+        else if (state == State.PROGRESS)
             RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_2);
         int i = leftPos;
         int j = (height - imageHeight) / 2;
         blit(p_98474_, i, j, 0, 0, imageWidth, imageHeight);
-        if (stage == 2)
+        if (state == State.PROGRESS)  //draw progress bar
             blit(p_98474_, i + 66, j + 34, 0, 167, menu.blockEntity.getProgress() / 10, 16);
-        if (stage == 1) {
-            if (generatingText) {
-                blit(p_98474_, i + 67, j + 34, 0, 185, 27, 18);
-            } else if (mainBtn.isHoveredOrFocused()) {
-                blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
-            }
+
+        if (state == State.GENERATING) {  //locked button
+            blit(p_98474_, i + 67, j + 34, 0, 185, 27, 18);
+        } else if (mainBtn.isHoveredOrFocused()) {
+            blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
         }
     }
 
