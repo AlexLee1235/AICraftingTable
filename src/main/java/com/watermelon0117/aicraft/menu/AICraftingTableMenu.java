@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -190,5 +191,10 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             slotChangedCraftingGrid(this, level, this.player);
             currentRecipe=new Recipe(this);
         });
+    }
+
+    public boolean canCraft(ItemStack itemStack){
+        List<String[]> recipes = RecipeManager.getRecipesForItem(itemStack);
+
     }
 }

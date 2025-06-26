@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
@@ -41,18 +42,20 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
     private int width;
     private int height;
     Minecraft minecraft;
+    private AICraftingTableMenu menu;
     protected final GhostRecipe ghostRecipe = new GhostRecipe();
     private final CustomRecipeBookPage recipeBookPage = new CustomRecipeBookPage();
     public boolean visible;
 
-    public void init(int p_100310_, int p_100311_, Minecraft p_100312_) {
+    public void init(int p_100310_, int p_100311_, Minecraft p_100312_, AICraftingTableMenu menu) {
         this.xOffset = 86;
         this.minecraft=p_100312_;
+        this.menu=menu;
         this.width = p_100310_;
         this.height = p_100311_;
         int i = (this.width - 147) / 2 - this.xOffset;
         int j = (this.height - 166) / 2;
-        this.recipeBookPage.init(this.minecraft, i, j);
+        this.recipeBookPage.init(this.minecraft, i, j, menu);
 
     }
     public void slotClicked(@Nullable Slot p_100315_) {

@@ -62,7 +62,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         super.init();
         titleLabelX = 29;
         createWidgets();
-        this.recipeBookComponent.init(this.width, this.height, this.minecraft);
+        this.recipeBookComponent.init(this.width, this.height, this.minecraft, menu);
         options = addRenderableWidget(new OptionsComponent());
         options.init(leftPos,topPos,this::optBtnPress);
         this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {

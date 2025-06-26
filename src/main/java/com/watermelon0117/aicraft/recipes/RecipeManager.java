@@ -135,6 +135,21 @@ public class RecipeManager {
         saveToFile();
     }
 
+    public static List<String[]> getRecipesForItem(ItemStack itemStack) {
+        String itemName = canon(strip(itemStack.getDisplayName().getString()));
+        List<String[]> result = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : recipeMap.entrySet()) {
+            if (canon(entry.getValue()).equals(itemName)) {
+                String key = entry.getKey();
+                String[] items = key.substring(key.indexOf(':') + 1).split(",", -1);
+                result.add(items);
+            }
+        }
+
+        return result;
+    }
+
     /*──────────────────────────── File helpers ─────────────────────────────*/
 
     private static void saveToFile() {
@@ -161,5 +176,8 @@ public class RecipeManager {
         } catch (IOException ex) {
             throw new RuntimeException("Cannot create recipe file", ex);
         }
+    }
+    private static String strip(String s) {
+        return s.replace("[", "").replace("]", "");
     }
 }

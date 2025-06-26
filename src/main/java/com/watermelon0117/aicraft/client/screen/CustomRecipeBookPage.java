@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.client.screen;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.recipes.SpecialItemManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -29,6 +30,7 @@ public class CustomRecipeBookPage {
     private StateSwitchingButton backButton;
     private int totalPages;
     private int currentPage;
+    private AICraftingTableMenu menu;
     @Nullable
     private ItemStack lastClickedRecipe;
 
@@ -39,8 +41,9 @@ public class CustomRecipeBookPage {
         this.totalPages = (int)Math.ceil((double)(SpecialItemManager.getAllItems().size()) / 20.0D);
     }
 
-    public void init(Minecraft p_100429_, int p_100430_, int p_100431_) {
+    public void init(Minecraft p_100429_, int p_100430_, int p_100431_, AICraftingTableMenu menu) {
         this.minecraft = p_100429_;
+        this.menu=menu;
 
         for(int i = 0; i < this.buttons.size(); ++i) {
             this.buttons.get(i).setPosition(p_100430_ + 11 + 25 * (i % 5), p_100431_ + 31 + 25 * (i / 5));
@@ -60,7 +63,7 @@ public class CustomRecipeBookPage {
             CustomRecipeButton recipebutton = this.buttons.get(j);
             if (i + j < allItems.size()) {
                 ItemStack itemStack = allItems.get(i + j);
-                recipebutton.init(itemStack);
+                recipebutton.init(itemStack, this.menu);
                 recipebutton.visible = true;
             } else {
                 recipebutton.visible = false;
