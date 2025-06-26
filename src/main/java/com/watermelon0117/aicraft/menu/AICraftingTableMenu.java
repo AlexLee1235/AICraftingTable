@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -182,5 +183,11 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             slotChangedCraftingGrid(this, level, this.player);
             currentRecipe=new Recipe(this);
         });
+    }
+    public void fillCraftSlotsStackedContents(StackedContents p_39374_) {
+        for (int i = 1; i < 10; i++) {
+            ItemStack itemStack=this.getSlot(i).getItem();
+            p_39374_.accountSimpleStack(itemStack);
+        }
     }
 }

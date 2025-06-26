@@ -6,13 +6,17 @@ import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.network.SGenIdeaPacket;
+import com.watermelon0117.aicraft.recipes.CustomRecipeBookComponent;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CraftingScreen;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -32,6 +36,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private Recipe currentRecipe;
     private boolean generatingText = false;
     private String errorMessage = "";
+    private final CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
 
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
@@ -61,6 +66,20 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void init() {
         super.init();
         titleLabelX = 29;
+        this.recipeBookComponent.init(this.width, this.height, this.minecraft, false, this.menu);
+        this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+        this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
+            this.recipeBookComponent.toggleVisibility();
+            this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+            ((ImageButton)p_98484_).setPosition(this.leftPos + 5, this.height / 2 - 49);
+        }));
+        this.addWidget(this.recipeBookComponent);
+        this.setInitialFocus(this.recipeBookComponent);
+        this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
+            this.recipeBookComponent.toggleVisibility();
+            this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+            ((ImageButton)p_98484_).setPosition(this.leftPos + 5, this.height / 2 - 49);
+        }));
         createWidgets();
         if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
             setStage2();
@@ -144,6 +163,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             generatingText = false;
             currentRecipe = new Recipe(menu);
         }
+        this.recipeBookComponent.tick();
     }
 
     private void showOpts() {
@@ -159,10 +179,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (stage == 1) {
             var slot = menu.slots.get(0);
             menu.slots.remove(0);
+            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
+            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
             menu.slots.add(0, slot);
         } else {
+            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
+            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
         }
         renderTooltip(p_98479_, p_98480_, p_98481_);
         if (generatingText)
