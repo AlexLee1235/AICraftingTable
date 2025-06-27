@@ -98,6 +98,8 @@ public class GPTItemGenerator {
             tag.putBoolean("isShovel", true);
         if (json.is_suitable_to_plow)
             tag.putBoolean("isHoe", true);
+        if (json.is_melee_weapon)
+            tag.putBoolean("isMelee", true);
         if (json.is_tool || json.is_melee_weapon || json.is_suitable_for_breaking_stone || json.is_suitable_for_breaking_woods || json.is_suitable_for_breaking_dirts || json.is_suitable_to_plow) {
             tag.putByte("tier", getTier(json));
             //sword pickaxe axe shovel hoe
