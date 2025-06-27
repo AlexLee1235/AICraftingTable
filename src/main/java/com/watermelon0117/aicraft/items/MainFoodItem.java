@@ -23,13 +23,13 @@ public class MainFoodItem extends MainItem {
     }
     @Override
     public @Nullable FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return (new FoodProperties.Builder())
                 .nutrition(tag.getByte("nutrition"))
                 .build();
     }
     public UseAnim getUseAnimation(ItemStack p_41358_) {
-        CompoundTag tag = p_41358_.getOrCreateTag();
+        CompoundTag tag = p_41358_.getOrCreateTag().getCompound("aicraft");
         if(tag.getBoolean("isFood"))
             return UseAnim.EAT;
         if(tag.getBoolean("isDrink"))

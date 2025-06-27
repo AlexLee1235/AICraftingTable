@@ -3,6 +3,9 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
+import com.watermelon0117.aicraft.network.PacketHandler;
+import com.watermelon0117.aicraft.network.SPlaceRecipePacket;
+import com.watermelon0117.aicraft.recipes.RecipeManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
@@ -11,10 +14,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.recipebook.GhostRecipe;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookPage;
-import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
-import net.minecraft.client.gui.screens.recipebook.RecipeShownListener;
+import net.minecraft.client.gui.screens.recipebook.*;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.recipebook.PlaceRecipe;
@@ -61,13 +61,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
     public void slotClicked(@Nullable Slot p_100315_) {
         if (p_100315_ != null && p_100315_.index < 10) {
             this.ghostRecipe.clear();
-            if (this.visible) {
-                this.updateStackedContents();
-            }
         }
-    }
-    private void updateStackedContents() {
-        //put things on crafting table
     }
     public void render(PoseStack p_100319_, int p_100320_, int p_100321_, float p_100322_) {
         if (this.visible) {
@@ -90,15 +84,15 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
     public boolean mouseClicked(double p_100294_, double p_100295_, int p_100296_) {
         if (this.visible && !this.minecraft.player.isSpectator()) {
             if (this.recipeBookPage.mouseClicked(p_100294_, p_100295_, p_100296_, (this.width - 147) / 2 - this.xOffset, (this.height - 166) / 2, 147, 166)) {
-                /*ItemStack itemStack = this.recipeBookPage.getLastClickedRecipe();
+                ItemStack itemStack = this.recipeBookPage.getLastClickedRecipe();
                 if (itemStack != null && !itemStack.isEmpty()) {
-                    if (!recipecollection.isCraftable(recipe) && this.ghostRecipe.getRecipe() == recipe) {
+                    if (!menu.canCraft(itemStack)) { // && this.ghostRecipe.getRecipe() == recipe
                         return false;
                     }
-
                     this.ghostRecipe.clear();
-                    this.minecraft.gameMode.handlePlaceRecipe(this.minecraft.player.containerMenu.containerId, recipe, Screen.hasShiftDown());
-                }*/
+                    PacketHandler.sendToServer(new SPlaceRecipePacket(this.menu.blockEntity.getBlockPos(),
+                            RecipeManager.getRecipesForItem(itemStack).get(0), false));
+                }
 
                 return true;
             }

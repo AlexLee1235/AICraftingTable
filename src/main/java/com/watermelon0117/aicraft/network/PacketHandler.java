@@ -32,6 +32,11 @@ public class PacketHandler {
                 .decoder(CGenIdeaPacket::new)
                 .consumerMainThread(CGenIdeaPacket::handle)
                 .add();
+        INSTANCE.messageBuilder(SPlaceRecipePacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(SPlaceRecipePacket::encode)
+                .decoder(SPlaceRecipePacket::new)
+                .consumerMainThread(SPlaceRecipePacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

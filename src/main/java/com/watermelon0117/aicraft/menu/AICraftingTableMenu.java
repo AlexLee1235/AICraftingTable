@@ -23,10 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.LevelResource;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class AICraftingTableMenu extends AbstractContainerMenu {
     public static final int RESULT_SLOT = 0;
@@ -192,9 +189,66 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             currentRecipe=new Recipe(this);
         });
     }
-
-    public boolean canCraft(ItemStack itemStack){
+    public boolean canCraft(ItemStack itemStack) {
         List<ItemStack[]> recipes = RecipeManager.getRecipesForItem(itemStack);
+        for (var recipe : recipes)
+            if (canCraftRecipe(recipe))
+                return true;
         return false;
+    }
+    public boolean canCraftRecipe(ItemStack[] recipe)
+    {
+        if (recipe == null || recipe.length != 9)
+            throw new IllegalArgumentException("recipe must contain exactly 9 entries");
+
+        /* ------------------------------------------------------------------
+         * 1.  Tally how many of each ingredient the recipe needs.
+         *     We key the map with a one-item copy so the count does not
+         *     affect equals/hashCode, and we rely on your existing
+         *     sameItem(a,b) helper for comparison logic.
+         * ------------------------------------------------------------------ */
+        Map<ItemStack, Integer> needed = new HashMap<>();
+        for (ItemStack s : recipe) {
+            if (s == null || s.isEmpty()) continue;
+            ItemStack key = s.copy();
+            key.setCount(1);             // ignore stack size when hashing
+            needed.merge(key, 1, Integer::sum);
+        }
+
+        /* ------------------------------------------------------------------
+         * 2.  Walk through container slots 1-46, paying down the requirements
+         *     as we find matching items.
+         * ------------------------------------------------------------------ */
+        outer:
+        for (int slot = 1; slot < this.slots.size() && !needed.isEmpty(); ++slot) {
+            ItemStack inv = this.getSlot(slot).getItem();
+            if (inv.isEmpty()) continue;
+
+            // Try to satisfy as many different requirements as this stack allows.
+            for (Iterator<Map.Entry<ItemStack, Integer>> it = needed.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<ItemStack, Integer> e = it.next();
+                if (!sameItem(inv, e.getKey())) continue;
+
+                int stillNeeded = e.getValue();
+                int taken      = Math.min(stillNeeded, inv.getCount());
+
+                if (taken == stillNeeded) {         // completely satisfied this ingredient
+                    it.remove();
+                    if (needed.isEmpty()) break outer;
+                } else {                            // partially satisfied
+                    e.setValue(stillNeeded - taken);
+                }
+            }
+        }
+        return needed.isEmpty();
+    }
+    private static boolean sameItem(ItemStack a, ItemStack b) {
+        // Example implementation; keep whatever logic you already use.
+        if (a == null || b == null) return false;
+        if (a.isEmpty() || b.isEmpty()) return false;
+        return ItemStack.isSameItemSameTags(a, b);
+    }
+    public boolean moveItemStackTo(ItemStack stack, int start, int end, boolean reverse) {
+        return super.moveItemStackTo(stack, start, end, reverse);
     }
 }

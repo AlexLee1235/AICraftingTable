@@ -29,7 +29,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
     private static final ResourceLocation RECIPE_BUTTON_LOCATION = new ResourceLocation("textures/gui/recipe_button.png");
-    private Button mainBtn;
+    private Button mainBtn, reBtn;
+    private ImageButton bookBtn;
     private CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
     private OptionsComponent options;
     private enum State{
@@ -48,14 +49,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     private void createWidgets() {
         mainBtn = addRenderableWidget(new Button(leftPos + 67, topPos + 34, 26, 17,
-                Component.literal(""), this::btnPress) {
+                Component.empty(), this::btnPress) {
             @Override
             public void render(PoseStack p_93657_, int p_93658_, int p_93659_, float p_93660_) {
                 if (this.visible)
                     this.isHovered = p_93658_ >= this.x && p_93659_ >= this.y && p_93658_ < this.x + this.width && p_93659_ < this.y + this.height;
             }
         });
-        addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
+        reBtn=addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
                 Component.empty(), this::reBtnPress));
     }
 
@@ -65,11 +66,11 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         createWidgets();
         this.recipeBookComponent.init(this.width, this.height, this.minecraft, menu);
         options = addRenderableWidget(new OptionsComponent());
-        options.init(leftPos,topPos,this::optBtnPress);
-        this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
+        options.init(leftPos, topPos, this::optBtnPress);
+        bookBtn = this.addRenderableWidget(new ImageButton(this.leftPos + 70, this.topPos + 56, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
             this.recipeBookComponent.toggleVisibility();
             this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-            ((ImageButton)p_98484_).setPosition(this.leftPos + 5, this.height / 2 - 49);
+            updateWidgetPos();
         }));
         this.addWidget(this.recipeBookComponent);
         this.setInitialFocus(this.recipeBookComponent);
@@ -78,6 +79,14 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         else
             setInitial();
         currentRecipe = new Recipe(menu);
+    }
+    private void updateWidgetPos() {
+        bookBtn.setPosition(this.leftPos + 70, this.topPos + 56);
+        options.updateWidgetPos(leftPos, topPos);
+        mainBtn.x = leftPos + 67;
+        mainBtn.y = topPos + 34;
+        reBtn.x = leftPos + 155;
+        reBtn.y = topPos + 49;
     }
     private void setInitial() {
         mainBtn.visible = true;

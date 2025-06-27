@@ -23,6 +23,14 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
         optBtn3 = new Button(leftPos + 98, topPos + 50, 70, 17,
                 Component.empty(), optBtnPress);
     }
+    public void updateWidgetPos(int leftPos, int topPos){
+        optBtn1.x=leftPos + 98;
+        optBtn2.x=leftPos + 98;
+        optBtn3.x=leftPos + 98;
+        optBtn1.y=topPos + 16;
+        optBtn2.y=topPos + 33;
+        optBtn3.y=topPos + 50;
+    }
     @Override
     public void render(PoseStack p_94669_, int p_94670_, int p_94671_, float p_94672_) {
         if(this.visible) {
