@@ -1,25 +1,16 @@
 package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
-import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public class SPlaceRecipePacket {
@@ -71,7 +62,7 @@ public class SPlaceRecipePacket {
             }
         } else {
             if (RecipePlacer.clearGridToInventory(player, menu)) {
-                //send ghost recipe
+                PacketHandler.sendToPlayer(new CPlaceGhostRecipePacket(pos, recipe), player);
             }
         }
         menu.broadcastChanges();

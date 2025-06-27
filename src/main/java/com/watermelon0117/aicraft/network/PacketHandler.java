@@ -37,6 +37,11 @@ public class PacketHandler {
                 .decoder(SPlaceRecipePacket::new)
                 .consumerMainThread(SPlaceRecipePacket::handle)
                 .add();
+        INSTANCE.messageBuilder(CPlaceGhostRecipePacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CPlaceGhostRecipePacket::encode)
+                .decoder(CPlaceGhostRecipePacket::new)
+                .consumerMainThread(CPlaceGhostRecipePacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

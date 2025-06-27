@@ -31,7 +31,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private static final ResourceLocation RECIPE_BUTTON_LOCATION = new ResourceLocation("textures/gui/recipe_button.png");
     private Button mainBtn, reBtn;
     private ImageButton bookBtn;
-    private CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
+    public CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
     private OptionsComponent options;
     private enum State{
         INITIAL,
@@ -217,8 +217,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         super.slotClicked(p_97778_, p_97779_, p_97780_, p_97781_);
         this.recipeBookComponent.slotClicked(p_97778_);
     }
-
-    private static String strip(String s) {
-        return s.replace("[", "").replace("]", "");
+    protected boolean hasClickedOutside(double p_98456_, double p_98457_, int p_98458_, int p_98459_, int p_98460_) {
+        boolean flag = p_98456_ < (double)p_98458_ || p_98457_ < (double)p_98459_ || p_98456_ >= (double)(p_98458_ + this.imageWidth) || p_98457_ >= (double)(p_98459_ + this.imageHeight);
+        return this.recipeBookComponent.hasClickedOutside(p_98456_, p_98457_, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, p_98460_) && flag;
     }
 }

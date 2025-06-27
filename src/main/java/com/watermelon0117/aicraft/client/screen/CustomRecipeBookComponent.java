@@ -43,7 +43,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
     private int height;
     Minecraft minecraft;
     private AICraftingTableMenu menu;
-    protected final GhostRecipe ghostRecipe = new GhostRecipe();
+    protected final CustomGhostRecipe ghostRecipe = new CustomGhostRecipe();
     private final CustomRecipeBookPage recipeBookPage = new CustomRecipeBookPage();
     public boolean visible;
 
@@ -79,19 +79,19 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
         }
     }
     public void renderGhostRecipe(PoseStack p_100323_, int p_100324_, int p_100325_, boolean p_100326_, float p_100327_) {
-        this.ghostRecipe.render(p_100323_, this.minecraft, p_100324_, p_100325_, p_100326_, p_100327_);
+        this.ghostRecipe.render(p_100323_, this.minecraft, p_100324_, p_100325_, false, p_100327_);
     }
     public boolean mouseClicked(double p_100294_, double p_100295_, int p_100296_) {
         if (this.visible && !this.minecraft.player.isSpectator()) {
             if (this.recipeBookPage.mouseClicked(p_100294_, p_100295_, p_100296_, (this.width - 147) / 2 - this.xOffset, (this.height - 166) / 2, 147, 166)) {
                 ItemStack itemStack = this.recipeBookPage.getLastClickedRecipe();
                 if (itemStack != null && !itemStack.isEmpty()) {
-                    if (!menu.canCraft(itemStack)) { // && this.ghostRecipe.getRecipe() == recipe
-                        return false;
-                    }
                     this.ghostRecipe.clear();
+                    var recipes = RecipeManager.getRecipesForItem(itemStack);
+                    if (recipes.isEmpty()) //todo: add multi recipe support
+                        return true;
                     PacketHandler.sendToServer(new SPlaceRecipePacket(this.menu.blockEntity.getBlockPos(),
-                            RecipeManager.getRecipesForItem(itemStack).get(0), false));
+                            recipes.get(0), false));
                 }
 
                 return true;
@@ -110,11 +110,8 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
             return flag && !flag1;
         }
     }
-    public void setupGhostRecipe(Recipe<?> p_100316_, List<Slot> p_100317_) {
-        ItemStack itemstack = p_100316_.getResultItem();
-        this.ghostRecipe.setRecipe(p_100316_);
-        this.ghostRecipe.addIngredient(Ingredient.of(itemstack), (p_100317_.get(0)).x, (p_100317_.get(0)).y);
-        //this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), p_100316_, p_100316_.getIngredients().iterator(), 0);
+    public void setupGhostRecipe(ItemStack[] recipe) {
+        this.ghostRecipe.setRecipe(recipe);
     }
     public void toggleVisibility() {
         this.visible = !this.visible;

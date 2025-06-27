@@ -19,89 +19,39 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class CustomGhostRecipe {
-    @Nullable
-    private Recipe<?> recipe;
-    private final List<GhostIngredient> ingredients = Lists.newArrayList();
-    float time;
+    public ItemStack[] itemStacks;
 
     public void clear() {
-        this.recipe = null;
-        this.ingredients.clear();
-        this.time = 0.0F;
+        this.itemStacks = null;
     }
 
-    public void addIngredient(Ingredient p_100144_, int p_100145_, int p_100146_) {
-        this.ingredients.add(new GhostIngredient(p_100144_, p_100145_, p_100146_));
-    }
-
-    public GhostIngredient get(int p_100142_) {
-        return this.ingredients.get(p_100142_);
-    }
-
-    public int size() {
-        return this.ingredients.size();
-    }
-
-    @Nullable
-    public Recipe<?> getRecipe() {
-        return this.recipe;
-    }
-
-    public void setRecipe(Recipe<?> p_100148_) {
-        this.recipe = p_100148_;
+    public void setRecipe(ItemStack[] itemStacks) {
+        this.itemStacks = itemStacks;
     }
 
     public void render(PoseStack p_100150_, Minecraft p_100151_, int p_100152_, int p_100153_, boolean p_100154_, float p_100155_) {
-        if (!Screen.hasControlDown()) {
-            this.time += p_100155_;
-        }
-
-        for(int i = 0; i < this.ingredients.size(); ++i) {
-            GhostIngredient ghostrecipe$ghostingredient = this.ingredients.get(i);
-            int j = ghostrecipe$ghostingredient.getX() + p_100152_;
-            int k = ghostrecipe$ghostingredient.getY() + p_100153_;
+        if(itemStacks==null)
+            return;
+        for(int i = 0; i < 9; ++i) {
+            ItemStack itemStack = this.itemStacks[i];
+            int j = i%3*18+9 + p_100152_;
+            int k = i/3*18+17 + p_100153_;
             if (i == 0 && p_100154_) {
                 GuiComponent.fill(p_100150_, j - 4, k - 4, j + 20, k + 20, 822018048);
             } else {
-                GuiComponent.fill(p_100150_, j, k, j + 16, k + 16, 822018048);
+                if(!itemStack.isEmpty())
+                    GuiComponent.fill(p_100150_, j, k, j + 16, k + 16, 822018048);
             }
 
-            ItemStack itemstack = ghostrecipe$ghostingredient.getItem();
             ItemRenderer itemrenderer = p_100151_.getItemRenderer();
-            itemrenderer.renderAndDecorateFakeItem(itemstack, j, k);
+            itemrenderer.renderAndDecorateFakeItem(itemStack, j, k);
             RenderSystem.depthFunc(516);
             GuiComponent.fill(p_100150_, j, k, j + 16, k + 16, 822083583);
             RenderSystem.depthFunc(515);
             if (i == 0) {
-                itemrenderer.renderGuiItemDecorations(p_100151_.font, itemstack, j, k);
+                itemrenderer.renderGuiItemDecorations(p_100151_.font, itemStack, j, k);
             }
         }
 
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public class GhostIngredient {
-        private final Ingredient ingredient;
-        private final int x;
-        private final int y;
-
-        public GhostIngredient(Ingredient p_100166_, int p_100167_, int p_100168_) {
-            this.ingredient = p_100166_;
-            this.x = p_100167_;
-            this.y = p_100168_;
-        }
-
-        public int getX() {
-            return this.x;
-        }
-
-        public int getY() {
-            return this.y;
-        }
-
-        public ItemStack getItem() {
-            ItemStack[] aitemstack = this.ingredient.getItems();
-            return aitemstack.length == 0 ? ItemStack.EMPTY : aitemstack[Mth.floor(CustomGhostRecipe.this.time / 30.0F) % aitemstack.length];
-        }
     }
 }
