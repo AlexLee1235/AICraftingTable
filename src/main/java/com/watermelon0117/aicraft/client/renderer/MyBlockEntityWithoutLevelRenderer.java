@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.watermelon0117.aicraft.FileUtil;
+import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -81,16 +82,15 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
                              int light, int overlay) {
         poseStack.pushPose();
         if (!this.maps.containsKey("default")) {
-            BufferedImage img = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+            BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = img.createGraphics();
             g2d.setColor(new Color(255, 255, 255, 255));  // white
-            g2d.fillRect(0, 0, 128, 128);
+            g2d.fillRect(0, 0, 16, 16);
             g2d.dispose();
             this.maps.put("default", new DynamicItemInstance(img));
         }
-        CompoundTag tag = itemStack.getOrCreateTag();
-        String id = tag.getString("texture");
-        if (id.isEmpty() || !this.maps.containsKey(id)) {
+        String id = MainItem.getID(itemStack);
+        if (id == null || !this.maps.containsKey(id)) {
             id = "default";
         }
         DynamicItemInstance instance = this.maps.get(id);

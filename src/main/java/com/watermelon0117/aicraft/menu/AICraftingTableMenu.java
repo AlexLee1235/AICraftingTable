@@ -156,7 +156,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             itemstack = craftingrecipe.assemble(container);
         }else {
             Recipe recipe=new Recipe(menu);
-            itemstack=RecipeManager.match(recipe.getDisplayNames());
+            itemstack=RecipeManager.match(recipe.items);
         }
         return itemstack;
     }
@@ -194,7 +194,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     }
 
     public boolean canCraft(ItemStack itemStack){
-        List<String[]> recipes = RecipeManager.getRecipesForItem(itemStack);
-
+        List<ItemStack[]> recipes = RecipeManager.getRecipesForItem(itemStack);
+        return false;
     }
 }

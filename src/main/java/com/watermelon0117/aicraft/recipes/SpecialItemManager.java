@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft.recipes;
 
 import com.watermelon0117.aicraft.FileUtil;
+import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.world.item.ItemStack;
@@ -15,10 +17,13 @@ public class SpecialItemManager {
     private static final Map<String, CompoundTag> itemMap = new HashMap<>();
 
     /** Save item to file and map */
-    public static void addItem(String name, ItemStack itemStack) {
-        CompoundTag tag = itemStack.save(new CompoundTag());
-        itemMap.put(name, tag);
-        saveToFile(name, tag);
+    public static void addItem(ItemStack itemStack) {
+        String name = MainItem.getID(itemStack);
+        if (name == null)
+            throw new IllegalArgumentException("addItem err");
+        CompoundTag nbt = itemStack.save(new CompoundTag());
+        itemMap.put(name, nbt);
+        saveToFile(name, nbt);
     }
 
     /** Retrieve item by name */

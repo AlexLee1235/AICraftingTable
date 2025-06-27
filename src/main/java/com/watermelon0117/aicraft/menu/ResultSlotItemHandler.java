@@ -1,8 +1,10 @@
 package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.core.NonNullList;
+import net.minecraft.server.Main;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
@@ -61,7 +63,7 @@ public class ResultSlotItemHandler extends SlotItemHandler {
         return nonnulllist;
     }
     public void onTake(Player p_150638_, ItemStack p_150639_) {
-        if(p_150639_.is(ItemInit.MAIN_ITEM.get()) || p_150639_.is(ItemInit.MAIN_FOOD_ITEM.get())){
+        if(MainItem.isMainItem(p_150639_)){
             for (int i = 0; i < 9; i++) {
                 if(!this.craftSlots.getStackInSlot(i + 1).isEmpty()) {
                     if (this.craftSlots.getStackInSlot(i + 1).is(Items.WATER_BUCKET) ||

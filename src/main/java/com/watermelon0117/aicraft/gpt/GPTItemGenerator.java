@@ -52,10 +52,10 @@ public class GPTItemGenerator {
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
     }
-    private static String buildPrompt(String name, String[] recipe) {
+    private static String buildPrompt(String name, Recipe recipe) {
         //String.format("Recipe: [[%s, %s, %s], [%s, %s, %s], [%s, %s, %s]]\n", recipe[0], recipe[1], recipe[2], recipe[3], recipe[4], recipe[5], recipe[6], recipe[7], recipe[8])
         return inst + String.format("Item: %s\n", name) +
-                "Made of: " + Recipe.getUniqueNames(recipe) +
+                "Made of: " + Recipe.getUniqueNames(recipe.getDisplayNames()) +
                 "\nplease answer in json format";
     }
     private static void applyTexture(byte[] bytes, String name) {
@@ -69,28 +69,27 @@ public class GPTItemGenerator {
             throw new RuntimeException(e);
         }
     }
-    public CompletableFuture<ItemStack> generate(String name, String[] recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
-        String prompt=buildPrompt(name,recipe);
+    public CompletableFuture<ItemStack> generate(String name, Recipe recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
+        String prompt=buildPrompt(name, recipe);
         System.out.println(prompt);
         return client.chat(prompt).thenCompose(rawJson -> {
             System.out.println(rawJson);
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
             ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());
-            itemStack.getOrCreateTag().putString("texture", name);
-            setTags(itemStack, json);
-            return imgClient.generateItem(name, recipe/*prompt from json*/).thenApply(textureBytes -> {
+            itemStack.getOrCreateTag().put("aicraft", new CompoundTag());
+            setTags(itemStack.getOrCreateTag().getCompound("aicraft"), json, name);
+            return imgClient.generateItem(name, recipe.getDisplayNames()/*prompt from json*/).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
                     applyTexture(textureBytes, name);
-                    RecipeManager.addRecipe(name, recipe, json.is_shapeless_crafting);
-                    SpecialItemManager.addItem(name, itemStack);
+                    SpecialItemManager.addItem(itemStack);
+                    RecipeManager.addRecipe(SpecialItemManager.getItem(name), recipe.items, json.is_shapeless_crafting);
                 }
                 return itemStack;
             });
         });
     }
-    private static void setTags(ItemStack stack, ItemResult json) {
-        CompoundTag tag = stack.getOrCreateTag();
-
+    private static void setTags(CompoundTag tag, ItemResult json, String name) {
+        tag.putString("id", name);
         if (json.is_suitable_for_breaking_stone)
             tag.putBoolean("isPickaxe", true);
         if (json.is_suitable_for_breaking_woods)

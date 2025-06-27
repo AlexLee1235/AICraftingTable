@@ -65,11 +65,11 @@ public class GPTIdeaGenerator2 {  //normal naming style
         return prompt.toString();
     }
     protected String[] postProcess(Recipe recipe, String[] items) {
-        String material = RecipeShapeMatcher.getMaterial(recipe.items);
-        if (material != null) {
-            String type = RecipeShapeMatcher.getMatchedToolOrArmorName(recipe.items);
+        var match = RecipeShapeMatcher.match(recipe.items);
+        if (match != null) {
+            String type = match.shapeName();
             if (!items[0].contains(type) && !items[1].contains(type) && !items[2].contains(type)) {
-                items[2] = material + " " + type;
+                items[2] = match.materialName() + " " + type;
             }
         }
         return items;

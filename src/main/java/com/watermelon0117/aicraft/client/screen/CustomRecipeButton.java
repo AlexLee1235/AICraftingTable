@@ -47,7 +47,7 @@ public class CustomRecipeButton extends AbstractWidget {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, RECIPE_BOOK_LOCATION);
         int i = 29;
-        if (!this.collection.hasCraftable()) {
+        if (!this.menu.canCraft(this.itemStack)) {
             i += 25;
         }
         int j = 206;

@@ -31,13 +31,13 @@ public class Recipe {
         return s.replace("[","").replace("]","");
     }
 
-    public String[] getDisplayNames(){
-        String[] list=new String[9];
+    public String[] getDisplayNames() {
+        String[] list = new String[9];
         for (int i = 0; i < 9; i++) {
-            if(items[i].isEmpty())
-                list[i]="empty";
+            if (items[i].isEmpty())
+                list[i] = "empty";
             else
-                list[i]=strip(items[i].getDisplayName().getString());
+                list[i] = strip(items[i].getDisplayName().getString());
         }
         return list;
     }

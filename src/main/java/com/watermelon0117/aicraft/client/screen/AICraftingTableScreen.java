@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.SGenIdeaPacket;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
@@ -105,9 +106,9 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     private void reBtnPress(Button button) {
         ItemStack itemStack = menu.slots.get(0).getItem();
-        if (itemStack.is(ItemInit.MAIN_ITEM.get()) || itemStack.is(ItemInit.MAIN_FOOD_ITEM.get())) {
-            String s = strip(itemStack.getDisplayName().getString());
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
+        if (MainItem.isMainItem(itemStack)) {
+            String s = MainItem.getID(itemStack);
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.items));
             setProgress();
         } else
             System.out.println("Can't regen because no item");
@@ -116,7 +117,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private void optBtnPress(Button button) {
         if (state == State.GENERATED) {
             String s = button.getMessage().getString();
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.getDisplayNames()));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.items));
             setProgress();
         }
     }

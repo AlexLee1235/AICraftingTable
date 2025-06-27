@@ -1,183 +1,230 @@
 package com.watermelon0117.aicraft.recipes;
 
+
 import com.watermelon0117.aicraft.FileUtil;
 import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.items.MainItem;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.*;
 
-public class RecipeManager {
-
-    /*──────────────────────────── File & Storage ───────────────────────────*/
-
-    private static File FILE;
-
-    /** key → crafted-item-name */
-    private static final Map<String, String> recipeMap = new HashMap<>();
-
-    private RecipeManager() {}               // no instances
-
-    /*────────────────────── Canonical key builders ─────────────────────────*/
-
-    /** Lower-case helper that converts <null> → "" (blank). */
-    private static String canon(String s) {
-        return s == null ? "" : s.toLowerCase(Locale.ROOT);
+public final class RecipeManager {
+    public static boolean sameItem(ItemStack a, ItemStack b) {
+        if (a == null || b == null || a.isEmpty() || b.isEmpty())
+            return false;
+        if (MainItem.isSameMainItem(a, b)) {
+            String idA = MainItem.getID(a);
+            String idB = MainItem.getID(b);
+            return idA != null && idA.equals(idB);          // both non-null & equal
+        }
+        return ItemStack.isSame(a, b);
     }
 
-    /** Trim empty outer rows/columns, then anchor pattern at (0,0). */
-    private static String[] normaliseShaped(String[] r) {
-        if (r.length != 9) throw new IllegalArgumentException("Needs 9 slots");
+    /* ────────────── internal state & helpers ────────────── */
+    private static final List<Recipe> RECIPES = new ArrayList<>(256);
+    private static final String EMPTY_TOKEN = "empty";
 
-        String[] g = Arrays.stream(r).map(RecipeManager::canon).toArray(String[]::new);
+    private RecipeManager() { }
 
-        int minR = 3, minC = 3, maxR = -1, maxC = -1;
-        for (int y = 0; y < 3; ++y)
-            for (int x = 0; x < 3; ++x)
-                if (!g[y * 3 + x].isBlank()) {
-                    minR = Math.min(minR, y);  maxR = Math.max(maxR, y);
-                    minC = Math.min(minC, x);  maxC = Math.max(maxC, x);
-                }
-        // empty pattern → return as-is (should never be stored)
-        if (maxR == -1) return g;
+    private static Path recipeFile() { return FileUtil.getRecipeFile().toPath(); }
 
-        String[] out = new String[9];
-        Arrays.fill(out, "");
-        for (int y = minR; y <= maxR; ++y)
-            for (int x = minC; x <= maxC; ++x)
-                out[(y - minR) * 3 + (x - minC)] = g[y * 3 + x];
-        return out;
+    private static String stackToToken(ItemStack st) {
+        if (st == null || st.isEmpty()) return EMPTY_TOKEN;
+        if (MainItem.isMainItem(st)) {
+            String id = MainItem.getID(st);
+            return "aicraftitem:" + id;
+        } else {
+            ResourceLocation id = ForgeRegistries.ITEMS.getKey(st.getItem());
+            return id == null ? EMPTY_TOKEN : id.toString();
+        }
+    }
+    private static ItemStack tokenToStack(String token) {
+        if (token.equals(EMPTY_TOKEN)) return ItemStack.EMPTY;
+        if (token.startsWith("aicraftitem:")) {
+            return SpecialItemManager.getItem(token.split(":")[1]);
+        } else {
+            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(token));
+            return item == null ? ItemStack.EMPTY : new ItemStack(item);
+        }
     }
 
-    private static String toShapedKey(String[] recipe) {
-        if (recipe.length != 9)
-            throw new IllegalArgumentException("Recipe must be 9 items.");
+    /* ───────────── recipe record ───────────── */
 
-        // Canonical copy: lower-case every non-empty token
-        String[] g = new String[9];
-        for (int i = 0; i < 9; i++) {
-            String s = recipe[i];
-            g[i] = (s != null && !s.equalsIgnoreCase("empty"))
-                    ? s.toLowerCase(Locale.ROOT)
-                    : "empty";
+    private static final class Recipe {
+        final boolean shapeless;
+        final ItemStack result;          // Count == 1
+        final ItemStack[] shaped;        // len 9 if shaped
+        final List<ItemStack> items;     // shapeless list
+
+        Recipe(ItemStack res, ItemStack[] shapedNorm) {
+            shapeless = false; result = res; shaped = shapedNorm; items = null;
+        }
+        Recipe(ItemStack res, List<ItemStack> list) {
+            shapeless = true;  result = res; shaped = null;       items = list;
         }
 
-        /* bounding box of real ingredients */
+        boolean matchesShaped(ItemStack[] norm) {
+            for (int i = 0; i < 9; ++i) {
+                ItemStack a = shaped[i], b = norm[i];
+                if (a.isEmpty() != b.isEmpty()) return false;
+                if (!a.isEmpty() && !sameItem(a, b)) return false;
+            }
+            return true;
+        }
+        boolean matchesShapeless(ItemStack[] grid) {
+            List<ItemStack> pool = new ArrayList<>();
+            for (ItemStack g : grid) if (g != null && !g.isEmpty()) pool.add(g);
+
+            if (pool.size() != items.size()) return false;
+            boolean[] used = new boolean[pool.size()];
+
+            outer: for (ItemStack need : items) {
+                for (int i = 0; i < pool.size(); ++i)
+                    if (!used[i] && sameItem(pool.get(i), need)) {
+                        used[i] = true; continue outer;
+                    }
+                return false;
+            }
+            return true;
+        }
+        String inputTokenString() {
+            if (shapeless) {
+                List<String> t = new ArrayList<>();
+                for (ItemStack s : items) t.add(stackToToken(s));
+                while (t.size() < 9) t.add(EMPTY_TOKEN);
+                t.sort(String::compareTo);
+                return String.join(",", t);
+            }
+            String[] tok = Arrays.stream(shaped).map(RecipeManager::stackToToken).toArray(String[]::new);
+            return String.join(",", tok);
+        }
+    }
+
+    /* ───────────── normalise shaped grid ───────────── */
+
+    private static ItemStack[] normaliseShaped(ItemStack[] src) {
+        if (src.length != 9) throw new IllegalArgumentException("grid must have 9 slots");
+        ItemStack[] g = new ItemStack[9];
+        for (int i = 0; i < 9; ++i) g[i] = (src[i] == null ? ItemStack.EMPTY : src[i]);
+
         int minR = 3, minC = 3, maxR = -1, maxC = -1;
-        for (int r = 0; r < 3; r++)
-            for (int c = 0; c < 3; c++)
-                if (!g[r * 3 + c].equals("empty")) {
+        for (int r = 0; r < 3; ++r)
+            for (int c = 0; c < 3; ++c)
+                if (!g[r * 3 + c].isEmpty()) {
                     if (r < minR) minR = r;  if (r > maxR) maxR = r;
                     if (c < minC) minC = c;  if (c > maxC) maxC = c;
                 }
 
-        // completely empty grid
-        if (maxR == -1) return "shaped:empty,empty,empty,empty,empty,empty,empty,empty,empty";
-
-        /* shift bounding-box into the upper-left corner of a fresh 3×3 grid */
-        String[] out = new String[9];
-        Arrays.fill(out, "empty");
-        for (int r = minR; r <= maxR; r++)
-            for (int c = minC; c <= maxC; c++)
-                out[(r - minR) * 3 + (c - minC)] = g[r * 3 + c];
-
-        return "shaped:" + String.join(",", out);
+        ItemStack[] out = new ItemStack[9];
+        Arrays.fill(out, ItemStack.EMPTY);
+        if (maxR != -1)
+            for (int r = minR; r <= maxR; ++r)
+                for (int c = minC; c <= maxC; ++c)
+                    out[(r - minR) * 3 + (c - minC)] = g[r * 3 + c];
+        return out;
     }
 
-    private static String toShapelessKey(String[] recipe) {
-        if (recipe.length != 9)
-            throw new IllegalArgumentException("Recipe must be 9 items.");
-        List<String> list = Arrays.asList(recipe.clone());
-        list.replaceAll(s -> s == null ? "" : s.toLowerCase(Locale.ROOT));
-        list.sort(String::compareTo);
-        return "shapeless:" + String.join(",", list);
+    /* ───────────── public API ───────────── */
+
+    public static ItemStack match(ItemStack[] grid) {
+        if (grid.length != 9) return ItemStack.EMPTY;
+        ItemStack[] norm = normaliseShaped(grid);
+
+        for (Recipe r : RECIPES)
+            if (r.shapeless ? r.matchesShapeless(grid) : r.matchesShaped(norm))
+                return r.result.copy();
+        return ItemStack.EMPTY;
     }
 
-    /*──────────────────────────── Public API ───────────────────────────────*/
+    public static synchronized void loadFromFile() {
+        RECIPES.clear();
+        Path f = recipeFile();
+        if (!Files.exists(f)) return;
 
-    /** 1️⃣  Try to craft; returns EMPTY if nothing matches. */
-    public static ItemStack match(String[] grid) {
-        String name = recipeMap.get(toShapedKey(grid));
-        if (name == null) name = recipeMap.get(toShapelessKey(grid));
-        if (name == null) return ItemStack.EMPTY;
+        try (BufferedReader br = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {
+            for (String ln; (ln = br.readLine()) != null; ) {
+                String[] p = ln.split("=", 3); if (p.length != 3) continue;
+                boolean shapeless = p[0].trim().equals("shapeless");
+                ItemStack result  = tokenToStack(p[1].trim()); if (result.isEmpty()) continue;
+                String[] slotTok  = p[2].split(",", -1);      if (slotTok.length != 9) continue;
 
-        return SpecialItemManager.getItem(name);
-    }
-
-    /** 2️⃣  Load recipes from disk; silently ignore corrupt lines. */
-    public static void loadFromFile() {
-        FILE = FileUtil.getRecipeFile();
-        recipeMap.clear();
-        if (!FILE.exists()) return;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE))) {
-            String ln;
-            while ((ln = br.readLine()) != null) {
-                String[] p = ln.split("=", 3);
-                if (p.length != 3) continue;
-
-                String type   = p[0].trim();
-                String name   = p[1].trim();
-                String[] item = p[2].split(",", -1);
-                if (item.length != 9) continue;
-
-                String key = type.equals("shapeless")
-                        ? toShapelessKey(item)
-                        : toShapedKey(item);
-                recipeMap.put(key, name);
+                if (shapeless) {
+                    List<ItemStack> list = new ArrayList<>();
+                    for (String t : slotTok) { ItemStack s = tokenToStack(t.trim()); if (!s.isEmpty()) list.add(s); }
+                    if (!list.isEmpty()) RECIPES.add(new Recipe(result, list));
+                } else {
+                    ItemStack[] shaped = new ItemStack[9];
+                    for (int i = 0; i < 9; ++i) shaped[i] = tokenToStack(slotTok[i].trim());
+                    RECIPES.add(new Recipe(result, shaped));
+                }
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) { }
     }
 
-    /** 3️⃣  Add recipe (`shapeless==true` ⇒ shapeless). */
-    public static void addRecipe(String name, String[] grid, boolean shapeless) {
-        recipeMap.put(shapeless ? toShapelessKey(grid) : toShapedKey(grid), name);
-        saveToFile();
-    }
+    public static synchronized void addRecipe(ItemStack result,
+                                              ItemStack[] grid,
+                                              boolean shapeless) {
 
-    public static List<String[]> getRecipesForItem(ItemStack itemStack) {
-        String itemName = canon(strip(itemStack.getDisplayName().getString()));
-        List<String[]> result = new ArrayList<>();
+        Objects.requireNonNull(result); Objects.requireNonNull(grid);
+        if (grid.length != 9) throw new IllegalArgumentException("grid must have 9 slots");
 
-        for (Map.Entry<String, String> entry : recipeMap.entrySet()) {
-            if (canon(entry.getValue()).equals(itemName)) {
-                String key = entry.getKey();
-                String[] items = key.substring(key.indexOf(':') + 1).split(",", -1);
-                result.add(items);
-            }
+        ItemStack resCopy = result.copy(); resCopy.setCount(1);
+
+        if (shapeless) {
+            List<ItemStack> list = new ArrayList<>();
+            for (ItemStack s : grid) if (s != null && !s.isEmpty()) list.add(s.copy());
+            if (list.isEmpty()) throw new IllegalArgumentException("no ingredients");
+            RECIPES.add(new Recipe(resCopy, list));
+        } else {
+            RECIPES.add(new Recipe(resCopy, normaliseShaped(grid)));
         }
-
-        return result;
+        save();
     }
 
-    /*──────────────────────────── File helpers ─────────────────────────────*/
+    public static List<ItemStack[]> getRecipesForItem(ItemStack target) {
+        if (target == null || target.isEmpty()) return List.of();
+        List<ItemStack[]> out = new ArrayList<>();
 
-    private static void saveToFile() {
-        ensureFileExists();
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE))) {
-            for (var e : recipeMap.entrySet()) {
-                String type  = e.getKey().startsWith("shapeless:") ? "shapeless" : "shaped";
-                String items = e.getKey().substring(e.getKey().indexOf(':') + 1);
-                bw.write(type + '=' + e.getValue() + '=' + items);
-                bw.newLine();
+        for (Recipe r : RECIPES)
+            if (sameItem(r.result, target)) {
+                if (r.shapeless) {
+                    List<ItemStack> tmp = new ArrayList<>(r.items);
+                    while (tmp.size() < 9) tmp.add(ItemStack.EMPTY);
+                    tmp.sort(Comparator.comparing(RecipeManager::stackToToken));
+                    out.add(tmp.toArray(new ItemStack[9]));
+                } else {
+                    out.add(Arrays.copyOf(r.shaped, 9));
+                }
             }
-        } catch (IOException ex) {
-            throw new RuntimeException("Failed writing recipes", ex);
-        }
+        return out;
     }
 
-    private static void ensureFileExists() {
+    /* ───────────── persistence ───────────── */
+
+    private static void save() {
+        Path f = recipeFile();
         try {
-            File dir = FILE.getParentFile();
-            if (dir != null && !dir.exists() && !dir.mkdirs())
-                throw new IOException("mkdirs failed: " + dir);
-            if (!FILE.exists() && !FILE.createNewFile())
-                throw new IOException("createNewFile failed: " + FILE);
-        } catch (IOException ex) {
-            throw new RuntimeException("Cannot create recipe file", ex);
+            Files.createDirectories(f.getParent());
+            try (BufferedWriter bw = Files.newBufferedWriter(
+                    f, StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+
+                for (Recipe r : RECIPES) {
+                    String type   = r.shapeless ? "shapeless" : "shaped";
+                    String result = stackToToken(r.result);
+                    String items  = r.inputTokenString();
+                    bw.write(type + '=' + result + '=' + items);
+                    bw.newLine();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("writing recipes failed", e);
         }
-    }
-    private static String strip(String s) {
-        return s.replace("[", "").replace("]", "");
     }
 }

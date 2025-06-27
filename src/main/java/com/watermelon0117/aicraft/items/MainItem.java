@@ -4,11 +4,13 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
 import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRenderer;
+import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -46,7 +48,7 @@ public class MainItem extends Item {
         return super.use(level, player, hand);
     }
     public InteractionResult useOn(UseOnContext context) {
-        CompoundTag tag = context.getItemInHand().getOrCreateTag();
+        CompoundTag tag = context.getItemInHand().getOrCreateTag().getCompound("aicraft");
         if (tag.getBoolean("isAxe"))
             return axeUseOn(context);
         if (tag.getBoolean("isShovel"))
@@ -59,7 +61,7 @@ public class MainItem extends Item {
         return true;
     }
     private static boolean isCorrectTool(ItemStack stack, BlockState state){
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         boolean ret = false;
         if (tag.getBoolean("isPickaxe"))
             ret = ret || state.is(BlockTags.MINEABLE_WITH_PICKAXE);
@@ -73,12 +75,12 @@ public class MainItem extends Item {
     }
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return isCorrectTool(stack, state) && net.minecraftforge.common.TierSortingRegistry.isCorrectTierForDrops(Tiers.values()[tag.getByte("tier")], state);
     }
     @Override
     public float getDestroySpeed(ItemStack itemStack, BlockState state) {
-        CompoundTag tag = itemStack.getOrCreateTag();
+        CompoundTag tag = itemStack.getOrCreateTag().getCompound("aicraft");
         return isCorrectTool(itemStack, state) ? Tiers.values()[tag.getByte("tier")].getSpeed() : 1.0F;
     }
     public boolean hurtEnemy(ItemStack p_40994_, LivingEntity p_40995_, LivingEntity p_40996_) {
@@ -97,7 +99,7 @@ public class MainItem extends Item {
     }
     @Override
     public boolean isDamageable(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return (tag.getBoolean("isPickaxe") ||
                 tag.getBoolean("isAxe") ||
                 tag.getBoolean("isShovel")) ||
@@ -110,14 +112,14 @@ public class MainItem extends Item {
     }
     @Override
     public int getMaxDamage(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return Tiers.values()[tag.getByte("tier")].getUses();
     }
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot p_43274_, ItemStack stack) {
         if(!this.isDamageable(stack))
             return ImmutableMultimap.of();
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         double num1=tag.getDouble("attackDamage");
         double num2=tag.getDouble("attackSpeed");
         double attackDamage=num1 + Tiers.values()[tag.getByte("tier")].getAttackDamageBonus();
@@ -134,9 +136,6 @@ public class MainItem extends Item {
     public boolean isRepairable(ItemStack stack) {
         return this.isDamageable(stack);
     }
-    private static String strip(String s){
-        return s.replace("[","").replace("]","");
-    }
     @Override
     public boolean isValidRepairItem(ItemStack stack, ItemStack material) {
         CompoundTag tag = stack.getOrCreateTag();
@@ -145,14 +144,29 @@ public class MainItem extends Item {
 
     @Override
     public Component getName(ItemStack itemStack) {
-        CompoundTag tag = itemStack.getTag();
-        String id = "Main Item";
-        if (tag != null && !tag.getString("texture").contentEquals("")) {
-            id = tag.getString("texture");
-        }
+        String id = getID(itemStack);
+        if (id == null || id.contentEquals(""))
+            id = "Main Item";
         return Component.literal(id);
     }
-
+    public static String getID(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !MainItem.isMainItem(stack))
+            return null;
+        CompoundTag root = stack.getTag();          // null ↔ no NBT
+        if (root == null || !root.contains("aicraft", Tag.TAG_COMPOUND))
+            return null;
+        CompoundTag ai = root.getCompound("aicraft");
+        return ai.contains("id", Tag.TAG_STRING) ? ai.getString("id") : null;
+    }
+    public static boolean isMainItem(ItemStack a) {
+        if (a == null) return false;
+        return (a.is(ItemInit.MAIN_ITEM.get()) || a.is(ItemInit.MAIN_FOOD_ITEM.get()));
+    }
+    public static boolean isSameMainItem(ItemStack a, ItemStack b) {
+        if (a == null || b == null) return false;
+        return (a.is(ItemInit.MAIN_ITEM.get()) && b.is(ItemInit.MAIN_ITEM.get())) ||
+                (a.is(ItemInit.MAIN_FOOD_ITEM.get()) && b.is(ItemInit.MAIN_FOOD_ITEM.get()));
+    }
     @Override
     public Object getRenderPropertiesInternal() {
         return super.getRenderPropertiesInternal();

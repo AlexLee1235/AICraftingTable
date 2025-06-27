@@ -2,10 +2,12 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
+import com.watermelon0117.aicraft.recipes.Recipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
@@ -15,21 +17,21 @@ import java.util.function.Supplier;
 public class SSelectIdeaPacket {
     private final BlockPos pos;
     private final String name;
-    private final String[] recipe;
+    private final ItemStack[] recipe;
     private static int incrementID = 0;
 
-    public SSelectIdeaPacket(BlockPos pos, String name, String[] recipe) {
+    public SSelectIdeaPacket(BlockPos pos, String name, ItemStack[] recipe) {
         this.pos = pos;
         this.name = name;
         this.recipe = recipe;
     }
 
     public SSelectIdeaPacket(FriendlyByteBuf buf) {
-        String[] recipe = new String[9];
         this.pos = buf.readBlockPos();
         this.name = buf.readUtf();
+        ItemStack[] recipe = new ItemStack[9];
         for (int i = 0; i < 9; i++) {
-            recipe[i] = buf.readUtf();
+            recipe[i] = buf.readItem();
         }
         this.recipe = recipe;
     }
@@ -38,7 +40,7 @@ public class SSelectIdeaPacket {
         buf.writeBlockPos(pos);
         buf.writeUtf(name);
         for (int i = 0; i < 9; i++) {
-            buf.writeUtf(recipe[i]);
+            buf.writeItemStack(recipe[i], true);
         }
     }
 
@@ -53,7 +55,7 @@ public class SSelectIdeaPacket {
                 be.taskID = id;
                 player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                 player.sendSystemMessage(Component.literal("Start..."));
-                generator.generate(name, recipe, be, b -> b.taskID == id && b.getProgress() != 0).thenAccept(itemStack -> {
+                generator.generate(name, new Recipe(recipe), be, b -> b.taskID == id && b.getProgress() != 0).thenAccept(itemStack -> {
                             if (be.taskID == id && be.getProgress() != 0) {
                                 player.sendSystemMessage(Component.literal("Done"));
                                 be.getInventory().setStackInSlot(0, itemStack);
