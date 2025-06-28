@@ -26,6 +26,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -152,6 +153,12 @@ public class MainItem extends Item {
         }
         return Component.literal(name);
     }
+
+    @Override
+    public Component getDescription() {
+        return Component.literal("hi");
+    }
+
     public static String getID(ItemStack stack) {
         if (stack == null || stack.isEmpty() || !MainItem.isMainItem(stack))
             return null;

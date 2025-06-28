@@ -21,7 +21,7 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
                 Component.empty(), this::optBtnPress1);
         optBtn2 = new Button(leftPos + 98, topPos + 33, 70, 17,
                 Component.empty(), this::optBtnPress2);
-        optBtn3 = new Button(leftPos + 98, topPos + 50, 70, 17,
+        optBtn3 = new Button(leftPos + 98, topPos + 50, 70, 18,
                 Component.empty(), this::optBtnPress3);
         this.optBtnPress=optBtnPress;
     }

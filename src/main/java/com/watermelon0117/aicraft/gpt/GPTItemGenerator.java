@@ -62,7 +62,7 @@ public class GPTItemGenerator {
     }
     public static String getCurrentDateTime() {
         LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         return now.format(formatter);
     }
     private static void applyTexture(byte[] bytes, String name) {
