@@ -3,6 +3,8 @@ package com.watermelon0117.aicraft.network;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.RecipeManager;
+import com.watermelon0117.aicraft.recipes.SpecialItemManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -50,28 +52,36 @@ public class SSelectIdeaPacket {
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
-                be.setProgress(1);
-                int id = incrementID++;
-                be.taskID = id;
-                player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                player.sendSystemMessage(Component.literal("Start..."));
-                generator.generate(name, new Recipe(recipe), be, b -> b.taskID == id && b.getProgress() != 0).thenAccept(itemStack -> {
-                            if (be.taskID == id && be.getProgress() != 0) {
-                                player.sendSystemMessage(Component.literal("Done"));
-                                be.getInventory().setStackInSlot(0, itemStack);
-                                be.setProgress(580);
+                if(!SpecialItemManager.getItem(name).isEmpty()){  //use exist item
+                    ItemStack stack=SpecialItemManager.getItem(name);
+                    RecipeManager.addRecipe(stack, recipe, RecipeManager.itemIsShapeless(stack));
+                    be.getInventory().setStackInSlot(0, SpecialItemManager.getItem(name));
+                    be.setProgress(580);
+                    player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+                }else {
+                    be.setProgress(1);
+                    int id = incrementID++;
+                    be.taskID = id;
+                    player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+                    player.sendSystemMessage(Component.literal("Start..."));
+                    generator.generate(name, new Recipe(recipe), be, b -> b.taskID == id && b.getProgress() != 0).thenAccept(itemStack -> {
+                                if (be.taskID == id && be.getProgress() != 0) {
+                                    player.sendSystemMessage(Component.literal("Done"));
+                                    be.getInventory().setStackInSlot(0, itemStack);
+                                    be.setProgress(580);
+                                    player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+                                } else {
+                                    System.out.println("Canceled, not putting image");
+                                }
+                            })
+                            .exceptionally(ex -> {
+                                ex.printStackTrace();
+                                be.setProgress(0);
                                 player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                            } else {
-                                System.out.println("Canceled, not putting image");
-                            }
-                        })
-                        .exceptionally(ex -> {
-                            ex.printStackTrace();
-                            be.setProgress(0);
-                            player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                            //todo: show error in screen
-                            return null;
-                        });
+                                //todo: show error in screen
+                                return null;
+                            });
+                }
             }
         }
     }

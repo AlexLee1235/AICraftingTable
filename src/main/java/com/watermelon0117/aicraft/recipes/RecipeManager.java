@@ -204,6 +204,14 @@ public final class RecipeManager {
             }
         return out;
     }
+    public static boolean itemIsShapeless(ItemStack target){
+        if (target == null || target.isEmpty()) return false;
+        for (Recipe r : RECIPES)
+            if (sameItem(r.result, target)) {
+                return r.shapeless;
+            }
+        return false;
+    }
 
     /* ───────────── persistence ───────────── */
 

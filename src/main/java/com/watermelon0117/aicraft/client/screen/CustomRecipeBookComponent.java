@@ -46,6 +46,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
     protected final CustomGhostRecipe ghostRecipe = new CustomGhostRecipe();
     private final CustomRecipeBookPage recipeBookPage = new CustomRecipeBookPage();
     public boolean visible;
+    int times=0;
 
     public void init(int p_100310_, int p_100311_, Minecraft p_100312_, AICraftingTableMenu menu) {
         this.xOffset = 86;
@@ -98,7 +99,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
                 itemstack = stack;
             }
         }
-        if (itemstack != null && this.minecraft.screen != null) {
+        if (itemstack != null && !itemstack.isEmpty() && this.minecraft.screen != null) {
             this.minecraft.screen.renderComponentTooltip(p_100375_, this.minecraft.screen.getTooltipFromItem(itemstack), p_100378_, p_100379_, itemstack);
         }
     }
@@ -112,7 +113,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
                     if (recipes.isEmpty()) //todo: add multi recipe support
                         return true;
                     PacketHandler.sendToServer(new SPlaceRecipePacket(this.menu.blockEntity.getBlockPos(),
-                            recipes.get(0), false));
+                            recipes.get((times++) % recipes.size()), false));
                 }
 
                 return true;
