@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.network;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.client.screen.AICraftingTableScreen;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator2;
+import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -15,11 +16,11 @@ import java.util.function.Supplier;
 public class CGenIdeaPacket {
     private final BlockPos pos;
     private final String[] recipe;
-    private final String[] ideas;
+    private final ItemIdeas ideas;
     private final boolean err;
     private final String errMsg;
 
-    public CGenIdeaPacket(BlockPos pos, String[] recipe, String[] ideas, boolean err, String errMsg) {
+    public CGenIdeaPacket(BlockPos pos, String[] recipe, ItemIdeas ideas, boolean err, String errMsg) {
         this.pos = pos;
         this.recipe = recipe;
         this.ideas = ideas;
@@ -34,11 +35,7 @@ public class CGenIdeaPacket {
             recipe[i] = buf.readUtf();
         }
         this.recipe = recipe;
-        String[] ideas = new String[3];
-        for (int i = 0; i < 3; i++) {
-            ideas[i] = buf.readUtf();
-        }
-        this.ideas = ideas;
+        this.ideas = new ItemIdeas(buf);
         this.err = buf.readBoolean();
         this.errMsg = buf.readUtf();
     }
@@ -48,9 +45,7 @@ public class CGenIdeaPacket {
         for (int i = 0; i < 9; i++) {
             buf.writeUtf(recipe[i]);
         }
-        for (int i = 0; i < 3; i++) {
-            buf.writeUtf(ideas[i]);
-        }
+        ideas.write(buf);
         buf.writeBoolean(err);
         buf.writeUtf(errMsg);
     }

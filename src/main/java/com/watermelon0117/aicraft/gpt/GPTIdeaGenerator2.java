@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.concurrent.CompletableFuture;
 
 public class GPTIdeaGenerator2 {  //normal naming style
-    String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
+    /*String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
             "You are identifying the most natural, direct, and commonly accepted name for an item crafted in Minecraft, based on a 3×3 recipe.\n" +
             "You are not inventing a new name.\n" +
             "You are recognizing what the item *is*, based on the ingredients and layout.\n" +
@@ -46,17 +46,17 @@ public class GPTIdeaGenerator2 {  //normal naming style
         }
         return prompt.toString();
     }
-    protected String[] postProcess(Recipe recipe, String[] items) {
+    protected ItemIdeas postProcess(Recipe recipe, ItemIdeas items) {
         var match = RecipeShapeMatcher.match(recipe.items);
         if (match != null) {
             String type = match.shapeName();
-            if (!items[0].contains(type) && !items[1].contains(type) && !items[2].contains(type)) {
-                items[2] = match.materialName() + " " + type;
+            if (!items.id[0].contains(type) && !items.id[1].contains(type) && !items.id[2].contains(type)) {
+                items.id[2] = match.materialName() + " " + type;
             }
         }
         return items;
     }
-    public CompletableFuture<String[]> generate(Recipe recipe){
+    public CompletableFuture<ItemIdeas> generate(Recipe recipe){
         return generator.generate(buildPrompt(recipe)).thenApply(items-> postProcess(recipe, items));
-    }
+    }*/
 }

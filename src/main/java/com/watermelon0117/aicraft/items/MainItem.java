@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
 import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRenderer;
 import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.recipes.SpecialItemManager;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
@@ -144,19 +145,18 @@ public class MainItem extends Item {
 
     @Override
     public Component getName(ItemStack itemStack) {
-        String id = getID(itemStack);
-        if (id == null || id.contentEquals(""))
-            id = "Main Item";
-        return Component.literal(id);
+        CompoundTag tag = itemStack.getOrCreateTag().getCompound("aicraft");
+        String name = tag.getString("name");
+        if (name.contentEquals("")) {
+            name = "Main Item";
+        }
+        return Component.literal(name);
     }
     public static String getID(ItemStack stack) {
         if (stack == null || stack.isEmpty() || !MainItem.isMainItem(stack))
             return null;
-        CompoundTag root = stack.getTag();          // null ↔ no NBT
-        if (root == null || !root.contains("aicraft", Tag.TAG_COMPOUND))
-            return null;
-        CompoundTag ai = root.getCompound("aicraft");
-        return ai.contains("id", Tag.TAG_STRING) ? ai.getString("id") : null;
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
+        return tag.contains("id", Tag.TAG_STRING) ? tag.getString("id") : null;
     }
     public static boolean isMainItem(ItemStack a) {
         if (a == null) return false;

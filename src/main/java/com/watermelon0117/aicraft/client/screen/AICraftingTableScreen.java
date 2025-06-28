@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.SGenIdeaPacket;
@@ -10,12 +11,15 @@ import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CraftingScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.resources.language.LanguageInfo;
+import net.minecraft.client.resources.language.LanguageManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -41,6 +45,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
     private State state;
     private Recipe currentRecipe;
+    private ItemIdeas itemIdeas;
     private String errorMessage = "";
 
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
@@ -105,28 +110,31 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         errorMessage = "";
         state = State.GENERATING;
     }
-    private void setGenerated(String[] idea) {
+    private void setGenerated(ItemIdeas idea) {
         if (state != State.GENERATING)
             throw new IllegalStateException("setGenerating");
         options.visible = true;
-        options.setMessage(idea);
+        options.setMessage(idea.names);
+        this.itemIdeas=idea;
         state = State.GENERATED;
     }
 
     private void reBtnPress(Button button) {
         ItemStack itemStack = menu.slots.get(0).getItem();
         if (MainItem.isMainItem(itemStack)) {
-            String s = MainItem.getID(itemStack);
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.items));
+            String id = MainItem.getID(itemStack);
+            String name = MainItem.getID(itemStack);
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items,true));
             setProgress();
         } else
             System.out.println("Can't regen because no item");
     }
 
-    private void optBtnPress(Button button) {
+    private void optBtnPress(Button button, int i) {
         if (state == State.GENERATED) {
-            String s = button.getMessage().getString();
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), s, currentRecipe.items));
+            String id=itemIdeas.id[i];
+            String name=itemIdeas.names[i];
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items,false));
             setProgress();
         }
     }
@@ -136,7 +144,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             if (currentRecipe.isEmpty())
                 return;
             setGenerating();
-            PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe));
+            PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe, getLanguage()));
         }
     }
     public boolean mouseClicked(double p_98452_, double p_98453_, int p_98454_) {
@@ -147,7 +155,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             return super.mouseClicked(p_98452_, p_98453_, p_98454_);
         }
     }
-    public void handleIdeaPacket(String[] recipe, String[] idea, boolean err, String errMsg) {
+    public void handleIdeaPacket(String[] recipe, ItemIdeas idea, boolean err, String errMsg) {
         if (state == State.GENERATING) {
             if (err) {
                 errorMessage = errMsg;
@@ -221,5 +229,10 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected boolean hasClickedOutside(double p_98456_, double p_98457_, int p_98458_, int p_98459_, int p_98460_) {
         boolean flag = p_98456_ < (double)p_98458_ || p_98457_ < (double)p_98459_ || p_98456_ >= (double)(p_98458_ + this.imageWidth) || p_98457_ >= (double)(p_98459_ + this.imageHeight);
         return this.recipeBookComponent.hasClickedOutside(p_98456_, p_98457_, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, p_98460_) && flag;
+    }
+    private static String getLanguage(){
+        LanguageManager langManager = Minecraft.getInstance().getLanguageManager();
+        LanguageInfo currentLang = langManager.getSelected();
+        return currentLang.getCode(); // returns like "en_us"
     }
 }

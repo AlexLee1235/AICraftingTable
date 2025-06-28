@@ -15,14 +15,19 @@ import net.minecraft.world.item.crafting.Ingredient;
 public class OptionsComponent extends GuiComponent implements Widget, GuiEventListener, NarratableEntry {
     private Button optBtn1,optBtn2,optBtn3;
     public boolean visible=false;
-    public void init(int leftPos, int topPos, Button.OnPress optBtnPress){
+    public OnPressNum optBtnPress;
+    public void init(int leftPos, int topPos, OnPressNum optBtnPress){
         optBtn1 = new Button(leftPos + 98, topPos + 16, 70, 17,
-                Component.empty(), optBtnPress);
+                Component.empty(), this::optBtnPress1);
         optBtn2 = new Button(leftPos + 98, topPos + 33, 70, 17,
-                Component.empty(), optBtnPress);
+                Component.empty(), this::optBtnPress2);
         optBtn3 = new Button(leftPos + 98, topPos + 50, 70, 17,
-                Component.empty(), optBtnPress);
+                Component.empty(), this::optBtnPress3);
+        this.optBtnPress=optBtnPress;
     }
+    private void optBtnPress1(Button button){optBtnPress.onPress(button,0);}
+    private void optBtnPress2(Button button){optBtnPress.onPress(button,1);}
+    private void optBtnPress3(Button button){optBtnPress.onPress(button,2);}
     public void updateWidgetPos(int leftPos, int topPos){
         optBtn1.x=leftPos + 98;
         optBtn2.x=leftPos + 98;
@@ -63,5 +68,8 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
     @Override
     public void updateNarration(NarrationElementOutput p_169152_) {
 
+    }
+    public interface OnPressNum {
+        void onPress(Button p_93751_, int i);
     }
 }

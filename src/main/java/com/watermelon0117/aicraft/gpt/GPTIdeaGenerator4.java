@@ -51,11 +51,9 @@ public class GPTIdeaGenerator4 {  //normal naming style
         return prompt;
     }
 
-    protected String[] postProcess(Recipe recipe, String[] items) {
-        return items;
-    }
-    public CompletableFuture<String[]> generate(Recipe recipe){
-        return generator.generate(buildPrompt(recipe)).thenApply(items-> postProcess(recipe, items));
+
+    public CompletableFuture<ItemIdeas> generate(Recipe recipe, String lang){
+        return generator.generate(buildPrompt(recipe), lang);
     }
 }
 

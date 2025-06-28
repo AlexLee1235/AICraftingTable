@@ -10,11 +10,18 @@ import java.util.concurrent.CompletableFuture;
 public class BaseGPTIdeaGeneratorwParser {
     String inst2="You will be given a block of text that includes 3 original Minecraft-style item names, possibly along with descriptions or reasoning.\n" +
             "\n" +
-            "Your job is to extract just the item names and return them as a JSON format:\n" +
-            "{\"items\":[\"item1\",\"item2\",\"item3\"],\"error\":false}\n" +
-            "if there's no items in text, set error to true\n" +
+            "Your job is to:\n" +
+            "1. Extract just the item names (no descriptions, numbering, or extra formatting).\n" +
+            "2. Translate each extracted name into [TARGET LANGUAGE].\n" +
+            "3. Return the results in JSON format with two arrays:\n" +
             "\n" +
-            "Only include the names. Do not include descriptions, numbering, or extra formatting.\n" +
+            "{\n" +
+            "  \"items\": [\"original1\", \"original2\", \"original3\"],\n" +
+            "  \"translated\": [\"translated1\", \"translated2\", \"translated3\"],\n" +
+            "  \"error\": false\n" +
+            "}\n" +
+            "\n" +
+            "If there are no items in the text, set \"error\" to true and leave both arrays as empty.\n" +
             "\n" +
             "Example input:\n" +
             "\"This pattern forms a U-shape. Here are three item ideas:\n" +
@@ -22,17 +29,22 @@ public class BaseGPTIdeaGeneratorwParser {
             "2. Ore Hopper – Collects ores.\n" +
             "3. Molten Basin – Stores molten metal.\"\n" +
             "\n" +
-            "Output:\n" +
-            "{\"items\":[\"Iron Crucible\", \"Ore Hopper\", \"Molten Basin\"],\"error\":false}\n" +
+            "Example output (translated to Chinese):\n" +
             "\n" +
-            "Now extract from this:\n";
+            "{\n" +
+            "  \"items\": [\"Iron Crucible\", \"Ore Hopper\", \"Molten Basin\"],\n" +
+            "  \"translated\": [\"鐵坩堝\", \"礦石漏斗\", \"熔融盆\"],\n" +
+            "  \"error\": false\n" +
+            "}\n" +
+            "\n" +
+            "Now extract and translate from this:\n";
     private final Gson gson;
     private final OpenAIChatClient client;
     private final OpenAIChatClient extractor = new OpenAIChatClient("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",
             "gpt-4.1",  //gpt-4o gpt-4.1
             0.0,
             1024,
-            "You are a helpful assistant that extracts structured data from text.",
+            "You are a helpful assistant that extracts structured data and translate.",
             "json_object");
     public BaseGPTIdeaGeneratorwParser(String sysMsg){
         this.gson = new GsonBuilder()
@@ -46,20 +58,21 @@ public class BaseGPTIdeaGeneratorwParser {
                 sysMsg,
                 "text");
     }
-    public CompletableFuture<String[]> generate(String prompt) {
-        return client.chat(prompt.toString()).thenCompose(rawResult->{
+    public CompletableFuture<ItemIdeas> generate(String prompt, String lang) {
+        return client.chat(prompt).thenCompose(rawResult -> {
             System.out.println(rawResult);
-            return extractor.chat(inst2+rawResult);
-        }).thenApply(jsonResult->{
+            return extractor.chat(inst2 + "Target language: " + lang + "\n" + rawResult);
+        }).thenApply(jsonResult -> {
             System.out.println(jsonResult);
             ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
-            if(result.error)
+            if (result.error)
                 throw new IllegalStateException("Json extractor says input has error");
-            return new String[]{result.items.get(0), result.items.get(1), result.items.get(2)};
+            return new ItemIdeas(result);
         });
     }
-    private static final class ItemResult{
+    public static final class ItemResult{
         boolean error;
         List<String> items;
+        List<String> translated;
     }
 }

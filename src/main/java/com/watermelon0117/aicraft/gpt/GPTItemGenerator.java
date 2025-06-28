@@ -76,27 +76,28 @@ public class GPTItemGenerator {
             throw new RuntimeException(e);
         }
     }
-    public CompletableFuture<ItemStack> generate(String name, Recipe recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
-        String prompt=buildPrompt(name, recipe);
+    public CompletableFuture<ItemStack> generate(String id, String name, Recipe recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
+        String prompt=buildPrompt(id, recipe);
         System.out.println(prompt);
         return client.chat(prompt).thenCompose(rawJson -> {
             System.out.println(rawJson);
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
             ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());
             itemStack.getOrCreateTag().put("aicraft", new CompoundTag());
-            setTags(itemStack.getOrCreateTag().getCompound("aicraft"), json, name);
-            return imgClient.generateItem(name, recipe.getDisplayNames()/*prompt from json*/).thenApply(textureBytes -> {
+            setTags(itemStack.getOrCreateTag().getCompound("aicraft"), json, id, name);
+            return imgClient.generateItem(id, recipe.getDisplayNames()/*prompt from json*/).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
-                    applyTexture(textureBytes, name);
+                    applyTexture(textureBytes, id);
                     SpecialItemManager.addItem(itemStack);
-                    RecipeManager.addRecipe(SpecialItemManager.getItem(name), recipe.items, json.is_shapeless_crafting);
+                    RecipeManager.addRecipe(SpecialItemManager.getItem(id), recipe.items, json.is_shapeless_crafting);
                 }
                 return itemStack;
             });
         });
     }
-    private static void setTags(CompoundTag tag, ItemResult json, String name) {
-        tag.putString("id", name);
+    private static void setTags(CompoundTag tag, ItemResult json, String id, String name) {
+        tag.putString("id", id);
+        tag.putString("name", name);
         if (json.is_suitable_for_breaking_stone)
             tag.putBoolean("isPickaxe", true);
         if (json.is_suitable_for_breaking_woods)

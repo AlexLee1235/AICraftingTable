@@ -2,7 +2,7 @@
   "parent": "builtin/entity",
   "gui_light": "front",
   "textures": {
-    "particle": "minecraft:item/apple"
+    "particle": "minecraft:block/air"
   },
   "display": {
     "ground": {

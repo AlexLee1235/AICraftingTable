@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.init.BlockInit;
+import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.recipes.RecipeManager;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
@@ -19,6 +20,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.RepairItemRecipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.LevelResource;
@@ -151,6 +153,8 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         if (optional.isPresent()) {
             CraftingRecipe craftingrecipe = optional.get();
             itemstack = craftingrecipe.assemble(container);
+            if(craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(itemstack))
+                return ItemStack.EMPTY;
         }else {
             Recipe recipe=new Recipe(menu);
             itemstack=RecipeManager.match(recipe.items);

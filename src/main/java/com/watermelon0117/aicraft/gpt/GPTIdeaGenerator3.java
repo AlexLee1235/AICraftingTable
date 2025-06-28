@@ -5,7 +5,7 @@ import com.watermelon0117.aicraft.recipes.Recipe;
 import java.util.concurrent.CompletableFuture;
 
 public class GPTIdeaGenerator3 {  //the only worked shape recognizing, maybe not
-    private static final String inst="You are a Minecraft item designer.\n" +
+    /*private static final String inst="You are a Minecraft item designer.\n" +
             "\n" +
             "Given a crafting grid filled with [Material] forming a [Shape], generate three unique Minecraft-style item names. The names should reflect the item's potential function as a [Item Category], be practical in gameplay, and not overlap with existing game items.\n" +
             "\n" +
@@ -39,7 +39,7 @@ public class GPTIdeaGenerator3 {  //the only worked shape recognizing, maybe not
         }
         return prompt.toString();
     }
-    public CompletableFuture<String[]> generate(Recipe recipe){
+    public CompletableFuture<ItemIdeas> generate(Recipe recipe){
         return generator.generate(buildPrompt(recipe));
-    }
+    }*/
 }

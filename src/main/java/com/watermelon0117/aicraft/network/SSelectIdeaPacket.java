@@ -18,32 +18,40 @@ import java.util.function.Supplier;
 
 public class SSelectIdeaPacket {
     private final BlockPos pos;
+    private final String id;
     private final String name;
     private final ItemStack[] recipe;
+    private final boolean overrride;
     private static int incrementID = 0;
 
-    public SSelectIdeaPacket(BlockPos pos, String name, ItemStack[] recipe) {
+    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean overrride) {
         this.pos = pos;
+        this.id = id;
         this.name = name;
         this.recipe = recipe;
+        this.overrride = overrride;
     }
 
     public SSelectIdeaPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
+        this.id = buf.readUtf();
         this.name = buf.readUtf();
         ItemStack[] recipe = new ItemStack[9];
         for (int i = 0; i < 9; i++) {
             recipe[i] = buf.readItem();
         }
         this.recipe = recipe;
+        this.overrride = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
+        buf.writeUtf(id);
         buf.writeUtf(name);
         for (int i = 0; i < 9; i++) {
             buf.writeItemStack(recipe[i], true);
         }
+        buf.writeBoolean(overrride);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
@@ -52,20 +60,20 @@ public class SSelectIdeaPacket {
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
-                if(!SpecialItemManager.getItem(name).isEmpty()){  //use exist item
-                    ItemStack stack=SpecialItemManager.getItem(name);
+                if (!SpecialItemManager.getItem(id).isEmpty() && !overrride) {  //use exist item
+                    ItemStack stack = SpecialItemManager.getItem(id);
                     RecipeManager.addRecipe(stack, recipe, RecipeManager.itemIsShapeless(stack));
-                    be.getInventory().setStackInSlot(0, SpecialItemManager.getItem(name));
+                    be.getInventory().setStackInSlot(0, SpecialItemManager.getItem(id));
                     be.setProgress(580);
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                }else {
+                } else {
                     be.setProgress(1);
-                    int id = incrementID++;
-                    be.taskID = id;
+                    int tId = incrementID++;
+                    be.taskID = tId;
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                     player.sendSystemMessage(Component.literal("Start..."));
-                    generator.generate(name, new Recipe(recipe), be, b -> b.taskID == id && b.getProgress() != 0).thenAccept(itemStack -> {
-                                if (be.taskID == id && be.getProgress() != 0) {
+                    generator.generate(id, name, new Recipe(recipe), be, b -> b.taskID == tId && b.getProgress() != 0).thenAccept(itemStack -> {
+                                if (be.taskID == tId && be.getProgress() != 0) {
                                     player.sendSystemMessage(Component.literal("Done"));
                                     be.getInventory().setStackInSlot(0, itemStack);
                                     be.setProgress(580);
