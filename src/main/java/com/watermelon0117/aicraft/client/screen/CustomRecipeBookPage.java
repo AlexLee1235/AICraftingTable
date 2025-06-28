@@ -97,6 +97,12 @@ public class CustomRecipeBookPage {
         this.backButton.render(p_100422_, p_100425_, p_100426_, p_100427_);
         this.forwardButton.render(p_100422_, p_100425_, p_100426_, p_100427_);
     }
+    public void renderTooltip(PoseStack p_100418_, int p_100419_, int p_100420_) {
+        if (this.minecraft.screen != null && this.hoveredButton != null) {
+            this.minecraft.screen.renderComponentTooltip(p_100418_, this.hoveredButton.getTooltipText(this.minecraft.screen), p_100419_, p_100420_, this.hoveredButton.itemStack);
+        }
+
+    }
 
     public boolean mouseClicked(double p_100410_, double p_100411_, int p_100412_, int p_100413_, int p_100414_, int p_100415_, int p_100416_) {
         this.lastClickedRecipe = null;

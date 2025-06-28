@@ -10,6 +10,7 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookPage;
+import net.minecraft.client.gui.screens.recipebook.RecipeButton;
 import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.CommonComponents;
@@ -54,6 +55,9 @@ public class CustomRecipeButton extends AbstractWidget {
         this.blit(p_100484_, this.x, this.y, i, j, this.width, this.height);
         int k = 4;
         minecraft.getItemRenderer().renderAndDecorateFakeItem(itemStack, this.x + k, this.y + k);
+    }
+    public List<Component> getTooltipText(Screen p_100478_) {
+        return List.of(itemStack.getHoverName());
     }
 
     public void updateNarration(NarrationElementOutput p_170060_) {}

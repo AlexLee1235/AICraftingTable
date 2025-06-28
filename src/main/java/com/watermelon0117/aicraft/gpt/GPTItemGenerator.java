@@ -19,6 +19,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
@@ -58,10 +60,15 @@ public class GPTItemGenerator {
                 "Made of: " + Recipe.getUniqueNames(recipe.getDisplayNames()) +
                 "\nplease answer in json format";
     }
+    public static String getCurrentDateTime() {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
+        return now.format(formatter);
+    }
     private static void applyTexture(byte[] bytes, String name) {
         try {
             Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
-            Files.write(FileUtil.getArchiveFolder(name + ".png").toPath(), bytes);
+            Files.write(FileUtil.getArchiveFolder(name + "_" + getCurrentDateTime() + ".png").toPath(), bytes);
             BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes));
             ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), name + ".png"));
             MainItem.renderer.loadNewFile(name);

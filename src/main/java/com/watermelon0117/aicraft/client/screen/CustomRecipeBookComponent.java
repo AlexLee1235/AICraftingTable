@@ -81,6 +81,27 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
     public void renderGhostRecipe(PoseStack p_100323_, int p_100324_, int p_100325_, boolean p_100326_, float p_100327_) {
         this.ghostRecipe.render(p_100323_, this.minecraft, p_100324_, p_100325_, false, p_100327_);
     }
+    public void renderTooltip(PoseStack p_100362_, int p_100363_, int p_100364_, int p_100365_, int p_100366_) {
+        if (this.visible) {
+            this.recipeBookPage.renderTooltip(p_100362_, p_100365_, p_100366_);
+        }
+        this.renderGhostRecipeTooltip(p_100362_, p_100363_, p_100364_, p_100365_, p_100366_);
+    }
+    private void renderGhostRecipeTooltip(PoseStack p_100375_, int p_100376_, int p_100377_, int p_100378_, int p_100379_) {
+        if (this.ghostRecipe.itemStacks == null) return;
+        ItemStack itemstack = null;
+        for (int i = 0; i < 9; ++i) {
+            ItemStack stack = this.ghostRecipe.itemStacks[i];
+            int j = i % 3 * 18 + 9 + p_100376_;
+            int k = i / 3 * 18 + 17 + p_100377_;
+            if (p_100378_ >= j && p_100379_ >= k && p_100378_ < j + 16 && p_100379_ < k + 16) {
+                itemstack = stack;
+            }
+        }
+        if (itemstack != null && this.minecraft.screen != null) {
+            this.minecraft.screen.renderComponentTooltip(p_100375_, this.minecraft.screen.getTooltipFromItem(itemstack), p_100378_, p_100379_, itemstack);
+        }
+    }
     public boolean mouseClicked(double p_100294_, double p_100295_, int p_100296_) {
         if (this.visible && !this.minecraft.player.isSpectator()) {
             if (this.recipeBookPage.mouseClicked(p_100294_, p_100295_, p_100296_, (this.width - 147) / 2 - this.xOffset, (this.height - 166) / 2, 147, 166)) {

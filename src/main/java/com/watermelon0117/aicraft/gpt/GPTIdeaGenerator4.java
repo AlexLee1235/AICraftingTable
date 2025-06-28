@@ -28,26 +28,30 @@ public class GPTIdeaGenerator4 {  //normal naming style
     BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver");
     protected String buildPrompt(Recipe recipe) {
         String[] in = recipe.getDisplayNames();
-        String sb = inst +
-                "Top Left: " + in[0] + '\n' +
-                "Top: " + in[1] + '\n' +
-                "Top Right: " + in[2] + '\n' +
-                "Left: " + in[3] + '\n' +
-                "Center: " + in[4] + '\n' +
-                "Right: " + in[5] + '\n' +
-                "Bottom Left: " + in[6] + '\n' +
-                "Bottom : " + in[7] + '\n' +
-                "Bottom Right: " + in[8];
-        return sb;
-    }
-    protected String[] postProcess(Recipe recipe, String[] items) {
+        String prompt = String.format(
+                "%sTop Left: %s\n" +
+                        "Top: %s\n" +
+                        "Top Right: %s\n" +
+                        "Left: %s\n" +
+                        "Center: %s\n" +
+                        "Right: %s\n" +
+                        "Bottom Left: %s\n" +
+                        "Bottom: %s\n" +
+                        "Bottom Right: %s",
+                inst, in[0], in[1], in[2], in[3], in[4], in[5], in[6], in[7], in[8]
+        );
         var match = RecipeShapeMatcher.match(recipe.items);
         if (match != null) {
-            String type = match.shapeName();
-            if (!items[0].contains(type) && !items[1].contains(type) && !items[2].contains(type)) {
-                items[2] = match.materialName() + " " + type;
-            }
+            prompt += String.format(
+                    "\nThis has the same shape as a vanilla Minecraft %s. If it makes sense, you may suggest a %s as an idea, but you can NOT suggest more than one %s in your answer",
+                    match.shapeName(), match.shapeName(), match.shapeName()
+            );
         }
+        System.out.println(prompt);
+        return prompt;
+    }
+
+    protected String[] postProcess(Recipe recipe, String[] items) {
         return items;
     }
     public CompletableFuture<String[]> generate(Recipe recipe){

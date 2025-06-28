@@ -187,6 +187,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
         }
         renderTooltip(p_98479_, p_98480_, p_98481_);
+        this.recipeBookComponent.renderTooltip(p_98479_, this.leftPos, this.topPos, p_98480_, p_98481_);
         if (state == State.GENERATING)
             font.draw(p_98479_, Component.literal("Generating"), (float) leftPos + 102, (float) topPos + 20, 4210752);
         font.draw(p_98479_, Component.literal(errorMessage), (float) leftPos + 102, (float) topPos + 40, 4210752);
