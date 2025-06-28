@@ -123,7 +123,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         ItemStack itemStack = menu.slots.get(0).getItem();
         if (MainItem.isMainItem(itemStack)) {
             String id = MainItem.getID(itemStack);
-            String name = MainItem.getID(itemStack);
+            String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
             PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items,true));
             setProgress();
         } else

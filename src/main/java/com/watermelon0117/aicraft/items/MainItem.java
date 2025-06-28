@@ -40,7 +40,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class MainItem extends Item {
-    public static MyBlockEntityWithoutLevelRenderer renderer = new MyBlockEntityWithoutLevelRenderer();
+    public static MyBlockEntityWithoutLevelRenderer renderer;
     public MainItem(Properties p_41383_) {
         super(p_41383_);
     }
@@ -127,10 +127,10 @@ public class MainItem extends Item {
         double attackDamage=num1 + Tiers.values()[tag.getByte("tier")].getAttackDamageBonus();
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
         builder.put(Attributes.ATTACK_DAMAGE,
-                new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier",
+                new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier",
                         attackDamage, AttributeModifier.Operation.ADDITION));
         builder.put(Attributes.ATTACK_SPEED,
-                new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier",
+                new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier",
                         num2, AttributeModifier.Operation.ADDITION));
         return p_43274_ == EquipmentSlot.MAINHAND ? builder.build() : ImmutableMultimap.of();
     }
@@ -181,6 +181,7 @@ public class MainItem extends Item {
 
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        renderer=new MyBlockEntityWithoutLevelRenderer();
         consumer.accept(new IClientItemExtensions() {
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {

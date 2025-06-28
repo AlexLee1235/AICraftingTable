@@ -41,6 +41,16 @@ public class Recipe {
         }
         return list;
     }
+    public String[] getEnglishNames() {
+        String[] list = new String[9];
+        for (int i = 0; i < 9; i++) {
+            if (items[i].isEmpty())
+                list[i] = "empty";
+            else
+                list[i] = strip(items[i].getDisplayName().getString());
+        }
+        return list;
+    }
     public static String getUniqueNames(String[] input) {
         return Arrays.stream(input)
                 .distinct()

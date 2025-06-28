@@ -34,11 +34,11 @@ public class EventHandler {
             System.out.println("EntityJoinLevelEvent");
             if (event.getEntity().level.isClientSide) {
                 System.out.println("client");
-                SpecialItemManager.loadFromFile();
                 MainItem.renderer.loadFromFile();
-                RecipeManager.loadFromFile();
             } else {
                 System.out.println("server");
+                SpecialItemManager.loadFromFile();
+                RecipeManager.loadFromFile();
             }
         }
     }
