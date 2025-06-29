@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.recipes;
+package com.watermelon0117.aicraft;
 
 import com.watermelon0117.aicraft.FileUtil;
 import com.watermelon0117.aicraft.init.ItemInit;
@@ -56,7 +56,7 @@ public class SpecialItemManager {
         for (File file : files) {
             String name = file.getName().replaceFirst("\\.nbt$", "");
             try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
-                CompoundTag tag = NbtIo.readCompressed(in);
+                CompoundTag tag = NbtIo.read(in);
                 itemMap.put(name, tag);
             } catch (IOException ignored) {
                 // skip broken files
@@ -69,7 +69,7 @@ public class SpecialItemManager {
         ensureDir();
         File file = new File(DIR, name + ".nbt");
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
-            NbtIo.writeCompressed(tag, out);
+            NbtIo.write(tag, out);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save item: " + name, e);
         }

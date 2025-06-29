@@ -1,23 +1,17 @@
 package com.watermelon0117.aicraft.client.screen;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
-import com.watermelon0117.aicraft.recipes.SpecialItemManager;
+import com.watermelon0117.aicraft.SpecialItemManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.StateSwitchingButton;
-import net.minecraft.client.gui.screens.recipebook.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.stats.RecipeBook;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class CustomRecipeBookPage {
     protected static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation("textures/gui/recipe_book.png");

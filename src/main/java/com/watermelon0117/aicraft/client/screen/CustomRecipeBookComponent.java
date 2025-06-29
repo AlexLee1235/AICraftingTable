@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SPlaceRecipePacket;
-import com.watermelon0117.aicraft.recipes.RecipeManager;
+import com.watermelon0117.aicraft.RecipeManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
@@ -13,22 +13,13 @@ import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.recipebook.*;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.recipebook.PlaceRecipe;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.StackedContents;
-import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
-import java.util.List;
 
 public class CustomRecipeBookComponent extends GuiComponent implements Widget, GuiEventListener, NarratableEntry {
     protected static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation("textures/gui/recipe_book.png");

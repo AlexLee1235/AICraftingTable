@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.items.MainItem;
-import com.watermelon0117.aicraft.recipes.RecipeManager;
+import com.watermelon0117.aicraft.RecipeManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +17,6 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.RepairItemRecipe;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 
 import java.util.Optional;
 

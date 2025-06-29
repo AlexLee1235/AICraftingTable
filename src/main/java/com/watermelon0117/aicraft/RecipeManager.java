@@ -1,8 +1,6 @@
-package com.watermelon0117.aicraft.recipes;
+package com.watermelon0117.aicraft;
 
 
-import com.watermelon0117.aicraft.FileUtil;
-import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;

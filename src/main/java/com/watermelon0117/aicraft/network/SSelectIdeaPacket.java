@@ -1,12 +1,10 @@
 package com.watermelon0117.aicraft.network;
 
-import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
-import com.watermelon0117.aicraft.gpt.GPTItemGenerator;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
 import com.watermelon0117.aicraft.recipes.Recipe;
-import com.watermelon0117.aicraft.recipes.RecipeManager;
-import com.watermelon0117.aicraft.recipes.SpecialItemManager;
+import com.watermelon0117.aicraft.RecipeManager;
+import com.watermelon0117.aicraft.SpecialItemManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;

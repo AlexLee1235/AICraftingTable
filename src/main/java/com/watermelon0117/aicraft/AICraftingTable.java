@@ -1,10 +1,7 @@
 package com.watermelon0117.aicraft;
 
 import com.watermelon0117.aicraft.init.*;
-import com.watermelon0117.aicraft.items.MainItem;
-import com.watermelon0117.aicraft.recipes.SpecialItemManager;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
