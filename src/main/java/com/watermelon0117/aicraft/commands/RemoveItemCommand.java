@@ -30,15 +30,8 @@ public class RemoveItemCommand {
                                     String selected = ctx.getArgument("items", String.class).replace('_', ' ');
                                     RecipeManager.removeItem(selected);
                                     SpecialItemManager.removeItem(selected);
-                                    ctx.getSource().sendSuccess(Component.literal("You chose: " + selected), false);
+                                    ctx.getSource().sendSuccess(Component.literal("You removed: " + selected), false);
                                     return 1;
                                 })));
-    }
-    private static int execute(CommandSourceStack command, MyItemInput myItemInput){
-        if(command.getEntity() instanceof Player){
-            Player player = (Player) command.getEntity();
-            //SpecialItemManager.removeItem("");
-        }
-        return Command.SINGLE_SUCCESS;
     }
 }

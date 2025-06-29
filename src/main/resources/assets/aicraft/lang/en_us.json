@@ -2,5 +2,6 @@
 	"itemGroup.aicraft": "AI Crafting Table",
 	"item.aicraft.main_item": "Main Item",
 	"block.aicraft.ai_crafting_table": "AI Crafting Table",
-	"item.aicraft.main_food_item": "Main Food Item"
+	"item.aicraft.main_food_item": "Main Food Item",
+	"block.aicraft.my_crafting_table": "Crafting Table"
 }
