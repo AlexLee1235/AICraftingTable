@@ -8,7 +8,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.watermelon0117.aicraft.recipes.SpecialItemManager;
 import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.commands.arguments.item.ItemParser;
 
 import java.util.Arrays;
@@ -16,31 +19,25 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class MyItemArgument implements ArgumentType<MyItemInput> {
-    private static final Collection<String> EXAMPLES = Arrays.asList("stick", "minecraft:stick", "stick{foo=bar}");
+public class MyItemArgument implements ArgumentType<String> {
+    private final CommandBuildContext context;
 
-    public MyItemArgument(CommandBuildContext p_235278_) {
+    public MyItemArgument(CommandBuildContext context) {
+        this.context = context;
     }
 
-    public static MyItemArgument item(CommandBuildContext p_235280_) {
-        return new MyItemArgument(p_235280_);
+    /** Factory method for registration */
+    public static MyItemArgument item(CommandBuildContext context) {
+        return new MyItemArgument(context);
     }
 
-    public MyItemInput parse(StringReader p_120962_) throws CommandSyntaxException {
-        return new MyItemInput(p_120962_.getString());
+    @Override
+    public String parse(StringReader reader) {
+        return reader.readUnquotedString();
     }
 
-    public static <S> MyItemInput getItem(CommandContext<S> p_120964_, String p_120965_) {
-        return p_120964_.getArgument(p_120965_, MyItemInput.class);
-    }
-
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-        return CompletableFuture.completedFuture(
-                new Suggestions(new StringRange(11,12), List.of(
-                        new Suggestion(new StringRange(12,15), "hi "))));
-    }
-
-    public Collection<String> getExamples() {
-        return EXAMPLES;
+    @Override
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> ctx, SuggestionsBuilder builder) {
+        return SharedSuggestionProvider.suggest(SpecialItemManager.getAllItemNames(), builder);
     }
 }

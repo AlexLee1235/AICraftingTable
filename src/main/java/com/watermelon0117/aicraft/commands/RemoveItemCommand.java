@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.watermelon0117.aicraft.recipes.RecipeManager;
 import com.watermelon0117.aicraft.recipes.SpecialItemManager;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,13 +16,23 @@ import net.minecraft.server.commands.GiveCommand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
+
+import static net.minecraft.commands.Commands.literal;
+import static net.minecraft.commands.Commands.argument;
+
 public class RemoveItemCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context){
-        dispatcher.register(Commands.literal("removeItem").requires((p_137777_) -> {
-            return p_137777_.hasPermission(2);
-        }).then(Commands.argument("item", MyItemArgument.item(context)).executes((p_137784_) -> {
-            return execute(p_137784_.getSource(), MyItemArgument.getItem(p_137784_, "item"));
-        })));
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
+        dispatcher.register(
+                literal("removeItem")
+                        .then(argument("items", MyItemArgument.item(context))
+                                .executes(ctx -> {
+                                    String selected = ctx.getArgument("items", String.class).replace('_', ' ');
+                                    RecipeManager.removeItem(selected);
+                                    SpecialItemManager.removeItem(selected);
+                                    ctx.getSource().sendSuccess(Component.literal("You chose: " + selected), false);
+                                    return 1;
+                                })));
     }
     private static int execute(CommandSourceStack command, MyItemInput myItemInput){
         if(command.getEntity() instanceof Player){

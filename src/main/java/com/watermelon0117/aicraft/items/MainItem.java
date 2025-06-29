@@ -34,6 +34,8 @@ import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.common.ToolAction;
+import net.minecraftforge.common.ToolActions;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -60,7 +62,7 @@ public class MainItem extends Item {
         return InteractionResult.PASS;
     }
     public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
-        return true;
+        return toolAction!= ToolActions.SWORD_SWEEP;
     }
     private static boolean isCorrectTool(ItemStack stack, BlockState state){
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
@@ -86,14 +88,14 @@ public class MainItem extends Item {
         return isCorrectTool(itemStack, state) ? Tiers.values()[tag.getByte("tier")].getSpeed() : 1.0F;
     }
     public boolean hurtEnemy(ItemStack p_40994_, LivingEntity p_40995_, LivingEntity p_40996_) {
-        p_40994_.hurtAndBreak(2, p_40996_, (p_41007_) -> {  //todo
+        p_40994_.hurtAndBreak(2, p_40996_, (p_41007_) -> {
             p_41007_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
         return true;
     }
     public boolean mineBlock(ItemStack p_40998_, Level p_40999_, BlockState p_41000_, BlockPos p_41001_, LivingEntity p_41002_) {
         if (!p_40999_.isClientSide && p_41000_.getDestroySpeed(p_40999_, p_41001_) != 0.0F) {
-            p_40998_.hurtAndBreak(1, p_41002_, (p_40992_) -> {  //todo
+            p_40998_.hurtAndBreak(1, p_41002_, (p_40992_) -> {
                 p_40992_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
             });
         }
@@ -153,12 +155,6 @@ public class MainItem extends Item {
         }
         return Component.literal(name);
     }
-
-    @Override
-    public Component getDescription() {
-        return Component.literal("hi");
-    }
-
     public static String getID(ItemStack stack) {
         if (stack == null || stack.isEmpty() || !MainItem.isMainItem(stack))
             return null;

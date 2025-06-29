@@ -187,6 +187,41 @@ public final class RecipeManager {
         save();
     }
 
+    public static void removeItem(String id) {
+        if (id == null) return;
+
+        Iterator<Recipe> it = RECIPES.iterator();
+        while (it.hasNext()) {
+            Recipe recipe = it.next();
+
+            // Check result item
+            if (MainItem.isMainItem(recipe.result) && id.equals(MainItem.getID(recipe.result))) {
+                it.remove();
+                continue;
+            }
+
+            // Check shapeless ingredients
+            if (recipe.shapeless) {
+                for (ItemStack item : recipe.items) {
+                    if (MainItem.isMainItem(item) && id.equals(MainItem.getID(item))) {
+                        it.remove();
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            // Check shaped grid
+            for (ItemStack item : recipe.shaped) {
+                if (MainItem.isMainItem(item) && id.equals(MainItem.getID(item))) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+
     public static List<ItemStack[]> getRecipesForItem(ItemStack target) {
         if (target == null || target.isEmpty()) return List.of();
         List<ItemStack[]> out = new ArrayList<>();

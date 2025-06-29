@@ -38,6 +38,13 @@ public class SpecialItemManager {
         }
         return result;
     }
+    public static ArrayList<String> getAllItemNames() {
+        ArrayList<String> result = new ArrayList<>();
+        for (CompoundTag tag : itemMap.values()) {
+            result.add(ItemStack.of(tag).getHoverName().getString().replace(' ', '_'));
+        }
+        return result;
+    }
     /** Load all items from files */
     public static void loadFromFile() {
         DIR = FileUtil.getItemTagFolder();
