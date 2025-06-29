@@ -27,6 +27,7 @@ import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -40,6 +41,12 @@ public class ModClientEvents {
         event.enqueueWork(()->{
             MenuScreens.register(MenuInit.MAIN_MENU.get(), AICraftingTableScreen::new);
             MenuScreens.register(MenuInit.MY_CRAFTING_MENU.get(), MyCraftingScreen::new);
+        });
+    }
+    @SubscribeEvent
+    public static void serverSetup(FMLDedicatedServerSetupEvent event){
+        event.enqueueWork(()->{
+
         });
     }
 }

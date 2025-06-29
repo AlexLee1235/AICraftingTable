@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.common;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.storage.LevelResource;

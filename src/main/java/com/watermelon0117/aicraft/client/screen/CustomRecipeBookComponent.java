@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SPlaceRecipePacket;
-import com.watermelon0117.aicraft.RecipeManager;
+import com.watermelon0117.aicraft.common.RecipeManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;

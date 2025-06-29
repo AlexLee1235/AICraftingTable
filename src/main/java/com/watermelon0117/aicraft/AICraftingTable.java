@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft;
 
+import com.watermelon0117.aicraft.common.SpecialItemManager;
 import com.watermelon0117.aicraft.init.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -37,7 +39,7 @@ public class AICraftingTable {
         @Override
         public void fillItemList(NonNullList<ItemStack> list) {
             super.fillItemList(list);
-            for(ItemStack stack: SpecialItemManager.getAllItems()){
+            for(ItemStack stack: SpecialItemManager.get().list()){
                 list.add(1, stack);
             }
         }

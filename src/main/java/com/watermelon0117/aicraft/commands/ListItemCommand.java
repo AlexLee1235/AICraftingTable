@@ -3,7 +3,7 @@ package com.watermelon0117.aicraft.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import com.watermelon0117.aicraft.SpecialItemManager;
+import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -17,7 +17,7 @@ public class ListItemCommand {
     private static int execute(CommandContext<CommandSourceStack> command){
         if(command.getSource().getEntity() instanceof Player){
             Player player = (Player) command.getSource().getEntity();
-            for(ItemStack stack: SpecialItemManager.getAllItems()){
+            for(ItemStack stack: SpecialItemManager.get().list()){
                 player.sendSystemMessage(Component.literal(stack.getHoverName().getString()+" "+
                         stack.getOrCreateTag().getAsString()));
             }

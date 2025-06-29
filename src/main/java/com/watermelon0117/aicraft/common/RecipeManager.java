@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.common;
 
 
 import com.watermelon0117.aicraft.items.MainItem;
@@ -13,7 +13,7 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class RecipeManager {
-    public static boolean sameItem(ItemStack a, ItemStack b) {
+    private static boolean sameItem(ItemStack a, ItemStack b) {
         if (a == null || b == null || a.isEmpty() || b.isEmpty())
             return false;
         if (MainItem.isSameMainItem(a, b)) {
@@ -45,7 +45,7 @@ public final class RecipeManager {
     private static ItemStack tokenToStack(String token) {
         if (token.equals(EMPTY_TOKEN)) return ItemStack.EMPTY;
         if (token.startsWith("aicraftitem:")) {
-            return SpecialItemManager.getItem(token.split(":")[1]);
+            return SpecialItemManager.get().getItem(token.split(":")[1]);
         } else {
             Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(token));
             return item == null ? ItemStack.EMPTY : new ItemStack(item);

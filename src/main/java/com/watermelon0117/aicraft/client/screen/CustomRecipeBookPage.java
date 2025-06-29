@@ -3,7 +3,7 @@ package com.watermelon0117.aicraft.client.screen;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
-import com.watermelon0117.aicraft.SpecialItemManager;
+import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.StateSwitchingButton;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +32,7 @@ public class CustomRecipeBookPage {
         for(int i = 0; i < 20; ++i) {
             this.buttons.add(new CustomRecipeButton());
         }
-        this.totalPages = (int)Math.ceil((double)(SpecialItemManager.getAllItems().size()) / 20.0D);
+        this.totalPages = (int)Math.ceil((double)(SpecialItemManager.get().list().size()) / 20.0D);
     }
 
     public void init(Minecraft p_100429_, int p_100430_, int p_100431_, AICraftingTableMenu menu) {
@@ -52,7 +52,7 @@ public class CustomRecipeBookPage {
 
     private void updateButtonsForPage() {
         int i = 20 * this.currentPage;
-        ArrayList<ItemStack> allItems= SpecialItemManager.getAllItems();
+        List<ItemStack> allItems= SpecialItemManager.get().list();
         for(int j = 0; j < this.buttons.size(); ++j) {
             CustomRecipeButton recipebutton = this.buttons.get(j);
             if (i + j < allItems.size()) {

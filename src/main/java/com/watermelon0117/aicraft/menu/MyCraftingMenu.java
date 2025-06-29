@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.items.MainItem;
-import com.watermelon0117.aicraft.RecipeManager;
+import com.watermelon0117.aicraft.common.RecipeManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;

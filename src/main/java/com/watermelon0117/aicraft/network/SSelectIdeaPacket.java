@@ -3,8 +3,8 @@ package com.watermelon0117.aicraft.network;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
 import com.watermelon0117.aicraft.recipes.Recipe;
-import com.watermelon0117.aicraft.RecipeManager;
-import com.watermelon0117.aicraft.SpecialItemManager;
+import com.watermelon0117.aicraft.common.RecipeManager;
+import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -60,10 +60,10 @@ public class SSelectIdeaPacket {
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
-                if (!SpecialItemManager.getItem(id).isEmpty() && !override) {  //use exist item
-                    ItemStack stack = SpecialItemManager.getItem(id);
+                if (!SpecialItemManager.get().getItem(id).isEmpty() && !override) {  //use exist item
+                    ItemStack stack = SpecialItemManager.get().getItem(id);
                     RecipeManager.addRecipe(stack, recipe, RecipeManager.itemIsShapeless(stack));
-                    be.getInventory().setStackInSlot(0, SpecialItemManager.getItem(id));
+                    be.getInventory().setStackInSlot(0, SpecialItemManager.get().getItem(id));
                     be.setProgress(580);
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                 } else {

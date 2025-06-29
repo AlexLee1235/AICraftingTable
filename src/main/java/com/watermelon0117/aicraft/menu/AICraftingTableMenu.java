@@ -3,7 +3,7 @@ package com.watermelon0117.aicraft.menu;
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.recipes.Recipe;
-import com.watermelon0117.aicraft.RecipeManager;
+import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.MenuInit;
 import net.minecraft.network.FriendlyByteBuf;

@@ -1,10 +1,6 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.common;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.io.File;
-import java.io.IOException;
 import java.util.Stack;
 
 

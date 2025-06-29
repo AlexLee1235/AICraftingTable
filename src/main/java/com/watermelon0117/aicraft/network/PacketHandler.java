@@ -42,6 +42,21 @@ public class PacketHandler {
                 .decoder(CPlaceGhostRecipePacket::new)
                 .consumerMainThread(CPlaceGhostRecipePacket::handle)
                 .add();
+        INSTANCE.messageBuilder(CSyncSpecialItemsPacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CSyncSpecialItemsPacket::encode)
+                .decoder(CSyncSpecialItemsPacket::new)
+                .consumerMainThread(CSyncSpecialItemsPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(CSendAllTexturePacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CSendAllTexturePacket::encode)
+                .decoder(CSendAllTexturePacket::new)
+                .consumerMainThread(CSendAllTexturePacket::handle)
+                .add();
+        INSTANCE.messageBuilder(CAddTexturePacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CAddTexturePacket::encode)
+                .decoder(CAddTexturePacket::new)
+                .consumerMainThread(CAddTexturePacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft;
+package com.watermelon0117.aicraft.common;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;

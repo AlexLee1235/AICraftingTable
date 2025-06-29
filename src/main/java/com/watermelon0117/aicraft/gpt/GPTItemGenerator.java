@@ -3,14 +3,14 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.FileUtil;
-import com.watermelon0117.aicraft.ImageGridProcessor;
+import com.watermelon0117.aicraft.common.FileUtil;
+import com.watermelon0117.aicraft.common.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.recipes.Recipe;
-import com.watermelon0117.aicraft.RecipeManager;
-import com.watermelon0117.aicraft.SpecialItemManager;
+import com.watermelon0117.aicraft.common.RecipeManager;
+import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
@@ -86,8 +86,8 @@ public class GPTItemGenerator {
             return imgClient.generateItem(id, recipe.getDisplayNames()/*prompt from json*/).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
                     applyTexture(textureBytes, id);
-                    SpecialItemManager.addItem(itemStack);
-                    RecipeManager.addRecipe(SpecialItemManager.getItem(id), recipe.items, json.is_shapeless_crafting);
+                    SpecialItemManager.get().put(itemStack);
+                    RecipeManager.addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
                 }
                 return itemStack;
             });
