@@ -40,7 +40,7 @@ public class GPTItemGenerator {
             "is_edible?\n" +
             "nutrition_value(0 to 20, apple is 4 for reference)?\n" +
             "food_is_solid_or_liquid?\n";
-    private final OpenAIChatClient client = new OpenAIChatClient(
+    private final AIChatClient client = new AIChatClient(
             "gpt-4o",  //gpt-4o gpt-4.1
             0.0,
             1024,

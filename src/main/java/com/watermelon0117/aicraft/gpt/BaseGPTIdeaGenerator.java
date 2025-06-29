@@ -9,13 +9,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class BaseGPTIdeaGenerator {
     private final Gson gson;
-    private final OpenAIChatClient client;
+    private final AIChatClient client;
     public BaseGPTIdeaGenerator(String sysMsg){
         this.gson = new GsonBuilder()
                 // map Java camelCase ↔︎ JSON snake_case automatically
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
-        client = new OpenAIChatClient(
+        client = new AIChatClient(
                 "gpt-4o",  //gpt-4o gpt-4.1
                 0.0,
                 1024,

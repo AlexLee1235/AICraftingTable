@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.google.gson.*;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import java.net.URI;
@@ -12,9 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class OpenAIChatClient {
-    private static final URI CHAT_URI = URI.create("https://api.openai.com/v1/chat/completions");
-    private static final String apiKey="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";
+public class ProxyAIChatClient {
+    private static final URI CHAT_URI = URI.create("https://aicraftingtableproxy.onrender.com/chat");
 
     private final HttpClient http;
     private final Gson gson;
@@ -23,7 +24,7 @@ public class OpenAIChatClient {
     public final int maxTokens;
     public final String systemMessage;
     public final String response_format;
-    public OpenAIChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
+    public ProxyAIChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
         this.model = model;
         this.temperature=temperature;
         this.maxTokens=maxTokens;
@@ -53,7 +54,6 @@ public class OpenAIChatClient {
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(CHAT_URI)
-                .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
                 .timeout(Duration.ofSeconds(30))
                 .POST(HttpRequest.BodyPublishers.ofString(json))
@@ -107,10 +107,10 @@ public class OpenAIChatClient {
         }
     }
     private static final class ChatResponse {
-        List<Choice> choices;
+        List<ChatResponse.Choice> choices;
 
         static final class Choice {
-            ChatMessage message;
+            ChatResponse.ChatMessage message;
         }
         static final class ChatMessage {
             String role;

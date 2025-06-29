@@ -39,8 +39,8 @@ public class BaseGPTIdeaGeneratorwParser {
             "\n" +
             "Now extract and translate from this:\n";
     private final Gson gson;
-    private final OpenAIChatClient client;
-    private final OpenAIChatClient extractor = new OpenAIChatClient(
+    private final AIChatClient client;
+    private final AIChatClient extractor = new AIChatClient(
             "gpt-4.1",  //gpt-4o gpt-4.1
             0.0,
             1024,
@@ -51,7 +51,7 @@ public class BaseGPTIdeaGeneratorwParser {
                 // map Java camelCase ↔︎ JSON snake_case automatically
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
-        client=new OpenAIChatClient(
+        client=new AIChatClient(
                 "gpt-4o",  //gpt-4o gpt-4.1
                 0.0,
                 2048,
