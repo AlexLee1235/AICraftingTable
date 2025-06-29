@@ -47,9 +47,11 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private Recipe currentRecipe;
     private ItemIdeas itemIdeas;
     private String errorMessage = "";
+    private static int session=0;
 
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
+        session++;
     }
 
     private void createWidgets() {
@@ -144,7 +146,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             if (currentRecipe.isEmpty())
                 return;
             setGenerating();
-            PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe, getLanguage()));
+            PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe, getLanguage(), session));
         }
     }
     public boolean mouseClicked(double p_98452_, double p_98453_, int p_98454_) {

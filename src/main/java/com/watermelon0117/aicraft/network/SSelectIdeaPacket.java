@@ -23,15 +23,15 @@ public class SSelectIdeaPacket {
     private final String id;
     private final String name;
     private final ItemStack[] recipe;
-    private final boolean overrride;
+    private final boolean override;
     private static int incrementID = 0;
 
-    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean overrride) {
+    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean override) {
         this.pos = pos;
         this.id = id;
         this.name = name;
         this.recipe = recipe;
-        this.overrride = overrride;
+        this.override = override;
     }
 
     public SSelectIdeaPacket(FriendlyByteBuf buf) {
@@ -43,7 +43,7 @@ public class SSelectIdeaPacket {
             recipe[i] = buf.readItem();
         }
         this.recipe = recipe;
-        this.overrride = buf.readBoolean();
+        this.override = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -53,7 +53,7 @@ public class SSelectIdeaPacket {
         for (int i = 0; i < 9; i++) {
             buf.writeItemStack(recipe[i], true);
         }
-        buf.writeBoolean(overrride);
+        buf.writeBoolean(override);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
@@ -62,7 +62,7 @@ public class SSelectIdeaPacket {
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
-                if (!SpecialItemManager.getItem(id).isEmpty() && !overrride) {  //use exist item
+                if (!SpecialItemManager.getItem(id).isEmpty() && !override) {  //use exist item
                     ItemStack stack = SpecialItemManager.getItem(id);
                     RecipeManager.addRecipe(stack, recipe, RecipeManager.itemIsShapeless(stack));
                     be.getInventory().setStackInSlot(0, SpecialItemManager.getItem(id));

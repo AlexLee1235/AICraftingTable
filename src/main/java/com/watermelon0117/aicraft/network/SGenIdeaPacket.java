@@ -20,11 +20,13 @@ public class SGenIdeaPacket {
     private final BlockPos pos;
     private final ItemStack[] recipe;
     private final String lang;
+    private final int session;
 
-    public SGenIdeaPacket(BlockPos pos, Recipe recipe, String lang) {
+    public SGenIdeaPacket(BlockPos pos, Recipe recipe, String lang, int session) {
         this.pos = pos;
         this.recipe = recipe.items;
         this.lang=lang;
+        this.session=session;
     }
 
     public SGenIdeaPacket(FriendlyByteBuf buf) {
@@ -35,6 +37,7 @@ public class SGenIdeaPacket {
         }
         this.recipe = recipe;
         this.lang=buf.readUtf();
+        this.session=buf.readInt();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -43,6 +46,7 @@ public class SGenIdeaPacket {
             buf.writeItemStack(recipe[i], true);
         }
         buf.writeUtf(lang);
+        buf.writeInt(session);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
