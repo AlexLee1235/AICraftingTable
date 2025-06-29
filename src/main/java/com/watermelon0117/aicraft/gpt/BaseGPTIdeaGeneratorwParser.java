@@ -40,7 +40,7 @@ public class BaseGPTIdeaGeneratorwParser {
             "Now extract and translate from this:\n";
     private final Gson gson;
     private final OpenAIChatClient client;
-    private final OpenAIChatClient extractor = new OpenAIChatClient("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",
+    private final OpenAIChatClient extractor = new OpenAIChatClient(
             "gpt-4.1",  //gpt-4o gpt-4.1
             0.0,
             1024,
@@ -51,7 +51,7 @@ public class BaseGPTIdeaGeneratorwParser {
                 // map Java camelCase ↔︎ JSON snake_case automatically
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
-        client=new OpenAIChatClient("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",
+        client=new OpenAIChatClient(
                 "gpt-4o",  //gpt-4o gpt-4.1
                 0.0,
                 2048,

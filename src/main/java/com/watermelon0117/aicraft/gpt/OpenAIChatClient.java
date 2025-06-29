@@ -13,11 +13,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class OpenAIChatClient {
+    private static final URI CHAT_URI = URI.create("https://api.openai.com/v1/chat/completions");
+    private static final String apiKey="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";
 
-    private static final URI CHAT_URI =
-            URI.create("https://api.openai.com/v1/chat/completions");
-
-    private final String apiKey;
     private final HttpClient http;
     private final Gson gson;
     public final String model;
@@ -25,14 +23,10 @@ public class OpenAIChatClient {
     public final int maxTokens;
     public final String systemMessage;
     public final String response_format;
-    public OpenAIChatClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage){
-        this(apiKey,model,temperature,maxTokens,systemMessage,"text");
+    public OpenAIChatClient(String model, double temperature, int maxTokens, String systemMessage){
+        this(model,temperature,maxTokens,systemMessage,"text");
     }
-    public OpenAIChatClient(String apiKey, String model, double temperature, int maxTokens, String systemMessage, String response_format) {
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalArgumentException("API key must not be null/blank");
-        }
-        this.apiKey = apiKey;
+    public OpenAIChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
         this.model = model;
         this.temperature=temperature;
         this.maxTokens=maxTokens;
