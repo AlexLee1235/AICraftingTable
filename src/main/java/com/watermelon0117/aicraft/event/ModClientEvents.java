@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.event;
 
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.client.screen.AICraftingTableScreen;
+import com.watermelon0117.aicraft.client.screen.MyCraftingScreen;
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.init.EntityInit;
 import com.watermelon0117.aicraft.init.MenuInit;
@@ -38,6 +39,7 @@ public class ModClientEvents {
     public static void clientSetup(FMLClientSetupEvent event){
         event.enqueueWork(()->{
             MenuScreens.register(MenuInit.MAIN_MENU.get(), AICraftingTableScreen::new);
+            MenuScreens.register(MenuInit.MY_CRAFTING_MENU.get(), MyCraftingScreen::new);
         });
     }
 }

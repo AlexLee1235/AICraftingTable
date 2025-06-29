@@ -23,7 +23,7 @@ public class BlockInit {
     public static final RegistryObject<BlockItem> AI_CRAFTING_TABLE_BLOCK_ITEM = BLOCK_ITEMS.register("ai_crafting_table",
             () -> new BlockItem(AI_CRAFTING_TABLE.get(), new Item.Properties().tab(AICraftingTable.TAB)));
 	public static final RegistryObject<Block> MY_CRAFTING_TABLE = BLOCKS.register("my_crafting_table",
-            () -> new MyCraftingTableBlock(BlockBehaviour.Properties.copy(Blocks.DIRT)));
+            () -> new MyCraftingTableBlock(BlockBehaviour.Properties.copy(Blocks.CRAFTING_TABLE)));
     public static final RegistryObject<BlockItem> MY_CRAFTING_TABLE_BLOCK_ITEM = BLOCK_ITEMS.register("my_crafting_table",
             () -> new BlockItem(MY_CRAFTING_TABLE.get(), new Item.Properties().tab(AICraftingTable.TAB)));
 /*PROGRAM INSERT POINT*/
