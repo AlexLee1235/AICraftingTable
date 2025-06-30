@@ -53,6 +53,7 @@ public class EventHandler {
     @SubscribeEvent
     public static void onServerStart(ServerAboutToStartEvent e) {
         SpecialItemManager.ServerSide.init(e.getServer());
+
     }
 
     /** Give joining player a copy of the list */
