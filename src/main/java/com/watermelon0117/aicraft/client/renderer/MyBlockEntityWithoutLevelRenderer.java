@@ -19,6 +19,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -72,7 +73,32 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
             }
         }
     }
-
+    public void loadFromPacket(Map<String, byte[]> payload){
+        for (Map.Entry<String, byte[]> entry : payload.entrySet()) {
+            String key = entry.getKey();
+            byte[] value = entry.getValue();
+            maps.put(key, new DynamicItemInstance(fromBytes(value)));
+        }
+    }
+    public void addFromPacket(String id,byte[] data){
+        maps.put(id, new DynamicItemInstance(fromBytes(data)));
+    }
+    private static BufferedImage fromBytes(byte[] imageBytes){
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes);
+            BufferedImage image = ImageIO.read(bais);
+            if (image != null) {
+                System.out.println("Successfully read BufferedImage. Size: " +
+                        image.getWidth() + "x" + image.getHeight());
+            } else {
+                System.out.println("Failed to decode image bytes.");
+            }
+            return image;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     @Override
     public void renderByItem(ItemStack itemStack, ItemTransforms.TransformType ctx, PoseStack poseStack, MultiBufferSource buffers,
                              int light, int overlay) {
@@ -99,7 +125,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     }
 
     @OnlyIn(Dist.CLIENT)
-    class DynamicItemInstance implements AutoCloseable {
+    public class DynamicItemInstance implements AutoCloseable {
         private BufferedImage image;
         private DynamicTexture texture;
         private RenderType renderType;

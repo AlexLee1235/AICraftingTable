@@ -5,8 +5,10 @@ import com.watermelon0117.aicraft.commands.ListItemCommand;
 import com.watermelon0117.aicraft.commands.MyItemArgument;
 import com.watermelon0117.aicraft.commands.RemoveItemCommand;
 import com.watermelon0117.aicraft.common.RecipeManager;
+import com.watermelon0117.aicraft.common.TextureManager;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
+import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
@@ -36,7 +38,6 @@ public class EventHandler {
             System.out.println("EntityJoinLevelEvent");
             if (event.getEntity().level.isClientSide) {
                 System.out.println("client");
-                MainItem.renderer.loadFromFile();
             } else {
                 System.out.println("server");
                 RecipeManager.loadFromFile();
@@ -59,7 +60,7 @@ public class EventHandler {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent e) {
         if (e.getEntity() instanceof ServerPlayer sp) {
             PacketHandler.sendToPlayer(new CSyncSpecialItemsPacket(SpecialItemManager.ServerSide.data().data), sp);
-
+            PacketHandler.sendToPlayer(new CSendAllTexturePacket(TextureManager.loadFromFile()), sp);
         }
     }
 }

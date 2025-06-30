@@ -8,6 +8,8 @@ import com.watermelon0117.aicraft.common.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
+import com.watermelon0117.aicraft.network.CAddTexturePacket;
+import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
@@ -15,7 +17,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -77,13 +81,21 @@ public class GPTItemGenerator2 {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         return now.format(formatter);
     }
-    private static void applyTexture(byte[] bytes, String name) {
+    private static byte[] toBytes(BufferedImage txt) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(txt, "png", baos);
+        baos.flush(); // ensure all bytes are written
+        byte[] bytes2 = baos.toByteArray();
+        baos.close();
+        return bytes2;
+    }
+    private static void applyTexture(byte[] bytes, String id) {
         try {
             Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
-            Files.write(FileUtil.getArchiveFolder(name + "_" + getCurrentDateTime() + ".png").toPath(), bytes);
+            Files.write(FileUtil.getArchiveFolder(id + "_" + getCurrentDateTime() + ".png").toPath(), bytes);
             BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes));
-            ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), name + ".png"));
-            MainItem.renderer.loadNewFile(name);
+            ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), id + ".png"));
+            PacketHandler.sendToAllClients(new CAddTexturePacket(id, toBytes(txt)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

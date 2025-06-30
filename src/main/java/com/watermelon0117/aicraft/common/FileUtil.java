@@ -9,7 +9,7 @@ import java.io.File;
 public class FileUtil {
 
     public static File getTextureFolder(){
-        File folder = new File(Minecraft.getInstance().getSingleplayerServer().getWorldPath(LevelResource.ROOT) + "\\aicraft\\textures");
+        File folder = new File(ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT) + "\\aicraft\\textures");
         return ensureExist(folder);
     }
     public static File getItemTagFolder(){
