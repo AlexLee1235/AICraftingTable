@@ -87,12 +87,8 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes);
             BufferedImage image = ImageIO.read(bais);
-            if (image != null) {
-                System.out.println("Successfully read BufferedImage. Size: " +
-                        image.getWidth() + "x" + image.getHeight());
-            } else {
+            if (image == null)
                 System.out.println("Failed to decode image bytes.");
-            }
             return image;
         } catch (IOException e) {
             e.printStackTrace();

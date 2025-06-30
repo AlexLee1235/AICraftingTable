@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.gpt;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
+import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -14,8 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class OpenAIChatClient {
     private static final URI CHAT_URI = URI.create("https://api.openai.com/v1/chat/completions");
-    private static final String apiKey="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";
-
+    public static String apiKey;
     private final HttpClient http;
     private final Gson gson;
     public final String model;
@@ -25,10 +25,10 @@ public class OpenAIChatClient {
     public final String response_format;
     public OpenAIChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
         this.model = model;
-        this.temperature=temperature;
-        this.maxTokens=maxTokens;
-        this.systemMessage=systemMessage;
-        this.response_format=response_format;
+        this.temperature = temperature;
+        this.maxTokens = maxTokens;
+        this.systemMessage = systemMessage;
+        this.response_format = response_format;
 
         this.http = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))

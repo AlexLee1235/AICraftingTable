@@ -14,8 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class OpenAIImageClient {
     private static final URI ENDPOINT = URI.create("https://api.openai.com/v1/images/generations");
-    private static final String apiKey="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";
-
+    public static String apiKey;
     private final HttpClient http;
     private final Gson gson;
 

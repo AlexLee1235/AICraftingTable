@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft;
 
+import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import com.watermelon0117.aicraft.init.*;
 import net.minecraft.client.Minecraft;
@@ -8,7 +9,9 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 
@@ -28,6 +31,7 @@ public class AICraftingTable {
         FluidInit.FLUID_TYPES.register(bus);
         FluidInit.FLUIDS.register(bus);
         MenuInit.MENU_TYPES.register(bus);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, AICraftingTableCommonConfigs.SPEC);
     }
  
     public static final CreativeModeTab TAB = new CreativeModeTab(MODID) {

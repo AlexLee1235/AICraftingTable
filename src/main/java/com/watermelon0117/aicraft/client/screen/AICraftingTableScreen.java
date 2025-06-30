@@ -11,7 +11,9 @@ import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -160,7 +162,10 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     public void handleIdeaPacket(String[] recipe, ItemIdeas idea, boolean err, String errMsg) {
         if (state == State.GENERATING) {
             if (err) {
-                errorMessage = errMsg;
+                System.out.println(errMsg);
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal(errMsg).withStyle(ChatFormatting.RED));
+                errorMessage = "Error";
                 setInitial();
             } else {
                 if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
@@ -200,7 +205,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         this.recipeBookComponent.renderTooltip(p_98479_, this.leftPos, this.topPos, p_98480_, p_98481_);
         if (state == State.GENERATING)
             font.draw(p_98479_, Component.literal("Generating"), (float) leftPos + 102, (float) topPos + 20, 4210752);
-        font.draw(p_98479_, Component.literal(errorMessage), (float) leftPos + 102, (float) topPos + 40, 4210752);
+
+        drawSimpleWrappedString(p_98479_, font, errorMessage,leftPos + 102, topPos + 20,70, 10);
     }
 
     protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
@@ -236,5 +242,23 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         LanguageManager langManager = Minecraft.getInstance().getLanguageManager();
         LanguageInfo currentLang = langManager.getSelected();
         return currentLang.getCode(); // returns like "en_us"
+    }
+    public void drawSimpleWrappedString(PoseStack poseStack, Font font, String errorMessage, int x, int y, int maxWidth, int lineHeight) {
+        int currentY = y;
+        int start = 0;
+        while (start < errorMessage.length()) {
+            int end = start + 1;
+            while (end <= errorMessage.length() &&
+                    font.width(errorMessage.substring(start, end)) <= maxWidth) {
+                end++;
+            }
+            if (end == start + 1 && end <= errorMessage.length()) {
+                end++;
+            }
+            String line = errorMessage.substring(start, end - 1);
+            font.draw(poseStack, Component.literal(line), x, currentY, 0x404040);
+            currentY += lineHeight;
+            start = end - 1;
+        }
     }
 }

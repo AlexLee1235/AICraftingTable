@@ -1,13 +1,25 @@
 package com.watermelon0117.aicraft.gpt;
 
+import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
+
 import java.util.concurrent.CompletableFuture;
 
 public class AIChatClient {
-    ProxyChatClient client;
-    public AIChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format){
-        client=new ProxyChatClient(model,temperature,maxTokens,systemMessage,response_format);
+    public static boolean useOpenAI;
+    ProxyChatClient proxyClient;
+    OpenAIChatClient openAIClient;
+
+    public AIChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
+        if (useOpenAI)
+            openAIClient = new OpenAIChatClient(model, temperature, maxTokens, systemMessage, response_format);
+        else
+            proxyClient = new ProxyChatClient(model, temperature, maxTokens, systemMessage, response_format);
     }
+
     public CompletableFuture<String> chat(String message) {
-        return client.chat(message);
+        if (useOpenAI)
+            return openAIClient.chat(message);
+        else
+            return proxyClient.chat(message);
     }
 }

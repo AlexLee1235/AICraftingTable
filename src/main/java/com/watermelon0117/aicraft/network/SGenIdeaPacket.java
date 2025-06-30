@@ -52,7 +52,7 @@ public class SGenIdeaPacket {
                 PacketHandler.sendToPlayer(
                         new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), results, false, ""), player);
             }).exceptionally(e -> {
-                e.printStackTrace();
+                //e.printStackTrace();
                 PacketHandler.sendToPlayer(
                         new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), new ItemIdeas(), true, e.getMessage()), player);
                 return null;

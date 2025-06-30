@@ -5,7 +5,9 @@ import net.minecraft.network.FriendlyByteBuf;
 public class ItemIdeas {
     public String[] id=new String[3];
     public String[] names=new String[3];
-    public ItemIdeas(){}
+    public ItemIdeas(){
+        id[0]=id[1]=id[2]=names[0]=names[1]=names[2]="";
+    }
     public ItemIdeas(BaseGPTIdeaGeneratorwParser.ItemResult itemResult){
         id[0]=itemResult.items.get(0);
         id[1]=itemResult.items.get(1);
