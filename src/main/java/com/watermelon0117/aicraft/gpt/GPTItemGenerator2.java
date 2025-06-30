@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public class GPTItemGenerator2 {
-    private static final String inst=
+    private static final String inst =
             "given a minecraft item, please answer following questions:\n" +
                     "visual_description(one sentence describing appearance of item, base on recipe and material)?\n" +
                     "is_shapeless_crafting(true if recipe is structured or false if mixing)?\n" +
@@ -53,11 +53,13 @@ public class GPTItemGenerator2 {
             "json_object");
     private final Gson gson;
     private final GPTImageGenerator2 imgClient = new GPTImageGenerator2();
-    public GPTItemGenerator2(){
+
+    public GPTItemGenerator2() {
         this.gson = new GsonBuilder()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
     }
+
     private static String buildPrompt(String name, Recipe recipe) {
         String[] in = recipe.getDisplayNames();
         String r = String.format(
@@ -76,11 +78,13 @@ public class GPTItemGenerator2 {
                 r +
                 "\nplease answer in json format";
     }
+
     public static String getCurrentDateTime() {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         return now.format(formatter);
     }
+
     private static byte[] toBytes(BufferedImage txt) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(txt, "png", baos);
@@ -89,6 +93,7 @@ public class GPTItemGenerator2 {
         baos.close();
         return bytes2;
     }
+
     private static void applyTexture(byte[] bytes, String id) {
         try {
             Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
@@ -100,6 +105,7 @@ public class GPTItemGenerator2 {
             throw new RuntimeException(e);
         }
     }
+
     public CompletableFuture<ItemStack> generate(String id, String name, Recipe recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
         String prompt = buildPrompt(id, recipe);
         System.out.println(prompt);
@@ -113,7 +119,6 @@ public class GPTItemGenerator2 {
             return imgClient.generateItem(id, recipe.getDisplayNames(), json.visual_description).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
                     applyTexture(textureBytes, id);
-                    System.out.println(be.getLevel().isClientSide);
                     SpecialItemManager.get().put(itemStack);
                     RecipeManager.addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
                 }
@@ -121,6 +126,7 @@ public class GPTItemGenerator2 {
             });
         });
     }
+
     private static void setTags(CompoundTag tag, ItemResult json, String id, String name) {
         tag.putString("id", id);
         tag.putString("name", name);
@@ -140,30 +146,31 @@ public class GPTItemGenerator2 {
             //double[] num1={3,1,7,1.5,-1};
             //double[] num2={-2.4,-2.8,-3.2-3.0,-2.0};
             double damage = switch (json.damage == null ? "normal" : json.damage) {
-                case "low"    -> 1;
-                case "high"   -> 7;
+                case "low" -> 1;
+                case "high" -> 7;
                 case "normal" -> 3;
-                default       -> 3;
+                default -> 3;
             };
 
             double attackSpeed = switch (json.attack_speed == null ? "normal" : json.attack_speed) {
-                case "fast"   -> -2.0;
-                case "slow"   -> -3.2;
+                case "fast" -> -2.0;
+                case "slow" -> -3.2;
                 case "normal" -> -2.5;
-                default       -> -2.5;
+                default -> -2.5;
             };
             tag.putDouble("attackDamage", damage);
             tag.putDouble("attackSpeed", attackSpeed);
         }
         //food
-        if(json.is_edible){
+        if (json.is_edible) {
             tag.putByte("nutrition", (byte) json.nutrition_value);
-            if(json.food_is_solid_or_liquid!=null &&json.food_is_solid_or_liquid.contentEquals("liquid"))
+            if (json.food_is_solid_or_liquid != null && json.food_is_solid_or_liquid.contentEquals("liquid"))
                 tag.putBoolean("isDrink", true);
             else
                 tag.putBoolean("isFood", true);
         }
     }
+
     private static byte getTier(ItemResult json) {
         if (json.tier == null) {
             System.out.println("found tool/weapon without tier!");
@@ -183,6 +190,7 @@ public class GPTItemGenerator2 {
             return (byte) Tiers.GOLD.ordinal();
         return (byte) Tiers.STONE.ordinal();
     }
+
     private static final class ItemResult {
         String visual_description;
         boolean is_shapeless_crafting;

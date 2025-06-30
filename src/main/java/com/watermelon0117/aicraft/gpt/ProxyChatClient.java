@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class ProxyAIChatClient {
+public class ProxyChatClient {
     private static final URI CHAT_URI = URI.create("https://aicraftingtableproxy.onrender.com/chat");
 
     private final HttpClient http;
@@ -24,7 +24,7 @@ public class ProxyAIChatClient {
     public final int maxTokens;
     public final String systemMessage;
     public final String response_format;
-    public ProxyAIChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
+    public ProxyChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
         this.model = model;
         this.temperature=temperature;
         this.maxTokens=maxTokens;
