@@ -1,7 +1,5 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
-
 import java.util.concurrent.CompletableFuture;
 
 public class AIChatClient {
