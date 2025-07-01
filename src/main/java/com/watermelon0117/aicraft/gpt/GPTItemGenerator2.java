@@ -7,21 +7,14 @@ import com.watermelon0117.aicraft.common.FileUtil;
 import com.watermelon0117.aicraft.common.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
-import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.CAddTexturePacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
-import net.minecraft.world.level.Level;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -66,7 +59,7 @@ public class GPTItemGenerator2 {
                 .create();
     }
 
-    private static String buildPrompt(String name, Recipe recipe) {
+    private static String buildPrompt(String name, ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
         String r = String.format(
                 "Recipe:\n\tTop Left: %s\n" +
@@ -112,7 +105,7 @@ public class GPTItemGenerator2 {
         }
     }
 
-    public CompletableFuture<ItemStack> generate(String id, String name, Recipe recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
+    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
         String prompt = buildPrompt(id, recipe);
         System.out.println(prompt);
         return client.chat(prompt).thenCompose(rawJson -> {

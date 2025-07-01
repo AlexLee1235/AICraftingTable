@@ -1,9 +1,8 @@
 package com.watermelon0117.aicraft.network;
 
-import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator4;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator5;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,7 +17,7 @@ public class SGenIdeaPacket {
     private final String lang;
     private final int session;
 
-    public SGenIdeaPacket(BlockPos pos, Recipe recipe, String lang, int session) {
+    public SGenIdeaPacket(BlockPos pos, ItemStackArray recipe, String lang, int session) {
         this.pos = pos;
         this.recipe = recipe.items;
         this.lang=lang;
@@ -49,13 +48,13 @@ public class SGenIdeaPacket {
         GPTIdeaGenerator5 generator = new GPTIdeaGenerator5();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
-            generator.generate(new Recipe(recipe), lang).thenAccept(results -> {
+            generator.generate(new ItemStackArray(recipe), lang).thenAccept(results -> {
                 PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), results, false, ""), player);
+                        new CGenIdeaPacket(pos, new ItemStackArray(recipe).getDisplayNames(), results, false, ""), player);
             }).exceptionally(e -> {
                 e.printStackTrace();
                 PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, new Recipe(recipe).getDisplayNames(), new ItemIdeas(), true, e.getMessage()), player);
+                        new CGenIdeaPacket(pos, new ItemStackArray(recipe).getDisplayNames(), new ItemIdeas(), true, e.getMessage()), player);
                 return null;
             });
         }

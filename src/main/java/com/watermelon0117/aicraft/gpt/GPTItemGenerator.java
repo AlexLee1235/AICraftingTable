@@ -8,7 +8,7 @@ import com.watermelon0117.aicraft.common.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;
@@ -53,9 +53,9 @@ public class GPTItemGenerator {
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
     }
-    private static String buildPrompt(String name, Recipe recipe) {
+    private static String buildPrompt(String name, ItemStackArray recipe) {
         return inst + String.format("Item: %s\n", name) +
-                "Made of: " + Recipe.getUniqueNames(recipe.getDisplayNames()) +
+                "Made of: " + ItemStackArray.getUniqueNames(recipe.getDisplayNames()) +
                 "\nplease answer in json format";
     }
     public static String getCurrentDateTime() {
@@ -74,7 +74,7 @@ public class GPTItemGenerator {
             throw new RuntimeException(e);
         }
     }
-    public CompletableFuture<ItemStack> generate(String id, String name, Recipe recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
+    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
         String prompt=buildPrompt(id, recipe);
         System.out.println(prompt);
         return client.chat(prompt).thenCompose(rawJson -> {

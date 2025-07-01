@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.items.MainItem;
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.MenuInit;
@@ -34,7 +34,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     public final AICraftingTableBlockEntity blockEntity;
     public boolean hasCraftResult;
 
-    public Recipe currentRecipe;
+    public ItemStackArray currentRecipe;
     //Client Constructor
     public AICraftingTableMenu(int id, Inventory inventory, FriendlyByteBuf buf){
         this(id, inventory, inventory.player.level.getBlockEntity(buf.readBlockPos()));
@@ -71,7 +71,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(inventory, l, 8 + l * 18, 142));
         }
         this.hasCraftResult = !this.getSlot(0).getItem().isEmpty();
-        currentRecipe=new Recipe(this);
+        currentRecipe=new ItemStackArray(this);
     }
 
     private ItemStack delegateQuickMoveStack(Player player, int slotId){
@@ -122,7 +122,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         return itemstack;
     }
     public ItemStack quickMoveStack(Player player, int slotId) {
-        Recipe recipe=Recipe.deepCopy(currentRecipe);
+        ItemStackArray recipe= ItemStackArray.deepCopy(currentRecipe);
         ItemStack itemStack=delegateQuickMoveStack(player,slotId);
         handleInterrupt(recipe,this,player.level,player);
         return itemStack;
@@ -150,7 +150,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             if(craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(itemstack))
                 return ItemStack.EMPTY;
         }else {
-            Recipe recipe=new Recipe(menu);
+            ItemStackArray recipe=new ItemStackArray(menu);
             itemstack=RecipeManager.match(recipe.items);
         }
         return itemstack;
@@ -165,11 +165,11 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
             serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, itemstack));
         }
     }
-    private void handleInterrupt(Recipe currentRecipe, AbstractContainerMenu menu, Level level, Player player) {
+    private void handleInterrupt(ItemStackArray currentRecipe, AbstractContainerMenu menu, Level level, Player player) {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer) player;
             if (this.blockEntity.getProgress() > 0) {
-                if (!currentRecipe.equals(new Recipe(this))) {
+                if (!currentRecipe.equals(new ItemStackArray(this))) {
                     System.out.println("stop by handleInterrupt");
                     this.blockEntity.setProgress(0);
                     this.blockEntity.getInventory().setStackInSlot(0, ItemStack.EMPTY);
@@ -184,7 +184,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         this.access.execute((level, pos) -> {
             handleInterrupt(currentRecipe, this, level, this.player);
             slotChangedCraftingGrid(this, level, this.player);
-            currentRecipe=new Recipe(this);
+            currentRecipe=new ItemStackArray(this);
         });
     }
     public boolean canCraft(ItemStack itemStack) {

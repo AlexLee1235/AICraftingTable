@@ -2,22 +2,18 @@ package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.items.MainItem;
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeType;
 
 public class MyResultSlot extends ResultSlot {
     private final CraftingContainer craftSlots;
-    private final Player player;
 
     public MyResultSlot(Player p_40166_, CraftingContainer p_40167_, Container p_40168_, int p_40169_, int p_40170_, int p_40171_) {
         super(p_40166_, p_40167_, p_40168_, p_40169_, p_40170_, p_40171_);
-        this.player = p_40166_;
         this.craftSlots = p_40167_;
     }
 

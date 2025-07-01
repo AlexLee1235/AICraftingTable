@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.ChatFormatting;
@@ -75,7 +75,7 @@ public class SSelectIdeaPacket {
                     int tId = incrementID++;
                     be.taskID = tId;
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                    generator.generate(id, name, new Recipe(recipe), be, b -> b.taskID == tId && b.getProgress() != 0).thenAccept(itemStack -> {
+                    generator.generate(id, name, new ItemStackArray(recipe), be, b -> b.taskID == tId && b.getProgress() != 0).thenAccept(itemStack -> {
                                 if (be.taskID == tId && be.getProgress() != 0) {
                                     be.getInventory().setStackInSlot(0, itemStack);
                                     be.setProgress(580);

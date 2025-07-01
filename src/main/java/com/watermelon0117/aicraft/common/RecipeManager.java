@@ -64,7 +64,8 @@ public final class RecipeManager {
 
         Recipe(ItemStack res, ItemStack[] grid, boolean shapeless) {
             this.shapeless = shapeless;
-            this.result = res; this.grid = grid;
+            this.result = res;
+            this.grid = grid;
         }
 
         boolean match(ItemStack[] in) {

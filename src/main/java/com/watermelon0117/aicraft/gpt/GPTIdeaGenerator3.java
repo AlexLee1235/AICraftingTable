@@ -1,9 +1,5 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.recipes.Recipe;
-
-import java.util.concurrent.CompletableFuture;
-
 public class GPTIdeaGenerator3 {  //the only worked shape recognizing, maybe not
     /*private static final String inst="You are a Minecraft item designer.\n" +
             "\n" +

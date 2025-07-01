@@ -6,22 +6,22 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class Recipe {
+public class ItemStackArray {
     public ItemStack[] items=new ItemStack[9];
-    public Recipe() {
+    public ItemStackArray() {
         for (int i = 0; i < 9; i++) {
             items[i] = ItemStack.EMPTY;
         }
     }
-    public Recipe(AICraftingTableMenu menu){
+    public ItemStackArray(AICraftingTableMenu menu){
         for (int i = 0; i < 9; i++)
             items[i] = menu.slots.get(i+1).getItem();
     }
-    public Recipe(ItemStack[] items) {
+    public ItemStackArray(ItemStack[] items) {
         this.items = items;
     }
-    public static Recipe deepCopy(Recipe other){
-        Recipe r=new Recipe();
+    public static ItemStackArray deepCopy(ItemStackArray other){
+        ItemStackArray r=new ItemStackArray();
         for (int i = 0; i < 9; i++)
             r.items[i] = other.items[i].copy();
         return r;
@@ -73,7 +73,7 @@ public class Recipe {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Recipe recipe = (Recipe) o;
+        ItemStackArray recipe = (ItemStackArray) o;
         for (int i = 0; i < 9; i++) {
             if(!stackEqual(items[i], recipe.items[i]))
                 return false;

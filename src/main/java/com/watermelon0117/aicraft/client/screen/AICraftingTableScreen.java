@@ -7,7 +7,7 @@ import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.SGenIdeaPacket;
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
@@ -17,8 +17,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CraftingScreen;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.language.LanguageInfo;
 import net.minecraft.client.resources.language.LanguageManager;
@@ -46,7 +44,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         PROGRESS
     }
     private State state;
-    private Recipe currentRecipe;
+    private ItemStackArray currentRecipe;
     private ItemIdeas itemIdeas;
     private String errorMessage = "";
     private static int session=0;
@@ -87,7 +85,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             setProgress();
         else
             setInitial();
-        currentRecipe = new Recipe(menu);
+        currentRecipe = new ItemStackArray(menu);
     }
     private void updateWidgetPos() {
         bookBtn.setPosition(this.leftPos + 70, this.topPos + 56);
@@ -168,7 +166,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                 errorMessage = "Error";
                 setInitial();
             } else {
-                if (Arrays.equals(recipe, new Recipe(menu).getDisplayNames())) {
+                if (Arrays.equals(recipe, new ItemStackArray(menu).getDisplayNames())) {
                     setGenerated(idea);
                 } else
                     System.out.println("Canceled, not putting ideas");
@@ -178,12 +176,12 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     public void containerTick() {
         super.containerTick();
-        if (!currentRecipe.equals(new Recipe(menu))) {
+        if (!currentRecipe.equals(new ItemStackArray(menu))) {
             if (menu.hasCraftResult)
                 setProgress();
             else
                 setInitial();
-            currentRecipe = new Recipe(menu);
+            currentRecipe = new ItemStackArray(menu);
         }
     }
 

@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import com.watermelon0117.aicraft.recipes.RecipeShapeMatcher;
 
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +26,7 @@ public class GPTIdeaGenerator4 {  //normal naming style
             "   - Use common object names when appropriate, like \"Bucket\", \"Pickaxe\", or \"Hamburger\". Do not overcomplicate the names.\n" +
             "   - Avoid unnecessarily complex or overly descriptive names. If a normal word fits (e.g. Hamburger, Shovel, Pot), use it.\n";
     BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver");
-    protected String buildPrompt(Recipe recipe) {
+    protected String buildPrompt(ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
         String prompt = String.format(
                 "%sTop Left: %s\n" +
@@ -52,7 +52,7 @@ public class GPTIdeaGenerator4 {  //normal naming style
     }
 
 
-    public CompletableFuture<ItemIdeas> generate(Recipe recipe, String lang){
+    public CompletableFuture<ItemIdeas> generate(ItemStackArray recipe, String lang){
         return generator.generate(buildPrompt(recipe), lang);
     }
 }

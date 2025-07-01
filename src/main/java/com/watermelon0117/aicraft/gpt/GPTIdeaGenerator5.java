@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.recipes.Recipe;
+import com.watermelon0117.aicraft.recipes.ItemStackArray;
 import com.watermelon0117.aicraft.recipes.RecipeShapeMatcher;
 
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +30,7 @@ public class GPTIdeaGenerator5 {
             "   - Follow Minecraft naming style\n" +
             "Output your analysis step by step before listing item names.\n";
     BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver");
-    protected String buildPrompt(Recipe recipe) {
+    protected String buildPrompt(ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
         String prompt = String.format(
                 "%s\n" +
@@ -58,7 +58,7 @@ public class GPTIdeaGenerator5 {
     }
 
 
-    public CompletableFuture<ItemIdeas> generate(Recipe recipe, String lang){
+    public CompletableFuture<ItemIdeas> generate(ItemStackArray recipe, String lang){
         return generator.generate(buildPrompt(recipe), lang);
     }
 }

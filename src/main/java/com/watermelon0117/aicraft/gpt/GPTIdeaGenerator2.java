@@ -1,11 +1,5 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.recipes.Recipe;
-import com.watermelon0117.aicraft.recipes.RecipeShapeMatcher;
-import net.minecraft.world.item.ItemStack;
-
-import java.util.concurrent.CompletableFuture;
-
 public class GPTIdeaGenerator2 {  //normal naming style
     /*String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
             "You are identifying the most natural, direct, and commonly accepted name for an item crafted in Minecraft, based on a 3×3 recipe.\n" +
