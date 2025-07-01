@@ -129,20 +129,8 @@ public class GPTItemGenerator2 {
                     RecipeManager.addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
                 }
                 return itemStack;
-            }).exceptionally(e->{
-                sendErrToAll(be.getLevel(), e.getMessage());
-                return null;
             });
-        }).exceptionally(e->{
-            sendErrToAll(be.getLevel(), e.getMessage());
-            return null;
         });
-    }
-    private static void sendErrToAll(Level level, String msg){
-        for (ServerPlayer player : ((ServerLevel)level).getPlayers(p->true)) {
-            player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
-            player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.RED));
-        }
     }
 
     private static void setTags(CompoundTag tag, ItemResult json, String id, String name) {

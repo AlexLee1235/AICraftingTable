@@ -122,7 +122,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         return itemstack;
     }
     public ItemStack quickMoveStack(Player player, int slotId) {
-        Recipe recipe=new Recipe(currentRecipe);
+        Recipe recipe=Recipe.deepCopy(currentRecipe);
         ItemStack itemStack=delegateQuickMoveStack(player,slotId);
         handleInterrupt(recipe,this,player.level,player);
         return itemStack;

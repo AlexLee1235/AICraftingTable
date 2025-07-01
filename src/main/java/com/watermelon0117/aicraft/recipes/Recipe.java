@@ -20,9 +20,11 @@ public class Recipe {
     public Recipe(ItemStack[] items) {
         this.items = items;
     }
-    public Recipe(Recipe other){
+    public static Recipe deepCopy(Recipe other){
+        Recipe r=new Recipe();
         for (int i = 0; i < 9; i++)
-            items[i] = other.items[i].copy();
+            r.items[i] = other.items[i].copy();
+        return r;
     }
     public void setItem(int i, ItemStack itemStack) {
         items[i] = itemStack;

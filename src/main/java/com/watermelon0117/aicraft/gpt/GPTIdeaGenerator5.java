@@ -16,23 +16,26 @@ public class GPTIdeaGenerator5 {
             "Follow these steps:\n" +
             "First, analyze the spatial pattern without guessing what the item is.\n" +
             "Describe:\n" +
-            "1. Which rows and columns are filled?\n" +
-            "2. The horizontal and vertical extent.\n" +
-            "3. The overall shape in words (e.g. “3x2 rectangle”, “vertical line”, “cross shape”).\n" +
+            "    1. Which rows and columns are filled?\n" +
+            "    2. The horizontal and vertical extent.\n" +
+            "    3. The overall shape in words (e.g. “3x2 rectangle”, “vertical line”, “cross shape”).\n" +
+            "Second, Based on that shape and the material, infer the likely **function** of the item, make few different guesses." +
             "Then, Generate 3 item names that:\n" +
             "   - Not already in Minecraft\n" +
             "   - Reflect the shape and material\n" +
             "   - Sound plausible and useful in gameplay\n" +
             "   - Be simple and intuitive\n" +
             "   - Avoid names that are vague, overly magical, or poetic.\n" +
-            "   - Use common object names when appropriate, like \"Bucket\", \"Pickaxe\", or \"Hamburger\". Do not overcomplicate the names.\n" +
-            "   - Avoid unnecessarily complex or overly descriptive names. If a normal word fits (e.g. Hamburger, Shovel, Pot), use it.\n" +
-            "Output your analysis step by step before listing item names.";
+            "   - Use common object names when appropriate, like \"Bucket\", \"Wooden Pickaxe\", or \"Hamburger\". Do not overcomplicate the names.\n" +
+            "   - Follow Minecraft naming style\n" +
+            "Output your analysis step by step before listing item names.\n";
     BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver");
     protected String buildPrompt(Recipe recipe) {
         String[] in = recipe.getDisplayNames();
         String prompt = String.format(
-                "%sTop Left: %s\n" +
+                "%s\n" +
+                "Recipe(3x3 grid): \n" +
+                "Top Left: %s\n" +
                 "Top Middle: %s\n" +
                 "Top Right: %s\n" +
                 "Middle Left: %s\n" +

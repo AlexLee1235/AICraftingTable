@@ -5,11 +5,14 @@ import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
@@ -55,12 +58,13 @@ public class SSelectIdeaPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
+
         GPTItemGenerator2 generator = new GPTItemGenerator2();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
-                if (!SpecialItemManager.get().getItem(id).isEmpty() && !override) {  //use exist item
+                if (SpecialItemManager.get().hasItem(id) && !override) {  //use exist item
                     ItemStack stack = SpecialItemManager.get().getItem(id);
                     RecipeManager.addRecipe(stack, recipe, RecipeManager.itemIsShapeless(stack));
                     be.getInventory().setStackInSlot(0, SpecialItemManager.get().getItem(id));
@@ -81,14 +85,21 @@ public class SSelectIdeaPacket {
                                 }
                             })
                             .exceptionally(ex -> {
+                                System.out.println("hi");
                                 ex.printStackTrace();
                                 be.setProgress(0);
                                 player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                                //todo: show error in screen
+                                sendErrToAll(player.level, ex.getMessage());
                                 return null;
                             });
                 }
             }
+        }
+    }
+    private static void sendErrToAll(Level level, String msg){
+        for (ServerPlayer player : ((ServerLevel)level).getPlayers(p->true)) {
+            player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.RED));
         }
     }
 }

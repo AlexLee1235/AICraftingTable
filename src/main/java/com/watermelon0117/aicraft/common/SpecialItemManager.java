@@ -11,6 +11,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.util.thread.EffectiveSide;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +33,12 @@ public final class SpecialItemManager {
     }
 
     public ItemStack getItem(String id) {
-        return ItemStack.of(backing().get(id));
+        var tag = backing().get(id);
+        if (tag == null) throw new RuntimeException("SpecialItemManager: get non-exist item");
+        return ItemStack.of(tag);
+    }
+    public boolean hasItem(String id) {
+        return backing().containsKey(id);
     }
 
     public List<ItemStack> list() {
@@ -48,6 +54,7 @@ public final class SpecialItemManager {
 
     public void remove(String id) {
         checkServer();
+        if (!backing().containsKey(id)) throw new RuntimeException("SpecialItemManager: remove non-exist item");
         backing().remove(id);
         dirtyAndSync();
     }

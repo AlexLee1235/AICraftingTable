@@ -17,6 +17,7 @@ import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -25,10 +26,17 @@ import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -43,7 +51,6 @@ public class EventHandler {
     public static void EntityJoinLevelEvent(EntityJoinLevelEvent event){
         if(event.getEntity() instanceof Player player) {
             if (!event.getEntity().level.isClientSide) {
-                RecipeManager.loadFromFile();
                 if (!AIChatClient.useOpenAI) {
                     sendGetAsync("https://aicraftingtableproxy.onrender.com/").exceptionally(err->{
                         player.sendSystemMessage(Component.literal("AICraftingTable: Unable to connect to AI server").withStyle(ChatFormatting.RED));
@@ -61,6 +68,7 @@ public class EventHandler {
     @SubscribeEvent
     public static void onServerStart(ServerAboutToStartEvent e) {
         SpecialItemManager.ServerSide.init(e.getServer());
+        RecipeSavedData.init(e.getServer());
         String key = AICraftingTableCommonConfigs.OPENAI_API_KEY.get();
         AIChatClient.useOpenAI = !key.isEmpty();
         AIImageClient.useOpenAI = !key.isEmpty();
