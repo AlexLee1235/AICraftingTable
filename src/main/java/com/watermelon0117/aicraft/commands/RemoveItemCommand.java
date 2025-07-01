@@ -13,14 +13,18 @@ import static net.minecraft.commands.Commands.literal;
 public class RemoveItemCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         dispatcher.register(
-                literal("removeItem")
-                        .then(argument("items", MyItemArgument.item(context))
-                                .executes(ctx -> {
-                                    String selected = ctx.getArgument("items", String.class).replace('_', ' ');
-                                    RecipeManager.removeItem(selected);
-                                    SpecialItemManager.get().remove(selected);
-                                    ctx.getSource().sendSuccess(Component.literal("You removed: " + selected), false);
-                                    return 1;
-                                })));
+                literal("aicraft").then(
+                        literal("removeItem").then(
+                                argument("items", MyItemArgument.item(context))
+                                        .executes(ctx -> {
+                                            String selected = ctx.getArgument("items", String.class).replace('_', ' ');
+                                            RecipeManager.removeItem(selected);
+                                            SpecialItemManager.get().remove(selected);
+                                            ctx.getSource().sendSuccess(Component.literal("You removed: " + selected), false);
+                                            return 1;
+                                        })
+                        )
+                )
+        );
     }
 }

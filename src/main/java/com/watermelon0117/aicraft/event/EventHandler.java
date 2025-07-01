@@ -1,7 +1,6 @@
 package com.watermelon0117.aicraft.event;
 
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.commands.ListItemCommand;
 import com.watermelon0117.aicraft.commands.MyItemArgument;
 import com.watermelon0117.aicraft.commands.RemoveItemCommand;
 import com.watermelon0117.aicraft.common.*;
@@ -9,19 +8,15 @@ import com.watermelon0117.aicraft.gpt.AIChatClient;
 import com.watermelon0117.aicraft.gpt.AIImageClient;
 import com.watermelon0117.aicraft.gpt.OpenAIChatClient;
 import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
-import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -30,10 +25,6 @@ import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -64,7 +55,6 @@ public class EventHandler {
     }
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event){
-        ListItemCommand.register(event.getDispatcher());
         RemoveItemCommand.register(event.getDispatcher(), event.getBuildContext());
         ArgumentTypeInfos.registerByClass(MyItemArgument.class, SingletonArgumentInfo.contextAware(MyItemArgument::item));
     }
