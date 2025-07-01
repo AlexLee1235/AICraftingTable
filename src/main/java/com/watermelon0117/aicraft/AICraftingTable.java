@@ -24,6 +24,8 @@ public class AICraftingTable {
 
         BlockInit.BLOCKS.register(bus);
         BlockInit.BLOCK_ITEMS.register(bus);
+        BlockInit.VANILLA_BLOCKS.register(bus);
+        BlockInit.VANILLA_BLOCK_ITEMS.register(bus);
         ItemInit.ITEMS.register(bus);
         EntityInit.ENTITIES.register(bus);
         BlockEntityInit.BLOCK_ENTITIES.register(bus);

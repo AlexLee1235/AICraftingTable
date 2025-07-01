@@ -43,7 +43,7 @@ public class MyCraftingMenu extends RecipeBookMenu<CraftingContainer> {
         super(MenuType.CRAFTING, p_39356_);
         this.access = p_39358_;
         this.player = p_39357_.player;
-        this.addSlot(new ResultSlot(p_39357_.player, this.craftSlots, this.resultSlots, 0, 124, 35));
+        this.addSlot(new MyResultSlot(p_39357_.player, this.craftSlots, this.resultSlots, 0, 124, 35));
 
         for(int i = 0; i < 3; ++i) {
             for(int j = 0; j < 3; ++j) {
@@ -133,7 +133,6 @@ public class MyCraftingMenu extends RecipeBookMenu<CraftingContainer> {
                 if (!this.moveItemStackTo(itemstack1, 10, 46, true)) {
                     return ItemStack.EMPTY;
                 }
-
                 slot.onQuickCraft(itemstack1, itemstack);
             } else if (p_39392_ >= 10 && p_39392_ < 46) {
                 if (!this.moveItemStackTo(itemstack1, 1, 10, false)) {
