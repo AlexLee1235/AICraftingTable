@@ -13,9 +13,15 @@ import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.recipes.Recipe;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.level.Level;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -123,8 +129,20 @@ public class GPTItemGenerator2 {
                     RecipeManager.addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
                 }
                 return itemStack;
+            }).exceptionally(e->{
+                sendErrToAll(be.getLevel(), e.getMessage());
+                return null;
             });
+        }).exceptionally(e->{
+            sendErrToAll(be.getLevel(), e.getMessage());
+            return null;
         });
+    }
+    private static void sendErrToAll(Level level, String msg){
+        for (ServerPlayer player : ((ServerLevel)level).getPlayers(p->true)) {
+            player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.RED));
+        }
     }
 
     private static void setTags(CompoundTag tag, ItemResult json, String id, String name) {

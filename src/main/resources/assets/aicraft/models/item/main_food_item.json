@@ -2,7 +2,7 @@
   "parent": "builtin/entity",
   "gui_light": "front",
   "textures": {
-    "particle": "aicraft:items/main_item"
+    "particle": "aicraft:items/main_food_item"
   },
   "display": {
     "ground": {

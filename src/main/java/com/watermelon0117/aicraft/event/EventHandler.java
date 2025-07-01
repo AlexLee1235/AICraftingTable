@@ -13,10 +13,12 @@ import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -32,21 +34,31 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EventHandler {
     @SubscribeEvent
     public static void playerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event){
-
     }
     @SubscribeEvent
     public static void CommandEvent(CommandEvent event){
     }
     @SubscribeEvent
     public static void EntityJoinLevelEvent(EntityJoinLevelEvent event){
-        if(event.getEntity() instanceof Player) {
+        if(event.getEntity() instanceof Player player) {
             if (!event.getEntity().level.isClientSide) {
                 RecipeManager.loadFromFile();
+                if (!AIChatClient.useOpenAI) {
+                    sendGetAsync("https://aicraftingtableproxy.onrender.com/").exceptionally(err->{
+                        player.sendSystemMessage(Component.literal("AICraftingTable: Unable to connect to AI server").withStyle(ChatFormatting.RED));
+                        return null;
+                    });
+                }
             }
         }
     }
@@ -59,12 +71,24 @@ public class EventHandler {
     @SubscribeEvent
     public static void onServerStart(ServerAboutToStartEvent e) {
         SpecialItemManager.ServerSide.init(e.getServer());
-        System.out.println("config " + AICraftingTableCommonConfigs.OPENAI_API_KEY.get());
         String key = AICraftingTableCommonConfigs.OPENAI_API_KEY.get();
         AIChatClient.useOpenAI = !key.isEmpty();
         AIImageClient.useOpenAI = !key.isEmpty();
         OpenAIChatClient.apiKey = key;
         OpenAIImageClient.apiKey = key;
+    }
+    public static CompletableFuture<String> sendGetAsync(String url) {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenCompose(response -> {
+                    int status = response.statusCode();
+                    if (status != 200)
+                        return CompletableFuture.failedFuture(new RuntimeException("HTTP error: " + status + ", body: " + response.body()));
+                    return CompletableFuture.completedFuture(response.body());
+                });
     }
 
     /** Give joining player a copy of the list */
@@ -72,7 +96,7 @@ public class EventHandler {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent e) {
         if (e.getEntity() instanceof ServerPlayer sp) {
             PacketHandler.sendToPlayer(new CSyncSpecialItemsPacket(SpecialItemManager.ServerSide.data().data), sp);
-            PacketHandler.sendToPlayer(new CSendAllTexturePacket(TextureManager.loadFromFile()), sp);
+            TextureManager.loadFromFileAsync().thenAccept(map-> PacketHandler.sendToPlayer(new CSendAllTexturePacket(map), sp));
         }
     }
 }

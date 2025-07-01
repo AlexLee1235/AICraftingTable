@@ -20,7 +20,7 @@ public final class OpenAIImageClient {
 
     public OpenAIImageClient() {
         this.http   = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(100))
+                .connectTimeout(Duration.ofSeconds(10))
                 .build();
         this.gson   = new GsonBuilder()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)

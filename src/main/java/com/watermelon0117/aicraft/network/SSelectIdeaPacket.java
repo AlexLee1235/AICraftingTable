@@ -71,10 +71,8 @@ public class SSelectIdeaPacket {
                     int tId = incrementID++;
                     be.taskID = tId;
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                    player.sendSystemMessage(Component.literal("Start..."));
                     generator.generate(id, name, new Recipe(recipe), be, b -> b.taskID == tId && b.getProgress() != 0).thenAccept(itemStack -> {
                                 if (be.taskID == tId && be.getProgress() != 0) {
-                                    player.sendSystemMessage(Component.literal("Done"));
                                     be.getInventory().setStackInSlot(0, itemStack);
                                     be.setProgress(580);
                                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);

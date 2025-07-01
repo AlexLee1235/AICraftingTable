@@ -9,25 +9,31 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class TextureManager {
-    public static Map<String, byte[]> loadFromFile() {
-        Map<String, byte[]> map=new HashMap<>();
-        File folder = FileUtil.getTextureFolder();
-        File[] files = folder.listFiles();
+    public static CompletableFuture<Map<String, byte[]>> loadFromFileAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            Map<String, byte[]> map = new HashMap<>();
+            File folder = FileUtil.getTextureFolder();
+            File[] files = folder.listFiles();
 
-        for (File file : files) {
-            if (file.isFile()) {
-                try {
-                    byte[] data = Files.readAllBytes(file.toPath());
-                    String name = file.getName().replace(".png", "");
-                    map.put(name, data);
-                } catch (IOException e) {
-                    System.out.println("Error reading file: " + file.getName());
-                    e.printStackTrace();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) {
+                        try {
+                            byte[] data = Files.readAllBytes(file.toPath());
+                            String name = file.getName().replace(".png", "");
+                            map.put(name, data);
+                        } catch (IOException e) {
+                            System.out.println("Error reading file: " + file.getName());
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
-        }
-        return map;
+
+            return map;
+        });
     }
 }
