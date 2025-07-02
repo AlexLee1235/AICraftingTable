@@ -57,6 +57,11 @@ public class PacketHandler {
                 .decoder(CAddTexturePacket::new)
                 .consumerMainThread(CAddTexturePacket::handle)
                 .add();
+        INSTANCE.messageBuilder(CSyncRecipesPacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CSyncRecipesPacket::encode)
+                .decoder(CSyncRecipesPacket::new)
+                .consumerMainThread(CSyncRecipesPacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

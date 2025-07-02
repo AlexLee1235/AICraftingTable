@@ -22,7 +22,7 @@ public class MyResultSlot extends ResultSlot {
         for (int i = 0; i < 9; i++) {
             itemStacks[i] = this.craftSlots.getItem(i);
         }
-        ItemStack itemstack2 = RecipeManager.match(itemStacks);
+        ItemStack itemstack2 = RecipeManager.get().match(itemStacks);
         if (MainItem.isMainItem(itemstack2)) {
             for (int i = 0; i < 9; i++) {
                 if (!this.craftSlots.getItem(i).isEmpty()) {

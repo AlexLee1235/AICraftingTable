@@ -9,6 +9,7 @@ import com.watermelon0117.aicraft.gpt.AIImageClient;
 import com.watermelon0117.aicraft.gpt.OpenAIChatClient;
 import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
 import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
+import com.watermelon0117.aicraft.network.CSyncRecipesPacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import net.minecraft.ChatFormatting;
@@ -68,7 +69,7 @@ public class EventHandler {
     @SubscribeEvent
     public static void onServerStart(ServerAboutToStartEvent e) {
         SpecialItemManager.ServerSide.init(e.getServer());
-        RecipeSavedData.init(e.getServer());
+        RecipeManager.ServerSide.init(e.getServer());
         String key = AICraftingTableCommonConfigs.OPENAI_API_KEY.get();
         AIChatClient.useOpenAI = !key.isEmpty();
         AIImageClient.useOpenAI = !key.isEmpty();
@@ -94,6 +95,7 @@ public class EventHandler {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent e) {
         if (e.getEntity() instanceof ServerPlayer sp) {
             PacketHandler.sendToPlayer(new CSyncSpecialItemsPacket(SpecialItemManager.ServerSide.data().data), sp);
+            PacketHandler.sendToPlayer(new CSyncRecipesPacket(RecipeManager.ServerSide.data().recipes), sp);
             TextureManager.loadFromFileAsync().thenAccept(map-> PacketHandler.sendToPlayer(new CSendAllTexturePacket(map), sp));
         }
     }

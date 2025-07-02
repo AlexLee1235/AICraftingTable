@@ -81,44 +81,25 @@ public final class SpecialItemManager {
             throw new UnsupportedOperationException("Cannot mutate SpecialItemManager on the client");
     }
     private static boolean isServer() {
-        return EffectiveSide.get() == LogicalSide.SERVER;   // null = you’re on the client JAR
+        return EffectiveSide.get() == LogicalSide.SERVER;
     }
-
-    /* -----------------------------------------------------------
-     *  3.  Client implementation
-     * ----------------------------------------------------------- */
 
     public static final class ClientSide {
         private static final SpecialItemManager INSTANCE = new SpecialItemManager();
         private static final Map<String, CompoundTag> CACHE = new ConcurrentHashMap<>();
-
         /* Packet handler fills the cache */
         public static void refill(Map<String, CompoundTag> fresh) {
             CACHE.clear();
             CACHE.putAll(fresh);
         }
     }
-
-    /* -----------------------------------------------------------
-     *  4.  Server implementation
-     * ----------------------------------------------------------- */
-
     public static final class ServerSide {
         private static SpecialItemManager INSTANCE;
         private static MinecraftServer SERVER;
-
         public static void init(MinecraftServer srv) {
             SERVER = srv;
             INSTANCE = new SpecialItemManager();
         }
-
-        private static MinecraftServer server() {
-            return SERVER;
-        }
-
-        /**
-         * Single SavedData stored in Overworld
-         */
         public static GlobalData data() {
             return GlobalData.get(SERVER);
         }

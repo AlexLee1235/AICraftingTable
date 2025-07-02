@@ -151,7 +151,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
         }else {
             ItemStackArray recipe=new ItemStackArray(menu);
-            itemstack=RecipeManager.match(recipe.items);
+            itemstack=RecipeManager.get().match(recipe.items);
         }
         return itemstack;
     }
@@ -188,7 +188,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         });
     }
     public boolean canCraft(ItemStack itemStack) {
-        List<ItemStack[]> recipes = RecipeManager.getRecipesForItem(itemStack);
+        List<ItemStack[]> recipes = RecipeManager.get().getRecipesForItem(itemStack);
         for (var recipe : recipes)
             if (canCraftRecipe(recipe))
                 return true;

@@ -100,7 +100,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
                 ItemStack itemStack = this.recipeBookPage.getLastClickedRecipe();
                 if (itemStack != null && !itemStack.isEmpty()) {
                     this.ghostRecipe.clear();
-                    var recipes = RecipeManager.getRecipesForItem(itemStack);
+                    var recipes = RecipeManager.get().getRecipesForItem(itemStack);
                     if (recipes.isEmpty())
                         return true;
                     PacketHandler.sendToServer(new SPlaceRecipePacket(this.menu.blockEntity.getBlockPos(),

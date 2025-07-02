@@ -27,7 +27,7 @@ public class RemoveItemCommand {
                                             if(!SpecialItemManager.get().hasItem(selected)){
                                                 throw ITEM_NOT_FOUND.create();
                                             }
-                                            RecipeManager.removeItem(selected);
+                                            RecipeManager.get().removeItem(selected);
                                             SpecialItemManager.get().remove(selected);
                                             ctx.getSource().sendSuccess(Component.literal("You removed: " + selected), false);
                                             return 1;

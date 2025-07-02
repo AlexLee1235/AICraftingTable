@@ -75,7 +75,7 @@ public class MyCraftingMenu extends RecipeBookMenu<CraftingContainer> {
             for (int i = 0; i < 9; i++) {
                 itemStacks[i]=menu.craftSlots.getItem(i);
             }
-            itemstack= RecipeManager.match(itemStacks);
+            itemstack= RecipeManager.get().match(itemStacks);
         }
         return itemstack;
     }

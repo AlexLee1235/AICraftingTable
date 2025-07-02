@@ -14,20 +14,7 @@ import java.util.List;
 
 public class RecipeSavedData extends SavedData {
     private static final String NAME = "aicraft_recipes";
-    private static MinecraftServer SERVER;
-    final List<RecipeManager.Recipe> recipes = new ArrayList<>();
-
-    /** new world – no recipes */
-    RecipeSavedData() {}
-
-    /** load from NBT */
-    private RecipeSavedData(CompoundTag tag) { readFromNBT(tag); }
-
-    public static void init(MinecraftServer srv) {
-        SERVER = srv;
-    }
-
-    /* encode entire list */
+    public final List<RecipeManager.Recipe> recipes = new ArrayList<>();
     @Override public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         for (RecipeManager.Recipe r : recipes) {
@@ -44,11 +31,10 @@ public class RecipeSavedData extends SavedData {
         tag.put("Recipes", list);
         return tag;
     }
-
-    /* decode list */
-    private void readFromNBT(CompoundTag tag) {
-        recipes.clear();
-        if (!tag.contains("Recipes", Tag.TAG_LIST)) return;
+    static RecipeSavedData load(CompoundTag tag) {
+        RecipeSavedData d = new RecipeSavedData();
+        d.recipes.clear();
+        if (!tag.contains("Recipes", Tag.TAG_LIST)) return null;
 
         ListTag list = tag.getList("Recipes", Tag.TAG_COMPOUND);
         for (Tag t : list) {
@@ -63,14 +49,15 @@ public class RecipeSavedData extends SavedData {
             ItemStack[] grid = new ItemStack[9];
             for (int i = 0; i < 9; ++i) grid[i] = ItemStack.of(gridTag.getCompound(i));
 
-            recipes.add(new RecipeManager.Recipe(result, grid, shapeless));
+            d.recipes.add(new RecipeManager.Recipe(result, grid, shapeless));
         }
+        return d;
     }
 
     /* singleton getter */
-    static RecipeSavedData get() {
-        ServerLevel level = SERVER.overworld();
+    static RecipeSavedData get(MinecraftServer srv) {
+        ServerLevel level = srv.overworld();
         return level.getDataStorage().computeIfAbsent(
-                RecipeSavedData::new, RecipeSavedData::new, NAME);
+                RecipeSavedData::load, RecipeSavedData::new, NAME);
     }
 }

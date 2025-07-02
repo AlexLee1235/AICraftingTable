@@ -66,7 +66,7 @@ public class SSelectIdeaPacket {
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
                 if (SpecialItemManager.get().hasItem(id) && !override) {  //use exist item
                     ItemStack stack = SpecialItemManager.get().getItem(id);
-                    RecipeManager.addRecipe(stack, recipe, RecipeManager.itemIsShapeless(stack));
+                    RecipeManager.get().addRecipe(stack, recipe, RecipeManager.get().itemIsShapeless(stack));
                     be.getInventory().setStackInSlot(0, SpecialItemManager.get().getItem(id));
                     be.setProgress(580);
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);

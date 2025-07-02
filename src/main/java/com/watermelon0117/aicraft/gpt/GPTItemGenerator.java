@@ -87,7 +87,7 @@ public class GPTItemGenerator {
                 if (predicate.test(be)) {
                     applyTexture(textureBytes, id);
                     SpecialItemManager.get().put(itemStack);
-                    RecipeManager.addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
+                    RecipeManager.get().addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
                 }
                 return itemStack;
             });

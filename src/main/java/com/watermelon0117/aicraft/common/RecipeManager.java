@@ -2,15 +2,20 @@ package com.watermelon0117.aicraft.common;
 
 
 import com.watermelon0117.aicraft.items.MainItem;
+import com.watermelon0117.aicraft.network.CSyncRecipesPacket;
+import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
+import com.watermelon0117.aicraft.network.PacketHandler;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.fml.util.thread.EffectiveSide;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -57,12 +62,12 @@ public final class RecipeManager {
 
     /* ── recipe POJO ── */
 
-    static final class Recipe {
-        final boolean shapeless;
-        final ItemStack result;
-        final ItemStack[] grid; // len 9
+    public static final class Recipe {
+        public final boolean shapeless;
+        public final ItemStack result;
+        public final ItemStack[] grid; // len 9
 
-        Recipe(ItemStack res, ItemStack[] grid, boolean shapeless) {
+        public Recipe(ItemStack res, ItemStack[] grid, boolean shapeless) {
             this.shapeless = shapeless;
             this.result = res;
             this.grid = grid;
@@ -88,46 +93,88 @@ public final class RecipeManager {
 
     /* ── public API (identical names / params) ── */
 
-    public static ItemStack match(ItemStack[] g) {
-        return RecipeSavedData.get().recipes.stream()
+    public ItemStack match(ItemStack[] g) {
+        return backing().stream()
                 .filter(r -> r.match(g)).map(r -> r.result.copy())
                 .findFirst().orElse(ItemStack.EMPTY);
     }
 
-    public static synchronized void addRecipe(ItemStack res, ItemStack[] g, boolean shapeless) {
+    public void addRecipe(ItemStack res, ItemStack[] g, boolean shapeless) {
         ItemStack[] stored = shapeless ? sortShapeless(g) : Arrays.copyOf(g, 9);
-        RecipeSavedData data = RecipeSavedData.get();
         ItemStack resCopy=res.copy();
         resCopy.setCount(1);
-        data.recipes.add(new Recipe(resCopy, stored, shapeless));
-        data.setDirty();
+        backing().add(new Recipe(resCopy, stored, shapeless));
+        dirtyAndSync();
     }
 
-    public static void removeItem(String id) {
+    public void removeItem(String id) {
         if (id == null) return;
-        RecipeSavedData data = RecipeSavedData.get();
-        data.recipes.removeIf(r ->
+        backing().removeIf(r ->
                 (MainItem.isMainItem(r.result) && id.equals(MainItem.getID(r.result))) ||
                         Arrays.stream(r.grid).anyMatch(s -> MainItem.isMainItem(s) && id.equals(MainItem.getID(s)))
         );
-        data.setDirty();
+        dirtyAndSync();
     }
 
-    public static List<ItemStack[]> getRecipesForItem(ItemStack t) {
+    public List<ItemStack[]> getRecipesForItem(ItemStack t) {
         if (t == null || t.isEmpty()) return List.of();
         List<ItemStack[]> out = new ArrayList<>();
-        RecipeSavedData.get().recipes.forEach(r -> {
+        backing().forEach(r -> {
             if (ItemStack.isSameItemSameTags(r.result, t))
                 out.add(Arrays.copyOf(r.grid, 9));
         });
         return out;
     }
 
-    public static boolean itemIsShapeless(ItemStack t) {
+    public boolean itemIsShapeless(ItemStack t) {
         return t != null && !t.isEmpty() &&
-                RecipeSavedData.get().recipes.stream()
+                backing().stream()
                         .anyMatch(r -> r.shapeless && ItemStack.isSameItemSameTags(r.result, t));
     }
+    // Syncing part
+    public static RecipeManager get() {
+        if (!isServer())
+            return RecipeManager.ClientSide.INSTANCE;          // client singleton
+        return RecipeManager.ServerSide.INSTANCE;              // server singleton (initialised in FMLServerStartingEvent)
+    }
+    private List<RecipeManager.Recipe> backing() {
+        return !isServer()
+                ? ClientSide.CACHE
+                : ServerSide.data().recipes;
+    }
 
-    private RecipeManager() {}
+    private void dirtyAndSync() {
+        if (isServer()) {
+            ServerSide.data().setDirty();
+            PacketHandler.sendToAllClients(new CSyncRecipesPacket(ServerSide.data().recipes));
+        }
+    }
+
+    private static void checkServer() {
+        if (!isServer())
+            throw new UnsupportedOperationException("Cannot mutate RecipeManager on the client");
+    }
+    private static boolean isServer() {
+        return EffectiveSide.get() == LogicalSide.SERVER;
+    }
+    public static final class ClientSide {
+        private static final RecipeManager INSTANCE = new RecipeManager();
+        public static final List<RecipeManager.Recipe> CACHE = new ArrayList<>();
+        /* Packet handler fills the cache */
+        public static void refill(List<RecipeManager.Recipe> fresh) {
+            CACHE.clear();
+            CACHE.addAll(fresh);
+        }
+    }
+    public static final class ServerSide {
+        private static RecipeManager INSTANCE;
+        private static MinecraftServer SERVER;
+        public static void init(MinecraftServer srv) {
+            SERVER = srv;
+            INSTANCE = new RecipeManager();
+        }
+        public static RecipeSavedData data() {
+            return RecipeSavedData.get(SERVER);
+        }
+    }
 }
