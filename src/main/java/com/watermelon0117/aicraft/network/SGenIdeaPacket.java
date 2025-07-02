@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator5;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
-import com.watermelon0117.aicraft.recipes.ItemStackArray;
+import com.watermelon0117.aicraft.common.ItemStackArray;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;

@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.recipes.ItemStackArray;
+import com.watermelon0117.aicraft.common.ItemStackArray;
 
 import java.util.concurrent.CompletableFuture;
 

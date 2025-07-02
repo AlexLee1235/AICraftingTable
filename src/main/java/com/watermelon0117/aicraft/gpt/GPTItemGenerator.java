@@ -8,7 +8,7 @@ import com.watermelon0117.aicraft.common.ImageGridProcessor;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
-import com.watermelon0117.aicraft.recipes.ItemStackArray;
+import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;

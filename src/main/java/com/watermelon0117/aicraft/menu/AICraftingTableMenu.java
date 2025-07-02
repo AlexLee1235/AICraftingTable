@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.menu;
 
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.items.MainItem;
-import com.watermelon0117.aicraft.recipes.ItemStackArray;
+import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.MenuInit;
@@ -23,12 +23,12 @@ import java.util.*;
 
 public class AICraftingTableMenu extends AbstractContainerMenu {
     public static final int RESULT_SLOT = 0;
-    private static final int CRAFT_SLOT_START = 1;
-    private static final int CRAFT_SLOT_END = 10;
-    private static final int INV_SLOT_START = 10;
-    private static final int INV_SLOT_END = 37;
-    private static final int USE_ROW_SLOT_START = 37;
-    private static final int USE_ROW_SLOT_END = 46;
+    public static final int CRAFT_SLOT_START = 1;
+    public static final int CRAFT_SLOT_END = 10;
+    public static final int INV_SLOT_START = 10;
+    public static final int INV_SLOT_END = 37;
+    public static final int USE_ROW_SLOT_START = 37;
+    public static final int USE_ROW_SLOT_END = 46;
     private final ContainerLevelAccess access;
     private final Player player;
     public final AICraftingTableBlockEntity blockEntity;
@@ -194,51 +194,31 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
                 return true;
         return false;
     }
-    public boolean canCraftRecipe(ItemStack[] recipe)
-    {
+    public boolean canCraftRecipe(ItemStack[] recipe) {
         if (recipe == null || recipe.length != 9)
             throw new IllegalArgumentException("recipe must contain exactly 9 entries");
-
-        /* ------------------------------------------------------------------
-         * 1.  Tally how many of each ingredient the recipe needs.
-         *     We key the map with a one-item copy so the count does not
-         *     affect equals/hashCode, and we rely on your existing
-         *     sameItem(a,b) helper for comparison logic.
-         * ------------------------------------------------------------------ */
-        Map<ItemStack, Integer> needed = new HashMap<>();
+        /* 1 ── Copy every non-empty recipe slot into a “still-needed” list. */
+        List<ItemStack> need = new ArrayList<>();
         for (ItemStack s : recipe) {
-            if (s == null || s.isEmpty()) continue;
-            ItemStack key = s.copy();
-            key.setCount(1);             // ignore stack size when hashing
-            needed.merge(key, 1, Integer::sum);
+            if (s != null && !s.isEmpty()) need.add(s.copy());   // we’ll shrink() later
         }
-
-        /* ------------------------------------------------------------------
-         * 2.  Walk through container slots 1-46, paying down the requirements
-         *     as we find matching items.
-         * ------------------------------------------------------------------ */
-        outer:
-        for (int slot = 1; slot < this.slots.size() && !needed.isEmpty(); ++slot) {
+        /* 2 ── Walk container slots 1-46, paying down those needs. */
+        for (int slot = 1; slot < this.slots.size() && !need.isEmpty(); ++slot) {
             ItemStack inv = this.getSlot(slot).getItem();
             if (inv.isEmpty()) continue;
+            int invLeft = inv.getCount();
+            // Consume this inventory stack against *all* matching needs
+            for (Iterator<ItemStack> it = need.iterator(); it.hasNext() && invLeft > 0; ) {
+                ItemStack req = it.next();
+                if (!ItemStack.isSameItemSameTags(inv, req)) continue;               // different ingredient
 
-            // Try to satisfy as many different requirements as this stack allows.
-            for (Iterator<Map.Entry<ItemStack, Integer>> it = needed.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<ItemStack, Integer> e = it.next();
-                if (!sameItem(inv, e.getKey())) continue;
-
-                int stillNeeded = e.getValue();
-                int taken      = Math.min(stillNeeded, inv.getCount());
-
-                if (taken == stillNeeded) {         // completely satisfied this ingredient
-                    it.remove();
-                    if (needed.isEmpty()) break outer;
-                } else {                            // partially satisfied
-                    e.setValue(stillNeeded - taken);
-                }
+                int take = Math.min(invLeft, req.getCount());
+                invLeft -= take;
+                req.shrink(take);                                // pay down this need
+                if (req.isEmpty()) it.remove();                  // fully satisfied
             }
         }
-        return needed.isEmpty();
+        return need.isEmpty();                                   // true ⇒ everything found
     }
     private static boolean sameItem(ItemStack a, ItemStack b) {
         // Example implementation; keep whatever logic you already use.

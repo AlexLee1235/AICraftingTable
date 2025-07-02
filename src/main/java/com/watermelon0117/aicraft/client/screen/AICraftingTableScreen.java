@@ -7,7 +7,7 @@ import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.SGenIdeaPacket;
-import com.watermelon0117.aicraft.recipes.ItemStackArray;
+import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
@@ -190,10 +190,10 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (state != State.PROGRESS) {
             var slot = menu.slots.get(0);
             menu.slots.remove(0);
-            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);
-            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
             menu.slots.add(0, slot);
+            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
+            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
         } else {
             this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
             super.render(p_98479_, p_98480_, p_98481_, p_98482_);

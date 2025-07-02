@@ -20,6 +20,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public class CustomRecipeBookComponent extends GuiComponent implements Widget, GuiEventListener, NarratableEntry {
     protected static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation("textures/gui/recipe_book.png");
@@ -106,7 +107,6 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
                     PacketHandler.sendToServer(new SPlaceRecipePacket(this.menu.blockEntity.getBlockPos(),
                             recipes.get((times++) % recipes.size()), false));
                 }
-
                 return true;
             }
         }

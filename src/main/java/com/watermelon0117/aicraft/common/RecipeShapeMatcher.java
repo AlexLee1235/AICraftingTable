@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.recipes;
+package com.watermelon0117.aicraft.common;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;

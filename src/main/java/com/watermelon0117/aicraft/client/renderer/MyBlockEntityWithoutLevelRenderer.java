@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
 import com.watermelon0117.aicraft.common.FileUtil;
 import com.watermelon0117.aicraft.items.MainItem;
@@ -11,6 +12,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -116,8 +118,21 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         poseStack.popPose();
     }
 
-    private static void vertex(VertexConsumer consumer, Matrix4f matrix4f, float x, float y, float z, float u, float v, int uv2) {
-        consumer.vertex(matrix4f, x, y, z).color(255, 255, 255, 255).uv(u, v).uv2(uv2).endVertex();
+    private static void vertex(VertexConsumer vc,
+                               Matrix4f poseMat,
+                               Matrix3f normalMat,
+                               float x,  float y,  float z,   // position
+                               float u,  float v,             // UV
+                               int   uv2,                     // lightmap
+                               float nx, float ny, float nz)  // normal  ← NEW
+    {
+        vc.vertex(poseMat, x, y, z)
+                .color(255, 255, 255, 255)
+                .uv(u, v)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(uv2)
+                .normal(normalMat, nx, ny, nz)
+                .endVertex();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -135,7 +150,7 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
             if (this.texture == null) {
                 this.texture = new DynamicTexture(image.getWidth(), image.getWidth(), true);
                 ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
-                this.renderType = RenderType.text(resourcelocation);
+                this.renderType = RenderType.entityCutout(resourcelocation);
             }
             for (int i = 0; i < image.getWidth(); ++i) {
                 for (int j = 0; j < image.getWidth(); ++j) {
@@ -155,50 +170,55 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
                 this.requiresUpload = false;
             }
             p_93292_.pushPose();
-            Matrix4f mat = p_93292_.last().pose();
+            PoseStack.Pose pose = p_93292_.last();
+            Matrix4f mat   = pose.pose();
+            Matrix3f nMat  = pose.normal();        // ← pass this to every call
             VertexConsumer vc = p_93293_.getBuffer(this.renderType);
 
             int grid = this.image.getHeight();
             float h = 1.0F / grid;
-            float th2 = Math.max(1.0F / grid / 2.0F, 1.0F / 32.0F / 2.0F);
+            float th=grid;
+            float th2 = Math.max(1.0F / th / 2.0F, 1.0F / 32.0F / 2.0F);
             //RenderSystem.disableCull();
-            vertex(vc, mat, 0, 0, 0.5f + th2, 0, 0, uv2);
-            vertex(vc, mat, 1, 0, 0.5f + th2, 1, 0, uv2);
-            vertex(vc, mat, 1, 1, 0.5f + th2, 1, 1, uv2);
-            vertex(vc, mat, 0, 1, 0.5f + th2, 0, 1, uv2);
+            // front (+Z)
+            vertex(vc, mat, nMat, 0, 0, 0.5f + th2, 0, 0, uv2, 0, 0,  1);
+            vertex(vc, mat, nMat, 1, 0, 0.5f + th2, 1, 0, uv2, 0, 0,  1);
+            vertex(vc, mat, nMat, 1, 1, 0.5f + th2, 1, 1, uv2, 0, 0,  1);
+            vertex(vc, mat, nMat, 0, 1, 0.5f + th2, 0, 1, uv2, 0, 0,  1);
 
-            vertex(vc, mat, 0, 1, 0.5f - th2, 0, 1, uv2);
-            vertex(vc, mat, 1, 1, 0.5f - th2, 1, 1, uv2);
-            vertex(vc, mat, 1, 0, 0.5f - th2, 1, 0, uv2);
-            vertex(vc, mat, 0, 0, 0.5f - th2, 0, 0, uv2);
+            // back (–Z)
+            vertex(vc, mat, nMat, 0, 1, 0.5f - th2, 0, 1, uv2, 0, 0, -1);
+            vertex(vc, mat, nMat, 1, 1, 0.5f - th2, 1, 1, uv2, 0, 0, -1);
+            vertex(vc, mat, nMat, 1, 0, 0.5f - th2, 1, 0, uv2, 0, 0, -1);
+            vertex(vc, mat, nMat, 0, 0, 0.5f - th2, 0, 0, uv2, 0, 0, -1);
 
             for (int i = 0; i < grid; i++) {
-                float y = (float) i / grid;
-                vertex(vc, mat, 0, y, 0.5F - th2, 0, y, uv2);
-                vertex(vc, mat, 1, y, 0.5F - th2, 1, y, uv2);
-                vertex(vc, mat, 1, y, 0.5F + th2, 1, y + h, uv2);
-                vertex(vc, mat, 0, y, 0.5F + th2, 0, y + h, uv2);
+                float y = (float) i / grid;                 // bottom face  (-Y)
+                vertex(vc, mat, nMat, 0, y, 0.5f - th2, 0, y,       uv2, 0, -1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f - th2, 1, y,       uv2, 0, -1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f + th2, 1, y + h,   uv2, 0, -1, 0);
+                vertex(vc, mat, nMat, 0, y, 0.5f + th2, 0, y + h,   uv2, 0, -1, 0);
             }
             for (int i = 0; i < grid; i++) {
-                float y = (float) (i + 1) / grid;
-                vertex(vc, mat, 0, y, 0.5F + th2, 0, y, uv2);
-                vertex(vc, mat, 1, y, 0.5F + th2, 1, y, uv2);
-                vertex(vc, mat, 1, y, 0.5F - th2, 1, y - h, uv2);
-                vertex(vc, mat, 0, y, 0.5F - th2, 0, y - h, uv2);
+                float y = (float) (i + 1) / grid;           // top face (+Y)
+                vertex(vc, mat, nMat, 0, y, 0.5f + th2, 0, y,       uv2, 0,  1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f + th2, 1, y,       uv2, 0,  1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f - th2, 1, y - h,   uv2, 0,  1, 0);
+                vertex(vc, mat, nMat, 0, y, 0.5f - th2, 0, y - h,   uv2, 0,  1, 0);
             }
             for (int i = 0; i < grid; i++) {
-                float x = (float) i / grid;
-                vertex(vc, mat, x, 0, 0.5F + th2, x, 0, uv2);
-                vertex(vc, mat, x, 1, 0.5F + th2, x, 1, uv2);
-                vertex(vc, mat, x, 1, 0.5F - th2, x + h, 1, uv2);
-                vertex(vc, mat, x, 0, 0.5F - th2, x + h, 0, uv2);
+                float x = (float) i / grid;                 // west face (-X)
+                vertex(vc, mat, nMat, x, 0, 0.5f + th2, x, 0,       uv2, -1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f + th2, x, 1,       uv2, -1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f - th2, x + h, 1,  uv2, -1, 0, 0);
+                vertex(vc, mat, nMat, x, 0, 0.5f - th2, x + h, 0,  uv2, -1, 0, 0);
             }
             for (int i = 0; i < grid; i++) {
-                float x = (float) (i + 1) / grid;
-                vertex(vc, mat, x, 0, 0.5F - th2, x, 0, uv2);
-                vertex(vc, mat, x, 1, 0.5F - th2, x, 1, uv2);
-                vertex(vc, mat, x, 1, 0.5F + th2, x - h, 1, uv2);
-                vertex(vc, mat, x, 0, 0.5F + th2, x - h, 0, uv2);
+                float x = (float) (i + 1) / grid;           // east face (+X)
+                vertex(vc, mat, nMat, x, 0, 0.5f - th2, x, 0,       uv2, 1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f - th2, x, 1,       uv2, 1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f + th2, x - h, 1,  uv2, 1, 0, 0);
+                vertex(vc, mat, nMat, x, 0, 0.5f + th2, x - h, 0,  uv2, 1, 0, 0);
             }
 
             p_93292_.popPose();

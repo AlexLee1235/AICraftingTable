@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
-import com.watermelon0117.aicraft.recipes.ItemStackArray;
+import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.ChatFormatting;

@@ -9,7 +9,7 @@ import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.network.CAddTexturePacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
-import com.watermelon0117.aicraft.recipes.ItemStackArray;
+import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;
