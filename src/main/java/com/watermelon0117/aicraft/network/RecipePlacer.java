@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.network;
 
+import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.network.protocol.game.ServerboundPlaceRecipePacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,15 +47,25 @@ public final class RecipePlacer {
             int invSlotIdx = findMatchingInventorySlot(menu, want);
             if (invSlotIdx == -1) return false;        // missing ingredient
 
-            Slot invSlot  = menu.getSlot(invSlotIdx);
+            Slot invSlot = menu.getSlot(invSlotIdx);
             Slot gridSlot = menu.getSlot(AICraftingTableMenu.CRAFT_SLOT_START + i);
 
             invSlot.remove(1);
-            gridSlot.set(want.copy());
+            ItemStack placed=want.copy();
+            placed.setCount(gridSlot.getItem().getCount()+1);
+            gridSlot.set(placed);
 
             invSlot.setChanged();
             gridSlot.setChanged();
         }
+        return true;
+    }
+    public static boolean alreadyHas(ServerPlayer player, ItemStack[] pattern) {
+        AbstractContainerMenu menu = player.containerMenu;
+        for (int i = 0; i < 9; i++)
+            if(!ItemStack.isSameItemSameTags(pattern[i], menu.getSlot(AICraftingTableMenu.CRAFT_SLOT_START + i).getItem())) {
+                return false;
+            }
         return true;
     }
     public static boolean forcePlaceRecipePattern(ServerPlayer player, ItemStack[] pattern) {
@@ -63,7 +74,9 @@ public final class RecipePlacer {
         AbstractContainerMenu menu = player.containerMenu;
         for (int i = 0; i < 9; ++i) {
             Slot gridSlot = menu.getSlot(AICraftingTableMenu.CRAFT_SLOT_START + i);
-            gridSlot.set(pattern[i].copy());
+            ItemStack placed=pattern[i].copy();
+            placed.setCount(gridSlot.getItem().getCount()+1);
+            gridSlot.set(placed);
             gridSlot.setChanged();
         }
         return true;

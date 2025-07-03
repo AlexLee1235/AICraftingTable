@@ -59,7 +59,9 @@ public class SPlaceRecipePacket {
         if (player.isCreative() && shift) {
             RecipePlacer.forcePlaceRecipePattern(player, recipe);
         } else if (menu.canCraftRecipe(recipe)) {
-            if (RecipePlacer.clearGridToInventory(player, menu)) {
+            if(RecipePlacer.alreadyHas(player, recipe)){
+                RecipePlacer.placeRecipePattern(player, recipe);
+            } else if (RecipePlacer.clearGridToInventory(player, menu)) {
                 RecipePlacer.placeRecipePattern(player, recipe);
             }
         } else {

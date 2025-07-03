@@ -4,10 +4,7 @@ import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.commands.MyItemArgument;
 import com.watermelon0117.aicraft.commands.RemoveItemCommand;
 import com.watermelon0117.aicraft.common.*;
-import com.watermelon0117.aicraft.gpt.AIChatClient;
-import com.watermelon0117.aicraft.gpt.AIImageClient;
-import com.watermelon0117.aicraft.gpt.OpenAIChatClient;
-import com.watermelon0117.aicraft.gpt.OpenAIImageClient;
+import com.watermelon0117.aicraft.gpt.*;
 import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
 import com.watermelon0117.aicraft.network.CSyncRecipesPacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
@@ -53,7 +50,7 @@ public class EventHandler {
         if(event.getEntity() instanceof Player player) {
             if (!event.getEntity().level.isClientSide) {
                 if (!AIChatClient.useOpenAI) {
-                    sendGetAsync("https://aicraftingtableproxy.onrender.com/").exceptionally(err->{
+                    ProxyChatClient.testConnect().exceptionally(err->{
                         player.sendSystemMessage(Component.literal("AICraftingTable: Unable to connect to AI server").withStyle(ChatFormatting.RED));
                         return null;
                     });
@@ -76,19 +73,7 @@ public class EventHandler {
         OpenAIChatClient.apiKey = key;
         OpenAIImageClient.apiKey = key;
     }
-    public static CompletableFuture<String> sendGetAsync(String url) {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET()
-                .build();
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenCompose(response -> {
-                    int status = response.statusCode();
-                    if (status != 200)
-                        return CompletableFuture.failedFuture(new RuntimeException("HTTP error: " + status + ", body: " + response.body()));
-                    return CompletableFuture.completedFuture(response.body());
-                });
-    }
+
 
     /** Give joining player a copy of the list */
     @SubscribeEvent

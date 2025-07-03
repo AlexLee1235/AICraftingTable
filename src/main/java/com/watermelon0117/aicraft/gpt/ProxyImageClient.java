@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyImageClient {
-    private static final URI ENDPOINT = URI.create("https://aicraftingtableproxy.onrender.com/image");
+    private static final URI ENDPOINT = URI.create("https://aicraftingtableproxy-production.up.railway.app/image");
 
     private final HttpClient http;
     private final Gson gson;

@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyChatClient {
-    private static final URI CHAT_URI = URI.create("https://aicraftingtableproxy.onrender.com/chat");
+    private static final URI CHAT_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/chat");//https://aicraftingtableproxy.onrender.com
+    private static final URI TEST_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/");//https://aicraftingtableproxy.onrender.com
 
     private final HttpClient http;
     private final Gson gson;
@@ -71,6 +72,19 @@ public class ProxyChatClient {
                     ChatResponse chat = gson.fromJson(resp.body(), ChatResponse.class);
                     return CompletableFuture.completedFuture(chat.choices.get(0).message.content);
                 });
+    }
+    public static CompletableFuture<String> testConnect() {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(TEST_URI)
+                .GET()
+                .build();
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenCompose(response -> {
+            int status = response.statusCode();
+            if (status != 200)
+                return CompletableFuture.failedFuture(new RuntimeException("HTTP error: " + status + ", body: " + response.body()));
+            return CompletableFuture.completedFuture(response.body());
+        });
     }
 
     /* ----------  Request / Response POJOs ---------- */

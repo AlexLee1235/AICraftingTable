@@ -92,8 +92,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }
         first = false;
     }
-    private void initWidget(){
-    }
     private void updateWidgetPos() {
         bookBtn.setPosition(this.leftPos + 70, this.topPos + 56);
         options.updateWidgetPos(leftPos, topPos);
