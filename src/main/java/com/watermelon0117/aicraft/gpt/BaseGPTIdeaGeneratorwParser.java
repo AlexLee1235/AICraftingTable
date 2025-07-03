@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class BaseGPTIdeaGeneratorwParser {
-    String inst2="You will be given a block of text that includes 3 original Minecraft-style item names, possibly along with descriptions or reasoning.\n" +
+    String inst2 = "You will be given a block of text that includes 3 original Minecraft-style item names, possibly along with descriptions or reasoning.\n" +
             "\n" +
             "Your job is to:\n" +
             "1. Extract just the item names (no descriptions, numbering, or extra formatting).\n" +
@@ -39,25 +39,27 @@ public class BaseGPTIdeaGeneratorwParser {
             "\n" +
             "Now extract and translate from this:\n";
     private final Gson gson;
-    private final AIChatClient client;
-    private final AIChatClient extractor = new AIChatClient(
-            "gpt-4.1",  //gpt-4o gpt-4.1
-            0.0,
-            1024,
-            "You are a helpful assistant that extracts structured data and translate.",
-            "json_object");
-    public BaseGPTIdeaGeneratorwParser(String sysMsg){
+    private final AIChatClient client, extractor;
+
+    public BaseGPTIdeaGeneratorwParser(String sysMsg, String model, double temp) {
         this.gson = new GsonBuilder()
                 // map Java camelCase ↔︎ JSON snake_case automatically
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
-        client=new AIChatClient(
-                "gpt-4o",  //gpt-4o gpt-4.1
-                0.0,
+        client = new AIChatClient(
+                model,  //gpt-4o gpt-4.1
+                temp,
                 2048,
                 sysMsg,
                 "text");
+        extractor = new AIChatClient(
+                "gpt-4.1",  //gpt-4o gpt-4.1
+                0.0,
+                1024,
+                "You are a helpful assistant that extracts structured data and translate.",
+                "json_object");
     }
+
     public CompletableFuture<ItemIdeas> generate(String prompt, String lang) {
         return client.chat(prompt).thenCompose(rawResult -> {
             System.out.println(rawResult);
@@ -70,7 +72,8 @@ public class BaseGPTIdeaGeneratorwParser {
             return new ItemIdeas(result);
         });
     }
-    public static final class ItemResult{
+
+    public static final class ItemResult {
         boolean error;
         List<String> items;
         List<String> translated;

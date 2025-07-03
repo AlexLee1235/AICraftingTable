@@ -16,6 +16,7 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
     private Button optBtn1,optBtn2,optBtn3;
     public boolean visible=false;
     public OnPressNum optBtnPress;
+    public String[] idea;
     public void init(int leftPos, int topPos, OnPressNum optBtnPress){
         optBtn1 = new Button(leftPos + 98, topPos + 16, 70, 17,
                 Component.empty(), this::optBtnPress1);
@@ -55,9 +56,11 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
         return false;
     }
     public void setMessage(String[] idea){
+        this.visible=true;
         optBtn1.setMessage(Component.literal(idea[0]));
         optBtn2.setMessage(Component.literal(idea[1]));
         optBtn3.setMessage(Component.literal(idea[2]));
+        this.idea=idea;
     }
 
     @Override

@@ -19,7 +19,7 @@ public class RemoveItemCommand {
     );
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         dispatcher.register(
-                literal("aicraft").then(
+                literal("aicraft").requires(cs -> cs.hasPermission(2)).then(
                         literal("removeItem").then(
                                 argument("items", MyItemArgument.item(context))
                                         .executes(ctx -> {

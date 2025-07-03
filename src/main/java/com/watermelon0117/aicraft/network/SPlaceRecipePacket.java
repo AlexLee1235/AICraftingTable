@@ -56,9 +56,11 @@ public class SPlaceRecipePacket {
         AbstractContainerMenu menu1 = player.containerMenu;
         if (!(menu1 instanceof AICraftingTableMenu menu))
             throw new RuntimeException("not ai menu");
-        if (menu.canCraftRecipe(recipe)) {
+        if (player.isCreative() && shift) {
+            RecipePlacer.forcePlaceRecipePattern(player, recipe);
+        } else if (menu.canCraftRecipe(recipe)) {
             if (RecipePlacer.clearGridToInventory(player, menu)) {
-                RecipePlacer.placeRecipePattern(player,recipe);
+                RecipePlacer.placeRecipePattern(player, recipe);
             }
         } else {
             if (RecipePlacer.clearGridToInventory(player, menu)) {

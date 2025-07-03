@@ -99,9 +99,15 @@ public final class RecipeManager {
                 .findFirst().orElse(ItemStack.EMPTY);
     }
 
-    public void addRecipe(ItemStack res, ItemStack[] g, boolean shapeless) {
+    public void addRecipe(ItemStack result, ItemStack[] g, boolean shapeless) {
         ItemStack[] stored = shapeless ? sortShapeless(g) : Arrays.copyOf(g, 9);
-        ItemStack resCopy=res.copy();
+        for (int i = 0; i < stored.length; i++) {
+            if (!stored[i].isEmpty()) {
+                stored[i] = stored[i].copy(); // make our own copy first
+                stored[i].setCount(1);        // …then force stack-size to 1
+            }
+        }
+        ItemStack resCopy=result.copy();
         resCopy.setCount(1);
         backing().add(new Recipe(resCopy, stored, shapeless));
         dirtyAndSync();

@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft.network;
 
+import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator4;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator5;
+import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator6;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import net.minecraft.core.BlockPos;
@@ -45,7 +47,7 @@ public class SGenIdeaPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        GPTIdeaGenerator5 generator = new GPTIdeaGenerator5();
+        GPTIdeaGenerator6 generator = new GPTIdeaGenerator6();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
             generator.generate(new ItemStackArray(recipe), lang).thenAccept(results -> {

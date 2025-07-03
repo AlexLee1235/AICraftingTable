@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -105,7 +106,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
                     if (recipes.isEmpty())
                         return true;
                     PacketHandler.sendToServer(new SPlaceRecipePacket(this.menu.blockEntity.getBlockPos(),
-                            recipes.get((times++) % recipes.size()), false));
+                            recipes.get((times++) % recipes.size()), Screen.hasShiftDown()));
                 }
                 return true;
             }

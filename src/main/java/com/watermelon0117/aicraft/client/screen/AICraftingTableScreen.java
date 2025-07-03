@@ -17,6 +17,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CraftingScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.language.LanguageInfo;
 import net.minecraft.client.resources.language.LanguageManager;
@@ -48,6 +49,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private ItemIdeas itemIdeas;
     private String errorMessage = "";
     private static int session=0;
+    private boolean first=true;
 
     public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
@@ -81,11 +83,16 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }));
         this.addWidget(this.recipeBookComponent);
         this.setInitialFocus(this.recipeBookComponent);
-        if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
-            setProgress();
-        else
-            setInitial();
-        currentRecipe = new ItemStackArray(menu);
+        if (first) {
+            if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
+                setProgress();
+            else
+                setInitial();
+            currentRecipe = new ItemStackArray(menu);
+        }
+        first = false;
+    }
+    private void initWidget(){
     }
     private void updateWidgetPos() {
         bookBtn.setPosition(this.leftPos + 70, this.topPos + 56);
@@ -115,7 +122,6 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private void setGenerated(ItemIdeas idea) {
         if (state != State.GENERATING)
             throw new IllegalStateException("setGenerating");
-        options.visible = true;
         options.setMessage(idea.names);
         this.itemIdeas=idea;
         state = State.GENERATED;
@@ -225,6 +231,16 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         } else if (mainBtn.isHoveredOrFocused()) {
             blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
         }
+    }
+
+    @Override
+    public void resize(Minecraft p_96575_, int p_96576_, int p_96577_) {
+        String[] msg = options.visible ? options.idea : null;
+        super.init(p_96575_, p_96576_, p_96577_);
+        this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+        updateWidgetPos();
+        if (msg != null)
+            options.setMessage(msg);
     }
 
     @Override

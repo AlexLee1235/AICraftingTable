@@ -49,15 +49,21 @@ public final class RecipePlacer {
             Slot invSlot  = menu.getSlot(invSlotIdx);
             Slot gridSlot = menu.getSlot(AICraftingTableMenu.CRAFT_SLOT_START + i);
 
-            /* Remove ONE item from the inventory stack */
             invSlot.remove(1);
-
-            /* Put a single-item copy into the crafting grid */
-            ItemStack placed = want.copy();
-            placed.setCount(1);
-            gridSlot.set(placed);
+            gridSlot.set(want.copy());
 
             invSlot.setChanged();
+            gridSlot.setChanged();
+        }
+        return true;
+    }
+    public static boolean forcePlaceRecipePattern(ServerPlayer player, ItemStack[] pattern) {
+        if (pattern.length != 9)
+            throw new IllegalArgumentException("Pattern must have length 9");
+        AbstractContainerMenu menu = player.containerMenu;
+        for (int i = 0; i < 9; ++i) {
+            Slot gridSlot = menu.getSlot(AICraftingTableMenu.CRAFT_SLOT_START + i);
+            gridSlot.set(pattern[i].copy());
             gridSlot.setChanged();
         }
         return true;

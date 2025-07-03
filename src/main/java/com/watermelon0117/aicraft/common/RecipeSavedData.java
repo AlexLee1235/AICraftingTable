@@ -51,6 +51,7 @@ public class RecipeSavedData extends SavedData {
 
             d.recipes.add(new RecipeManager.Recipe(result, grid, shapeless));
         }
+        dedupe(d.recipes);
         return d;
     }
 
@@ -59,5 +60,28 @@ public class RecipeSavedData extends SavedData {
         ServerLevel level = srv.overworld();
         return level.getDataStorage().computeIfAbsent(
                 RecipeSavedData::load, RecipeSavedData::new, NAME);
+    }
+
+    private static void dedupe(List<RecipeManager.Recipe> list) {
+        List<RecipeManager.Recipe> unique = new ArrayList<>();
+        outer:
+        for (RecipeManager.Recipe r : list) {
+            for (RecipeManager.Recipe u : unique) {
+                if (sameRecipe(r, u)) continue outer;   // already have this one
+            }
+            unique.add(r);                              // first time we see it
+        }
+        list.clear();
+        list.addAll(unique);
+    }
+    private static boolean sameRecipe(RecipeManager.Recipe a, RecipeManager.Recipe b) {
+        if (a.shapeless != b.shapeless) return false;
+        if (!ItemStack.isSameItemSameTags(a.result, b.result) ||
+                a.result.getCount() != b.result.getCount())        return false;
+        for (int i = 0; i < 9; ++i) {
+            if (!ItemStack.isSameItemSameTags(a.grid[i], b.grid[i]) ||
+                    a.grid[i].getCount() != b.grid[i].getCount())  return false;
+        }
+        return true;
     }
 }

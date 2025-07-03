@@ -25,7 +25,7 @@ public class GPTIdeaGenerator4 {  //normal naming style
             "   - Avoid names that are vague, overly magical, or poetic.\n" +
             "   - Use common object names when appropriate, like \"Bucket\", \"Pickaxe\", or \"Hamburger\". Do not overcomplicate the names.\n" +
             "   - Avoid unnecessarily complex or overly descriptive names. If a normal word fits (e.g. Hamburger, Shovel, Pot), use it.\n";
-    BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver");
+    BaseGPTIdeaGeneratorwParser generator=new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver", "gpt-4o", 0);
     protected String buildPrompt(ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
         String prompt = String.format(
