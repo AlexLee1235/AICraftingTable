@@ -163,7 +163,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             return super.mouseClicked(p_98452_, p_98453_, p_98454_);
         }
     }
-    public void handleIdeaPacket(String[] recipe, ItemIdeas idea, boolean err, String errMsg) {
+    public void handleIdeaPacket(ItemStack[] recipe, ItemIdeas idea, boolean err, String errMsg) {
         if (state == State.GENERATING) {
             if (err) {
                 System.out.println(errMsg);
@@ -172,7 +172,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
                 errorMessage = "Error";
                 setInitial();
             } else {
-                if (Arrays.equals(recipe, new ItemStackArray(menu).getDisplayNames())) {
+                if (new ItemStackArray(menu).equals(new ItemStackArray(recipe))) {
                     setGenerated(idea);
                 } else
                     System.out.println("Canceled, not putting ideas");

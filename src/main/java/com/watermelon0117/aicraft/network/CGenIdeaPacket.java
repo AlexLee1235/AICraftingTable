@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -15,12 +16,12 @@ import java.util.function.Supplier;
 
 public class CGenIdeaPacket {
     private final BlockPos pos;
-    private final String[] recipe;
+    private final ItemStack[] recipe;
     private final ItemIdeas ideas;
     private final boolean err;
     private final String errMsg;
 
-    public CGenIdeaPacket(BlockPos pos, String[] recipe, ItemIdeas ideas, boolean err, String errMsg) {
+    public CGenIdeaPacket(BlockPos pos, ItemStack[] recipe, ItemIdeas ideas, boolean err, String errMsg) {
         this.pos = pos;
         this.recipe = recipe;
         this.ideas = ideas;
@@ -30,9 +31,9 @@ public class CGenIdeaPacket {
 
     public CGenIdeaPacket(FriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
-        String[] recipe = new String[9];
+        ItemStack[] recipe = new ItemStack[9];
         for (int i = 0; i < 9; i++) {
-            recipe[i] = buf.readUtf();
+            recipe[i] = buf.readItem();
         }
         this.recipe = recipe;
         this.ideas = new ItemIdeas(buf);
@@ -43,7 +44,7 @@ public class CGenIdeaPacket {
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
         for (int i = 0; i < 9; i++) {
-            buf.writeUtf(recipe[i]);
+            buf.writeItemStack(recipe[i], true);
         }
         ideas.write(buf);
         buf.writeBoolean(err);

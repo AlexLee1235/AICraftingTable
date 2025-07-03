@@ -52,11 +52,11 @@ public class SGenIdeaPacket {
         if (player != null && !player.level.isClientSide) {
             generator.generate(new ItemStackArray(recipe), lang).thenAccept(results -> {
                 PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, new ItemStackArray(recipe).getDisplayNames(), results, false, ""), player);
+                        new CGenIdeaPacket(pos, recipe, results, false, ""), player);
             }).exceptionally(e -> {
                 e.printStackTrace();
                 PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, new ItemStackArray(recipe).getDisplayNames(), new ItemIdeas(), true, e.getMessage()), player);
+                        new CGenIdeaPacket(pos, recipe, new ItemIdeas(), true, e.getMessage()), player);
                 return null;
             });
         }

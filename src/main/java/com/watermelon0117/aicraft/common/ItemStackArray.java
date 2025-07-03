@@ -59,9 +59,6 @@ public class ItemStackArray {
                 .filter(s -> !s.contentEquals("empty"))
                 .collect(Collectors.joining(", "));
     }
-    private static boolean stackEqual(ItemStack self, ItemStack other){
-        return self.getItem() == other.getItem() && ItemStack.tagMatches(self, other);
-    }
     public boolean isEmpty(){
         for (int i = 0; i < 9; i++)
             if(!items[i].isEmpty())
@@ -75,7 +72,7 @@ public class ItemStackArray {
         if (o == null || getClass() != o.getClass()) return false;
         ItemStackArray recipe = (ItemStackArray) o;
         for (int i = 0; i < 9; i++) {
-            if(!stackEqual(items[i], recipe.items[i]))
+            if(!ItemStack.isSameItemSameTags(items[i], recipe.items[i]))
                 return false;
         }
         return true;
