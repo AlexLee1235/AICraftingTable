@@ -1,15 +1,20 @@
 package com.watermelon0117.aicraft.common;
 
-
 import com.watermelon0117.aicraft.items.MainItem;
+import com.watermelon0117.aicraft.menu.MyCraftingMenu;
 import com.watermelon0117.aicraft.network.CSyncRecipesPacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.RepairItemRecipe;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.util.thread.EffectiveSide;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -17,15 +22,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
-/**
- * Identical recipe logic, but all persistence is now handled through
- * {@link RecipeSavedData} instead of an external file.
- */
 public final class RecipeManager {
-
     /* ── helpers ── */
-
     private static String key(ItemStack s) {
         return s.isEmpty() ? "" :
                 ForgeRegistries.ITEMS.getKey(s.getItem()) + (s.hasTag() ? s.getTag().toString() : "");
@@ -92,7 +90,23 @@ public final class RecipeManager {
     }
 
     /* ── public API (identical names / params) ── */
-
+    public static ItemStack callRecipeManager(CraftingContainer container, Level level){
+        ItemStack itemstack;
+        Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, container, level);
+        if (optional.isPresent()) {
+            CraftingRecipe craftingrecipe = optional.get();
+            itemstack = craftingrecipe.assemble(container);
+            if (craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(itemstack))
+                return ItemStack.EMPTY;
+        } else {
+            ItemStack[] itemStacks = new ItemStack[9];
+            for (int i = 0; i < 9; i++) {
+                itemStacks[i] = container.getItem(i);
+            }
+            itemstack = RecipeManager.get().match(itemStacks);
+        }
+        return itemstack;
+    }
     public ItemStack match(ItemStack[] g) {
         return backing().stream()
                 .filter(r -> r.match(g)).map(r -> r.result.copy())

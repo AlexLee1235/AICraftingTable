@@ -140,25 +140,11 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         }
         return craftingContainer;
     }
-    public static ItemStack callRecipeManager(AICraftingTableMenu menu, Level level){
-        CraftingContainer container=getDummyContainer(menu);
-        ItemStack itemstack;
-        Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, container, level);
-        if (optional.isPresent()) {
-            CraftingRecipe craftingrecipe = optional.get();
-            itemstack = craftingrecipe.assemble(container);
-            if(craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(itemstack))
-                return ItemStack.EMPTY;
-        }else {
-            ItemStackArray recipe=new ItemStackArray(menu);
-            itemstack=RecipeManager.get().match(recipe.items);
-        }
-        return itemstack;
-    }
+
     protected static void slotChangedCraftingGrid(AICraftingTableMenu menu, Level level, Player player) {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer)player;
-            ItemStack itemstack = callRecipeManager(menu, level);
+            ItemStack itemstack = RecipeManager.callRecipeManager(getDummyContainer(menu), level);
 
             menu.blockEntity.getInventory().setStackInSlot(0,itemstack);
             menu.setRemoteSlot(0, itemstack);

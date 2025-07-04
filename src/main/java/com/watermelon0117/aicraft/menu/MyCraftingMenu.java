@@ -62,27 +62,10 @@ public class MyCraftingMenu extends RecipeBookMenu<CraftingContainer> {
         }
 
     }
-    public static ItemStack callRecipeManager(MyCraftingMenu menu, Level level){
-        ItemStack itemstack;
-        Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, menu.craftSlots, level);
-        if (optional.isPresent()) {
-            CraftingRecipe craftingrecipe = optional.get();
-            itemstack = craftingrecipe.assemble(menu.craftSlots);
-            if(craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(itemstack))
-                return ItemStack.EMPTY;
-        }else {
-            ItemStack[] itemStacks=new ItemStack[9];
-            for (int i = 0; i < 9; i++) {
-                itemStacks[i]=menu.craftSlots.getItem(i);
-            }
-            itemstack= RecipeManager.get().match(itemStacks);
-        }
-        return itemstack;
-    }
     protected static void slotChangedCraftingGrid(MyCraftingMenu menu, Level level, Player p_150549_, CraftingContainer p_150550_, ResultContainer p_150551_) {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer)p_150549_;
-            ItemStack itemstack = callRecipeManager(menu, level);
+            ItemStack itemstack = RecipeManager.callRecipeManager(menu.craftSlots, level);
 
             p_150551_.setItem(0, itemstack);
             menu.setRemoteSlot(0, itemstack);
