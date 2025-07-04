@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public class GPTItemGenerator {
-    private static final String inst=
+    /*private static final String inst=
             "given a minecraft item, please answer following questions:\n" +
             "is_shapeless_crafting(true if item is structured or false if mixing)?\n" +
             "is_tool?\n" +
@@ -83,15 +83,15 @@ public class GPTItemGenerator {
             ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());
             itemStack.getOrCreateTag().put("aicraft", new CompoundTag());
             setTags(itemStack.getOrCreateTag().getCompound("aicraft"), json, id, name);
-            return imgClient.generateItem(id, recipe.getDisplayNames()/*prompt from json*/).thenApply(textureBytes -> {
+            return imgClient.generateItem(id, recipe.getDisplayNames()prompt from json)./*thenApply(textureBytes -> {
                 if (predicate.test(be)) {
                     applyTexture(textureBytes, id);
                     SpecialItemManager.get().put(itemStack);
                     RecipeManager.get().addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
                 }
-                return itemStack;
-            });
-        });
+                /*return itemStack;
+            }/*);
+        /*});
     }
     private static void setTags(CompoundTag tag, ItemResult json, String id, String name) {
         tag.putString("id", id);
@@ -169,5 +169,5 @@ public class GPTItemGenerator {
         boolean is_edible;
         int nutrition_value;
         String food_is_solid_or_liquid;
-    }
+    }*/
 }

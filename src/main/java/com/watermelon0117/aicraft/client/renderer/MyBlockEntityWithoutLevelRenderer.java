@@ -18,114 +18,86 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
-    public final Map<String, DynamicItemInstance> maps = new HashMap<>();
+public final class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
+    private static final String FALLBACK_ID = "default";
+    private final Map<String, DynamicItemInstance> sprites = new HashMap<>();
 
-    public MyBlockEntityWithoutLevelRenderer() { super(null, null); }
-
-    public void loadFromFile() {
-        File folder = FileUtil.getTextureFolder();
-        File[] files = folder.listFiles();
-
-        for (File file : files) {
-            if (file.isFile()) {
-                try {
-                    BufferedImage image = ImageIO.read(file);
-                    if (image != null) {
-                        String name = file.getName().replace(".png", "");
-                        System.out.printf("Loaded image: %s(%dx%d)\n", name, image.getWidth(), image.getHeight());
-                        this.maps.put(name, new DynamicItemInstance(image));
-                    } else {
-                        System.out.println("Skipped (not an image): " + file.getName());
-                    }
-                } catch (IOException e) {
-                    System.out.println("Error reading file: " + file.getName());
-                    e.printStackTrace();
-                }
-            }
-        }
+    public MyBlockEntityWithoutLevelRenderer() {
+        super(null, null);
+        sprites.put(FALLBACK_ID, new DynamicItemInstance(createFallbackImage()));
     }
 
-    public void loadNewFile(String name) {
-        File file = new File(FileUtil.getTextureFolder(), name + ".png");
-        System.out.println("loadNewFile");
-        System.out.println(file);
-        if (file.isFile()) {
+    /* -------------------------------------------------------------------------
+     *  Packets → sprites
+     * ---------------------------------------------------------------------- */
+    public void loadFromPacket(Map<String, byte[]> payload) {
+        payload.forEach(this::addFromPacket);
+    }
+
+    public void addFromPacket(String id, byte[] pngBytes) {
+        sprites.compute(id, (k, old) -> {
             try {
-                BufferedImage image = ImageIO.read(file);
-                if (image != null) {
-                    System.out.println("Loaded image: " + name +
-                            " (" + image.getWidth() + "x" + image.getHeight() + ")");
-                    this.maps.put(name, new DynamicItemInstance(image));
-                } else {
-                    System.out.println("Skipped (not an image): " + file.getName());
-                }
-            } catch (IOException e) {
-                System.out.println("Error reading file: " + file.getName());
-                e.printStackTrace();
+                if (old != null) old.close();
+            } catch (Exception ignored) {
             }
-        }
+            return new DynamicItemInstance(readPng(pngBytes));
+        });
     }
-    public void loadFromPacket(Map<String, byte[]> payload){
-        for (Map.Entry<String, byte[]> entry : payload.entrySet()) {
-            String key = entry.getKey();
-            byte[] value = entry.getValue();
-            maps.put(key, new DynamicItemInstance(fromBytes(value)));
-        }
-    }
-    public void addFromPacket(String id,byte[] data){
-        maps.put(id, new DynamicItemInstance(fromBytes(data)));
-    }
-    private static BufferedImage fromBytes(byte[] imageBytes){
-        try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes);
-            BufferedImage image = ImageIO.read(bais);
-            if (image == null)
-                System.out.println("Failed to decode image bytes.");
-            return image;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+
     @Override
-    public void renderByItem(ItemStack itemStack, ItemTransforms.TransformType ctx, PoseStack poseStack, MultiBufferSource buffers,
+    public void renderByItem(ItemStack stack, ItemTransforms.TransformType ctx,
+                             PoseStack poseStack, MultiBufferSource buffers,
                              int light, int overlay) {
-        poseStack.pushPose();
-        if (!this.maps.containsKey("default")) {
-            BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = img.createGraphics();
-            g2d.setColor(new Color(255, 255, 255, 255));  // white
-            g2d.fillRect(0, 0, 16, 16);
-            g2d.dispose();
-            this.maps.put("default", new DynamicItemInstance(img));
+        String id = Optional.ofNullable(MainItem.getID(stack)).orElse(FALLBACK_ID);
+        DynamicItemInstance sprite = sprites.getOrDefault(id, sprites.get(FALLBACK_ID));
+        sprite.draw(poseStack, buffers, light);
+    }
+
+    public ResourceLocation getTexture(ItemStack stack){
+        String id = Optional.ofNullable(MainItem.getID(stack)).orElse(FALLBACK_ID);
+        DynamicItemInstance sprite = sprites.getOrDefault(id, sprites.get(FALLBACK_ID));
+        return sprite.rl;
+    }
+
+    /* -------------------------------------------------------------------------
+     *  Utilities
+     * ---------------------------------------------------------------------- */
+
+    private static BufferedImage readPng(byte[] data) {
+        try (var in = new ByteArrayInputStream(data)) {
+            return Optional.ofNullable(ImageIO.read(in)).orElseGet(MyBlockEntityWithoutLevelRenderer::createFallbackImage);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return createFallbackImage();
         }
-        String id = MainItem.getID(itemStack);
-        if (id == null || !this.maps.containsKey(id)) {
-            id = "default";
-        }
-        DynamicItemInstance instance = this.maps.get(id);
-        instance.draw(poseStack, buffers, false, light);
-        poseStack.popPose();
+    }
+
+    private static BufferedImage createFallbackImage() {
+        int DEFAULT_IMG_SIZE = 16;
+        BufferedImage img = new BufferedImage(DEFAULT_IMG_SIZE, DEFAULT_IMG_SIZE, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, DEFAULT_IMG_SIZE, DEFAULT_IMG_SIZE);
+        g.dispose();
+        return img;
     }
 
     private static void vertex(VertexConsumer vc,
                                Matrix4f poseMat,
                                Matrix3f normalMat,
-                               float x,  float y,  float z,   // position
-                               float u,  float v,             // UV
-                               int   uv2,                     // lightmap
-                               float nx, float ny, float nz)  // normal  ← NEW
-    {
+                               float x, float y, float z,
+                               float u, float v,
+                               int uv2,
+                               float nx, float ny, float nz) {
         vc.vertex(poseMat, x, y, z)
                 .color(255, 255, 255, 255)
                 .uv(u, v)
@@ -136,96 +108,91 @@ public class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
     }
 
     @OnlyIn(Dist.CLIENT)
-    public class DynamicItemInstance implements AutoCloseable {
-        private BufferedImage image;
-        private DynamicTexture texture;
-        private RenderType renderType;
-        private boolean requiresUpload = true;
+    public static final class DynamicItemInstance implements AutoCloseable {
+        public final DynamicTexture texture;
+        public ResourceLocation rl;
+        public RenderType renderType;
+        private boolean dirty = true;
+        public final int size;
 
         DynamicItemInstance(BufferedImage image) {
-            this.image = image;
+            this.texture = new DynamicTexture(image.getWidth(), image.getHeight(), true);
+            size = image.getWidth();
+            for (int x = 0; x < size; ++x) {
+                for (int y = 0; y < size; ++y) {
+                    int argb = image.getRGB(x, y);
+                    int swapped = ((argb & 0x00ff0000) >> 16)
+                            | (argb & 0xff00ff00)
+                            | ((argb & 0x000000ff) << 16);
+                    texture.getPixels().setPixelRGBA(x, size - 1 - y, swapped);
+                }
+            }
         }
 
         private void updateTexture() {
-            if (this.texture == null) {
-                this.texture = new DynamicTexture(image.getWidth(), image.getWidth(), true);
-                ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("map/" + 0, this.texture);
-                this.renderType = RenderType.entityCutout(resourcelocation);
-            }
-            for (int i = 0; i < image.getWidth(); ++i) {
-                for (int j = 0; j < image.getWidth(); ++j) {
-                    int color = this.image.getRGB(i, j);
-                    int red = (color & 0x00ff0000) >> 16;
-                    int blue = (color & 0x000000ff) << 16;
-                    color = (color & 0xff00ff00) | red | blue;
-                    this.texture.getPixels().setPixelRGBA(i, image.getWidth() - j - 1, color);
-                }
-            }
-            this.texture.upload();
+            rl = Minecraft.getInstance().getTextureManager()
+                    .register("dynamic_map/" + UUID.randomUUID(), texture);
+            this.renderType = RenderType.entityCutout(rl);
+            texture.upload();
         }
 
-        void draw(PoseStack p_93292_, MultiBufferSource p_93293_, boolean p_93294_, int uv2) {
-            if (this.requiresUpload) {
-                this.updateTexture();
-                this.requiresUpload = false;
+        void draw(PoseStack poseStack, MultiBufferSource source, int uv2) {
+            if (dirty) {
+                updateTexture();
+                dirty = false;
             }
-            p_93292_.pushPose();
-            PoseStack.Pose pose = p_93292_.last();
-            Matrix4f mat   = pose.pose();
-            Matrix3f nMat  = pose.normal();        // ← pass this to every call
-            VertexConsumer vc = p_93293_.getBuffer(this.renderType);
+            poseStack.pushPose();
+            Matrix4f mat = poseStack.last().pose();
+            Matrix3f nMat = poseStack.last().normal();
+            VertexConsumer vc = source.getBuffer(this.renderType);
 
-            int grid = this.image.getHeight();
-            float h = 1.0F / grid;
-            float th=grid;
-            float th2 = Math.max(1.0F / th / 2.0F, 1.0F / 32.0F / 2.0F);
-            //RenderSystem.disableCull();
+            float h = 1.0F / size;
+            float th2 = Math.max(1.0F / size / 2.0F, 1.0F / 32.0F / 2.0F);  //control thickness to be max(1/size, 1/32) voxel
+
             // front (+Z)
-            vertex(vc, mat, nMat, 0, 0, 0.5f + th2, 0, 0, uv2, 0, 0,  1);
-            vertex(vc, mat, nMat, 1, 0, 0.5f + th2, 1, 0, uv2, 0, 0,  1);
-            vertex(vc, mat, nMat, 1, 1, 0.5f + th2, 1, 1, uv2, 0, 0,  1);
-            vertex(vc, mat, nMat, 0, 1, 0.5f + th2, 0, 1, uv2, 0, 0,  1);
-
+            vertex(vc, mat, nMat, 0, 0, 0.5f + th2, 0, 0, uv2, 0, 0, 1);
+            vertex(vc, mat, nMat, 1, 0, 0.5f + th2, 1, 0, uv2, 0, 0, 1);
+            vertex(vc, mat, nMat, 1, 1, 0.5f + th2, 1, 1, uv2, 0, 0, 1);
+            vertex(vc, mat, nMat, 0, 1, 0.5f + th2, 0, 1, uv2, 0, 0, 1);
             // back (–Z)
             vertex(vc, mat, nMat, 0, 1, 0.5f - th2, 0, 1, uv2, 0, 0, -1);
             vertex(vc, mat, nMat, 1, 1, 0.5f - th2, 1, 1, uv2, 0, 0, -1);
             vertex(vc, mat, nMat, 1, 0, 0.5f - th2, 1, 0, uv2, 0, 0, -1);
             vertex(vc, mat, nMat, 0, 0, 0.5f - th2, 0, 0, uv2, 0, 0, -1);
-
-            for (int i = 0; i < grid; i++) {
-                float y = (float) i / grid;                 // bottom face  (-Y)
-                vertex(vc, mat, nMat, 0, y, 0.5f - th2, 0, y,       uv2, 0, -1, 0);
-                vertex(vc, mat, nMat, 1, y, 0.5f - th2, 1, y,       uv2, 0, -1, 0);
-                vertex(vc, mat, nMat, 1, y, 0.5f + th2, 1, y + h,   uv2, 0, -1, 0);
-                vertex(vc, mat, nMat, 0, y, 0.5f + th2, 0, y + h,   uv2, 0, -1, 0);
+            for (int i = 0; i < size; i++) {
+                float y = (float) i / size;                 // bottom face  (-Y)
+                vertex(vc, mat, nMat, 0, y, 0.5f - th2, 0, y, uv2, 0, -1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f - th2, 1, y, uv2, 0, -1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f + th2, 1, y + h, uv2, 0, -1, 0);
+                vertex(vc, mat, nMat, 0, y, 0.5f + th2, 0, y + h, uv2, 0, -1, 0);
             }
-            for (int i = 0; i < grid; i++) {
-                float y = (float) (i + 1) / grid;           // top face (+Y)
-                vertex(vc, mat, nMat, 0, y, 0.5f + th2, 0, y,       uv2, 0,  1, 0);
-                vertex(vc, mat, nMat, 1, y, 0.5f + th2, 1, y,       uv2, 0,  1, 0);
-                vertex(vc, mat, nMat, 1, y, 0.5f - th2, 1, y - h,   uv2, 0,  1, 0);
-                vertex(vc, mat, nMat, 0, y, 0.5f - th2, 0, y - h,   uv2, 0,  1, 0);
+            for (int i = 0; i < size; i++) {
+                float y = (float) (i + 1) / size;           // top face (+Y)
+                vertex(vc, mat, nMat, 0, y, 0.5f + th2, 0, y, uv2, 0, 1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f + th2, 1, y, uv2, 0, 1, 0);
+                vertex(vc, mat, nMat, 1, y, 0.5f - th2, 1, y - h, uv2, 0, 1, 0);
+                vertex(vc, mat, nMat, 0, y, 0.5f - th2, 0, y - h, uv2, 0, 1, 0);
             }
-            for (int i = 0; i < grid; i++) {
-                float x = (float) i / grid;                 // west face (-X)
-                vertex(vc, mat, nMat, x, 0, 0.5f + th2, x, 0,       uv2, -1, 0, 0);
-                vertex(vc, mat, nMat, x, 1, 0.5f + th2, x, 1,       uv2, -1, 0, 0);
-                vertex(vc, mat, nMat, x, 1, 0.5f - th2, x + h, 1,  uv2, -1, 0, 0);
-                vertex(vc, mat, nMat, x, 0, 0.5f - th2, x + h, 0,  uv2, -1, 0, 0);
+            for (int i = 0; i < size; i++) {
+                float x = (float) i / size;                 // west face (-X)
+                vertex(vc, mat, nMat, x, 0, 0.5f + th2, x, 0, uv2, -1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f + th2, x, 1, uv2, -1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f - th2, x + h, 1, uv2, -1, 0, 0);
+                vertex(vc, mat, nMat, x, 0, 0.5f - th2, x + h, 0, uv2, -1, 0, 0);
             }
-            for (int i = 0; i < grid; i++) {
-                float x = (float) (i + 1) / grid;           // east face (+X)
-                vertex(vc, mat, nMat, x, 0, 0.5f - th2, x, 0,       uv2, 1, 0, 0);
-                vertex(vc, mat, nMat, x, 1, 0.5f - th2, x, 1,       uv2, 1, 0, 0);
-                vertex(vc, mat, nMat, x, 1, 0.5f + th2, x - h, 1,  uv2, 1, 0, 0);
-                vertex(vc, mat, nMat, x, 0, 0.5f + th2, x - h, 0,  uv2, 1, 0, 0);
+            for (int i = 0; i < size; i++) {
+                float x = (float) (i + 1) / size;           // east face (+X)
+                vertex(vc, mat, nMat, x, 0, 0.5f - th2, x, 0, uv2, 1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f - th2, x, 1, uv2, 1, 0, 0);
+                vertex(vc, mat, nMat, x, 1, 0.5f + th2, x - h, 1, uv2, 1, 0, 0);
+                vertex(vc, mat, nMat, x, 0, 0.5f + th2, x - h, 0, uv2, 1, 0, 0);
             }
-
-            p_93292_.popPose();
+            poseStack.popPose();
         }
 
+        @Override
         public void close() {
-            this.texture.close();
+            texture.close();
         }
     }
 }
