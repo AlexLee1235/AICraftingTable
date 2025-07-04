@@ -32,12 +32,10 @@ public final class RecipeShapeMatcher {
     /*───────────────────────────── Public API ─────────────────────────────*/
 
     /** Returns the first matching (shape, material) pair, or {@code null} if none. */
-    public static Match match(ItemStack[] grid) {
-        if (grid == null || grid.length != 9) return null;
-
+    public static Match match(ItemStackArray grid) {
         for (Map.Entry<String, String> entry : PATTERNS) {
             for (String shifted : shiftPattern(entry.getValue())) {
-                ItemStack mat = tryMatch(grid, shifted);
+                ItemStack mat = tryMatch(grid.items, shifted);
                 if (!mat.isEmpty()) {
                     return new Match(entry.getKey(), mat);
                 }

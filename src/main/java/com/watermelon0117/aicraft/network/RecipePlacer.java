@@ -1,8 +1,6 @@
 package com.watermelon0117.aicraft.network;
 
-import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
-import net.minecraft.network.protocol.game.ServerboundPlaceRecipePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
@@ -34,7 +32,7 @@ public final class RecipePlacer {
     /* 2. Place the supplied 3 × 3 recipe pattern.                        */
     /*    Returns false if the player lacks any ingredient.              */
     /* ────────────────────────────────────────────────────────────────── */
-    public static boolean placeRecipePattern(ServerPlayer player, ItemStack[] pattern) {
+    public static void placeRecipePattern(ServerPlayer player, ItemStack[] pattern) {
         if (pattern.length != 9)
             throw new IllegalArgumentException("Pattern must have length 9");
 
@@ -45,20 +43,19 @@ public final class RecipePlacer {
             if (want.isEmpty()) continue;              // blank slot in recipe
 
             int invSlotIdx = findMatchingInventorySlot(menu, want);
-            if (invSlotIdx == -1) return false;        // missing ingredient
+            if (invSlotIdx == -1) return;        // missing ingredient
 
             Slot invSlot = menu.getSlot(invSlotIdx);
             Slot gridSlot = menu.getSlot(AICraftingTableMenu.CRAFT_SLOT_START + i);
 
             invSlot.remove(1);
-            ItemStack placed=want.copy();
-            placed.setCount(gridSlot.getItem().getCount()+1);
+            ItemStack placed = want.copy();
+            placed.setCount(Math.min(gridSlot.getItem().getCount() + 1, gridSlot.getItem().getMaxStackSize()));
             gridSlot.set(placed);
 
             invSlot.setChanged();
             gridSlot.setChanged();
         }
-        return true;
     }
     public static boolean alreadyHas(ServerPlayer player, ItemStack[] pattern) {
         AbstractContainerMenu menu = player.containerMenu;
@@ -68,18 +65,17 @@ public final class RecipePlacer {
             }
         return true;
     }
-    public static boolean forcePlaceRecipePattern(ServerPlayer player, ItemStack[] pattern) {
+    public static void forcePlaceRecipePattern(ServerPlayer player, ItemStack[] pattern) {
         if (pattern.length != 9)
             throw new IllegalArgumentException("Pattern must have length 9");
         AbstractContainerMenu menu = player.containerMenu;
         for (int i = 0; i < 9; ++i) {
             Slot gridSlot = menu.getSlot(AICraftingTableMenu.CRAFT_SLOT_START + i);
             ItemStack placed=pattern[i].copy();
-            placed.setCount(gridSlot.getItem().getCount()+1);
+            placed.setCount(Math.min(gridSlot.getItem().getCount()+1, gridSlot.getItem().getMaxStackSize()));
             gridSlot.set(placed);
             gridSlot.setChanged();
         }
-        return true;
     }
     /* ────────────────────────────────────────────────────────────────── */
     /* Helper: locate an inventory slot whose stack isSameItemSameTags   */

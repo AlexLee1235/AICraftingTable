@@ -18,6 +18,8 @@ public class ItemStackArray {
             items[i] = menu.slots.get(i+1).getItem();
     }
     public ItemStackArray(ItemStack[] items) {
+        if (items == null || items.length != 9)
+            throw new IllegalArgumentException();
         this.items = items;
     }
     public static ItemStackArray deepCopy(ItemStackArray other){
@@ -43,18 +45,8 @@ public class ItemStackArray {
         }
         return list;
     }
-    public String[] getEnglishNames() {
-        String[] list = new String[9];
-        for (int i = 0; i < 9; i++) {
-            if (items[i].isEmpty())
-                list[i] = "empty";
-            else
-                list[i] = strip(items[i].getDisplayName().getString());
-        }
-        return list;
-    }
-    public static String getUniqueNames(String[] input) {
-        return Arrays.stream(input)
+    public String getUniqueNames() {
+        return Arrays.stream(getDisplayNames())
                 .distinct()
                 .filter(s -> !s.contentEquals("empty"))
                 .collect(Collectors.joining(", "));

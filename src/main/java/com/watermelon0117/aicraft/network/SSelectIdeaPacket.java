@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.gpt.GPTItemGenerator2;
+import com.watermelon0117.aicraft.gpt.GPTItemGenerator3;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
@@ -58,8 +59,7 @@ public class SSelectIdeaPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-
-        GPTItemGenerator2 generator = new GPTItemGenerator2();
+        GPTItemGenerator3 generator = new GPTItemGenerator3();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);

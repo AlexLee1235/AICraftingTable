@@ -55,8 +55,11 @@ public class SPlaceRecipePacket {
     private void placeRecipe(AICraftingTableBlockEntity be, ServerPlayer player) {
         AbstractContainerMenu menu1 = player.containerMenu;
         if (!(menu1 instanceof AICraftingTableMenu menu))
-            throw new RuntimeException("not ai menu");
+            return;
         if (player.isCreative() && shift) {
+            if(!RecipePlacer.alreadyHas(player, recipe))
+                for (int i = 0; i < 9; i++)
+                    menu.slots.get(i+1).set(ItemStack.EMPTY);
             RecipePlacer.forcePlaceRecipePattern(player, recipe);
         } else if (menu.canCraftRecipe(recipe)) {
             if(RecipePlacer.alreadyHas(player, recipe)){

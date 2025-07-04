@@ -40,7 +40,7 @@ public class GPTIdeaGenerator4 {  //normal naming style
                         "Bottom Right: %s\n",
                 inst, in[0], in[1], in[2], in[3], in[4], in[5], in[6], in[7], in[8]
         );
-        var match = RecipeShapeMatcher.match(recipe.items);
+        var match = RecipeShapeMatcher.match(recipe);
         if (match != null) {
             prompt += String.format(
                     "This has the same shape as a vanilla Minecraft %s. If it makes sense, you may suggest a %s as an idea, but you can NOT suggest more than one %s in your answer",
