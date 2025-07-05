@@ -41,9 +41,8 @@ public class SSelectIdeaPacket {
         this.id = buf.readUtf();
         this.name = buf.readUtf();
         ItemStack[] recipe = new ItemStack[9];
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++)
             recipe[i] = buf.readItem();
-        }
         this.recipe = recipe;
         this.override = buf.readBoolean();
     }
@@ -52,9 +51,8 @@ public class SSelectIdeaPacket {
         buf.writeBlockPos(pos);
         buf.writeUtf(id);
         buf.writeUtf(name);
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++)
             buf.writeItemStack(recipe[i], true);
-        }
         buf.writeBoolean(override);
     }
 
@@ -71,33 +69,29 @@ public class SSelectIdeaPacket {
                     be.setProgress(580);
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                 } else {
-                    be.setProgress(1);
+                    be.setProgress(10);  //show a pixel first
                     int tId = incrementID++;
                     be.taskID = tId;
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                     generator.generate(id, name, new ItemStackArray(recipe), be, b -> b.taskID == tId && b.getProgress() != 0).thenAccept(itemStack -> {
-                                if (be.taskID == tId && be.getProgress() != 0) {
-                                    be.getInventory().setStackInSlot(0, itemStack);
-                                    be.setProgress(580);
-                                    player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                                } else {
-                                    System.out.println("Canceled, not putting image");
-                                }
-                            })
-                            .exceptionally(ex -> {
-                                System.out.println("hi");
-                                ex.printStackTrace();
-                                be.setProgress(0);
-                                player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                                sendErrToAll(player.level, ex.getMessage());
-                                return null;
-                            });
+                        if (be.taskID == tId && be.getProgress() != 0) {
+                            be.getInventory().setStackInSlot(0, itemStack);
+                            be.setProgress(580);
+                        } else
+                            System.out.println("Canceled, not putting image");
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        be.setProgress(0);
+                        sendErrToAll(player.level, ex.getMessage());
+                        return null;
+                    });
                 }
             }
         }
     }
-    private static void sendErrToAll(Level level, String msg){
-        for (ServerPlayer player : ((ServerLevel)level).getPlayers(p->true)) {
+
+    private static void sendErrToAll(Level level, String msg) {
+        for (ServerPlayer player : ((ServerLevel) level).getPlayers(p -> true)) {
             player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
             player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.RED));
         }

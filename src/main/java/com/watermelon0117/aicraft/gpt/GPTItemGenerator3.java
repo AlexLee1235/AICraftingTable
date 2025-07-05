@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public class GPTItemGenerator3 {
-    private static final String inst =
+    private static final String INSTRUCTION =
             "given a minecraft item, please answer following questions:\n" +
                     "is_shapeless_crafting(true if recipe is structured or false if mixing)?\n" +
                     "is_tool?\n" +
@@ -39,24 +39,107 @@ public class GPTItemGenerator3 {
                     "is_edible?\n" +
                     "nutrition_value(0 to 20, apple is 4 for reference)?\n" +
                     "food_is_solid_or_liquid?\n";
-    private final AIChatClient client = new AIChatClient(
-            "gpt-4o",  //gpt-4o gpt-4.1
-            0.0,
-            1024,
-            "",
-            "json_object");
-    private final Gson gson;
-    private final GPTImageGenerator2 imgClient = new GPTImageGenerator2();
 
-    public GPTItemGenerator3() {
-        this.gson = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
+    private final AIChatClient client = new AIChatClient("gpt-4o", 0.0, 1024, "", "json_object");
+    private final GPTImageGenerator2 imgClient = new GPTImageGenerator2();
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+
+    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
+        String prompt = buildPrompt(id, recipe);
+        System.out.println(prompt);
+
+        return client.chat(prompt).thenCompose(rawJson -> {
+            System.out.println(rawJson);
+            ItemResult json = gson.fromJson(rawJson, ItemResult.class);
+            ItemStack itemStack = makeItem(json, id, name);
+            return imgClient.generateItem(id, recipe.getDisplayNames(), getVisualDescription(name, recipe)).thenApply(textureBytes -> {
+                if (predicate.test(be)) {
+                    byte[] processedTexture = TextureManager.applyTexture(textureBytes, id);
+                    PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
+                    SpecialItemManager.get().put(itemStack);
+                    RecipeManager.get().addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
+                }
+                return itemStack;
+            });
+        });
+    }
+
+    private static ItemStack makeItem(ItemResult json, String id, String name) {
+        ItemStack itemStack = json.is_edible
+                ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get())
+                : new ItemStack(ItemInit.MAIN_ITEM.get());
+
+        CompoundTag tag = new CompoundTag();
+        tag.putString("id", id);
+        tag.putString("name", name);
+
+        putBooleanIfTrue(tag, "isPickaxe", json.is_suitable_for_breaking_stone);
+        putBooleanIfTrue(tag, "isAxe", json.is_suitable_for_breaking_woods);
+        putBooleanIfTrue(tag, "isShovel", json.is_suitable_for_breaking_dirts);
+        putBooleanIfTrue(tag, "isHoe", json.is_suitable_to_plow);
+        putBooleanIfTrue(tag, "isMelee", json.is_melee_weapon);
+
+        if (isToolOrWeapon(json)) {
+            tag.putByte("tier", getTier(json));
+            tag.putDouble("attackDamage", getDamage(json.damage));
+            tag.putDouble("attackSpeed", getAttackSpeed(json.attack_speed));
+        }
+
+        if (json.is_edible) {
+            tag.putByte("nutrition", (byte) json.nutrition_value);
+            tag.putBoolean(json.food_is_solid_or_liquid != null && json.food_is_solid_or_liquid.equals("liquid") ? "isDrink" : "isFood", true);
+        }
+
+        itemStack.getOrCreateTag().put("aicraft", tag);
+        return itemStack;
+    }
+
+    private static void putBooleanIfTrue(CompoundTag tag, String key, boolean condition) {
+        if (condition) tag.putBoolean(key, true);
+    }
+
+    private static boolean isToolOrWeapon(ItemResult json) {
+        return json.is_tool || json.is_melee_weapon ||
+                json.is_suitable_for_breaking_stone || json.is_suitable_for_breaking_woods ||
+                json.is_suitable_for_breaking_dirts || json.is_suitable_to_plow;
+    }
+
+    private static byte getTier(ItemResult json) {
+        if (json.tier == null) {
+            System.out.println("found tool/weapon without tier!");
+            return (byte) Tiers.STONE.ordinal();
+        }
+
+        return switch (json.tier) {
+            case "wooden" -> (byte) Tiers.WOOD.ordinal();
+            case "stone" -> (byte) Tiers.STONE.ordinal();
+            case "iron" -> (byte) Tiers.IRON.ordinal();
+            case "diamond" -> (byte) Tiers.DIAMOND.ordinal();
+            case "netherite" -> (byte) Tiers.NETHERITE.ordinal();
+            case "golden" -> (byte) Tiers.GOLD.ordinal();
+            default -> (byte) Tiers.STONE.ordinal();
+        };
+    }
+
+    private static double getDamage(String damage) {
+        return switch (damage == null ? "normal" : damage) {
+            case "low" -> 1;
+            case "high" -> 7;
+            default -> 3;
+        };
+    }
+
+    private static double getAttackSpeed(String attackSpeed) {
+        return switch (attackSpeed == null ? "normal" : attackSpeed) {
+            case "fast" -> -2.0;
+            case "slow" -> -3.2;
+            default -> -2.5;
+        };
     }
 
     private static String buildPrompt(String name, ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
-        String r = String.format(
+        String recipeDescription = String.format(
                 "Recipe:\n\tTop Left: %s\n" +
                         "\tTop: %s\n" +
                         "\tTop Right: %s\n" +
@@ -66,124 +149,13 @@ public class GPTItemGenerator3 {
                         "\tBottom Left: %s\n" +
                         "\tBottom: %s\n" +
                         "\tBottom Right: %s\n",
-                in[0], in[1], in[2], in[3], in[4], in[5], in[6], in[7], in[8]
-        );
-        return inst + String.format("Item: %s\n", name) +
-                r +
-                "\nplease answer in json format";
+                in[0], in[1], in[2], in[3], in[4], in[5], in[6], in[7], in[8]);
+
+        return INSTRUCTION + "Item: " + name + "\n" + recipeDescription + "\nplease answer in json format";
     }
 
-    public static String getCurrentDateTime() {
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-        return now.format(formatter);
-    }
-
-    private static byte[] toBytes(BufferedImage txt) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(txt, "png", baos);
-        baos.flush(); // ensure all bytes are written
-        byte[] bytes2 = baos.toByteArray();
-        baos.close();
-        return bytes2;
-    }
-
-    private static void applyTexture(byte[] bytes, String id) {
-        try {
-            Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
-            Files.write(FileUtil.getArchiveFolder(id + "_" + getCurrentDateTime() + ".png").toPath(), bytes);
-            BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes));
-            ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), id + ".png"));
-            PacketHandler.sendToAllClients(new CAddTexturePacket(id, toBytes(txt)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
     private static String getVisualDescription(String name, ItemStackArray recipe) {
         return name + " is made of: " + recipe.getUniqueNames();
-    }
-    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
-        String prompt = buildPrompt(id, recipe);
-        System.out.println(prompt);
-        return client.chat(prompt).thenCompose(rawJson -> {
-            System.out.println(rawJson);
-            ItemResult json = gson.fromJson(rawJson, ItemResult.class);
-            ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());
-            itemStack.getOrCreateTag().put("aicraft", new CompoundTag());
-            setTags(itemStack.getOrCreateTag().getCompound("aicraft"), json, id, name);
-            return imgClient.generateItem(id, recipe.getDisplayNames(), getVisualDescription(name, recipe)).thenApply(textureBytes -> {
-                if (predicate.test(be)) {
-                    applyTexture(textureBytes, id);
-                    SpecialItemManager.get().put(itemStack);
-                    RecipeManager.get().addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
-                }
-                return itemStack;
-            });
-        });
-    }
-
-    private static void setTags(CompoundTag tag, ItemResult json, String id, String name) {
-        tag.putString("id", id);
-        tag.putString("name", name);
-        if (json.is_suitable_for_breaking_stone)
-            tag.putBoolean("isPickaxe", true);
-        if (json.is_suitable_for_breaking_woods)
-            tag.putBoolean("isAxe", true);
-        if (json.is_suitable_for_breaking_dirts)
-            tag.putBoolean("isShovel", true);
-        if (json.is_suitable_to_plow)
-            tag.putBoolean("isHoe", true);
-        if (json.is_melee_weapon)
-            tag.putBoolean("isMelee", true);
-        if (json.is_tool || json.is_melee_weapon || json.is_suitable_for_breaking_stone || json.is_suitable_for_breaking_woods || json.is_suitable_for_breaking_dirts || json.is_suitable_to_plow) {
-            tag.putByte("tier", getTier(json));
-            //sword pickaxe axe shovel hoe
-            //double[] num1={3,1,7,1.5,-1};
-            //double[] num2={-2.4,-2.8,-3.2-3.0,-2.0};
-            double damage = switch (json.damage == null ? "normal" : json.damage) {
-                case "low" -> 1;
-                case "high" -> 7;
-                case "normal" -> 3;
-                default -> 3;
-            };
-
-            double attackSpeed = switch (json.attack_speed == null ? "normal" : json.attack_speed) {
-                case "fast" -> -2.0;
-                case "slow" -> -3.2;
-                case "normal" -> -2.5;
-                default -> -2.5;
-            };
-            tag.putDouble("attackDamage", damage);
-            tag.putDouble("attackSpeed", attackSpeed);
-        }
-        //food
-        if (json.is_edible) {
-            tag.putByte("nutrition", (byte) json.nutrition_value);
-            if (json.food_is_solid_or_liquid != null && json.food_is_solid_or_liquid.contentEquals("liquid"))
-                tag.putBoolean("isDrink", true);
-            else
-                tag.putBoolean("isFood", true);
-        }
-    }
-
-    private static byte getTier(ItemResult json) {
-        if (json.tier == null) {
-            System.out.println("found tool/weapon without tier!");
-            return (byte) Tiers.STONE.ordinal();
-        }
-        if (json.tier.contentEquals("wooden"))
-            return (byte) Tiers.WOOD.ordinal();
-        else if (json.tier.contentEquals("stone"))
-            return (byte) Tiers.STONE.ordinal();
-        else if (json.tier.contentEquals("iron"))
-            return (byte) Tiers.IRON.ordinal();
-        else if (json.tier.contentEquals("diamond"))
-            return (byte) Tiers.DIAMOND.ordinal();
-        else if (json.tier.contentEquals("netherite"))
-            return (byte) Tiers.NETHERITE.ordinal();
-        else if (json.tier.contentEquals("golden"))
-            return (byte) Tiers.GOLD.ordinal();
-        return (byte) Tiers.STONE.ordinal();
     }
 
     private static final class ItemResult {

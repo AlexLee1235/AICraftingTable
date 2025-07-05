@@ -34,94 +34,91 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_2 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_2.png");
     private static final ResourceLocation RECIPE_BUTTON_LOCATION = new ResourceLocation("textures/gui/recipe_button.png");
-    private Button mainBtn, reBtn;
-    private ImageButton bookBtn;
-    public CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
-    private OptionsComponent options;
-    private enum State{
-        INITIAL,
-        GENERATING,
-        GENERATED,
-        PROGRESS
-    }
+
+    private enum State {INITIAL, GENERATING, GENERATED, PROGRESS}
+
     private State state;
     private ItemStackArray currentRecipe;
     private ItemIdeas itemIdeas;
-    private String errorMessage = "";
-    private static int session=0;
-    private boolean first=true;
+    private boolean error = false;
+    private boolean first = true;
 
-    public AICraftingTableScreen(AICraftingTableMenu p_98448_, Inventory p_98449_, Component p_98450_) {
-        super(p_98448_, p_98449_, p_98450_);
-        session++;
+    private Button mainBtn, reBtn;
+    private ImageButton bookBtn;
+    private OptionsComponent options;
+    public final CustomRecipeBookComponent recipeBookComponent = new CustomRecipeBookComponent();
+
+    public AICraftingTableScreen(AICraftingTableMenu menu, Inventory inventory, Component title) {
+        super(menu, inventory, title);
     }
 
-    private void createWidgets() {
-        mainBtn = addRenderableWidget(new Button(leftPos + 67, topPos + 34, 26, 17,
-                Component.empty(), this::btnPress) {
-            @Override
-            public void render(PoseStack p_93657_, int p_93658_, int p_93659_, float p_93660_) {
-                if (this.visible)
-                    this.isHovered = p_93658_ >= this.x && p_93659_ >= this.y && p_93658_ < this.x + this.width && p_93659_ < this.y + this.height;
-            }
-        });
-        reBtn=addWidget(new Button(leftPos + 155, topPos + 49, 6, 6,
-                Component.empty(), this::reBtnPress));
-    }
-
+    @Override
     protected void init() {
         super.init();
         titleLabelX = 29;
-        createWidgets();
-        this.recipeBookComponent.init(this.width, this.height, this.minecraft, menu);
+        mainBtn = addRenderableWidget(new Button(leftPos + 67, topPos + 34, 26, 17, Component.empty(), this::btnPress) {
+            @Override
+            public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+                if (visible) isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
+            }
+        });
+        reBtn = addWidget(new Button(leftPos + 155, topPos + 49, 6, 6, Component.empty(), this::reBtnPress));
+
+        recipeBookComponent.init(width, height, minecraft, menu);
         options = addRenderableWidget(new OptionsComponent());
         options.init(leftPos, topPos, this::optBtnPress);
-        bookBtn = this.addRenderableWidget(new ImageButton(this.leftPos + 70, this.topPos + 56, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
-            this.recipeBookComponent.toggleVisibility();
-            this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+
+        bookBtn = addRenderableWidget(new ImageButton(leftPos + 70, topPos + 56, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, btn -> {
+            recipeBookComponent.toggleVisibility();
+            leftPos = recipeBookComponent.updateScreenPosition(width, imageWidth);
             updateWidgetPos();
         }));
-        this.addWidget(this.recipeBookComponent);
-        this.setInitialFocus(this.recipeBookComponent);
+
+        addWidget(recipeBookComponent);
+        setInitialFocus(recipeBookComponent);
+
         if (first) {
-            if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0)
-                setProgress();
-            else
-                setInitial();
+            if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0) setProgress();
+            else setInitial();
             currentRecipe = new ItemStackArray(menu);
         }
         first = false;
     }
+
     private void updateWidgetPos() {
-        bookBtn.setPosition(this.leftPos + 70, this.topPos + 56);
+        bookBtn.setPosition(leftPos + 70, topPos + 56);
         options.updateWidgetPos(leftPos, topPos);
         mainBtn.x = leftPos + 67;
         mainBtn.y = topPos + 34;
         reBtn.x = leftPos + 155;
         reBtn.y = topPos + 49;
     }
+
     private void setInitial() {
         mainBtn.visible = true;
         options.visible = false;
         state = State.INITIAL;
     }
+
     private void setProgress() {
         mainBtn.visible = false;
         options.visible = false;
         state = State.PROGRESS;
     }
+
     private void setGenerating() {
         if (state != State.INITIAL && state != State.GENERATING && state != State.GENERATED)
-            throw new IllegalStateException("setGenerating");
+            throw new IllegalStateException();
         options.visible = false;
-        errorMessage = "";
+        error = false;
         state = State.GENERATING;
     }
+
     private void setGenerated(ItemIdeas idea) {
         if (state != State.GENERATING)
-            throw new IllegalStateException("setGenerating");
+            throw new IllegalStateException();
         options.setMessage(idea.names);
-        this.itemIdeas=idea;
+        this.itemIdeas = idea;
         state = State.GENERATED;
     }
 
@@ -130,147 +127,133 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (MainItem.isMainItem(itemStack)) {
             String id = MainItem.getID(itemStack);
             String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items,true));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true));
             setProgress();
-        } else
+        } else {
             System.out.println("Can't regen because no item");
+        }
     }
 
     private void optBtnPress(Button button, int i) {
         if (state == State.GENERATED) {
-            String id=itemIdeas.id[i];
-            String name=itemIdeas.names[i];
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items,false));
+            String id = itemIdeas.id[i];
+            String name = itemIdeas.names[i];
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, false));
             setProgress();
         }
     }
 
-    public void btnPress(Button button) {
+    private void btnPress(Button button) {
         if (state == State.INITIAL || state == State.GENERATED) {
-            if (currentRecipe.isEmpty())
-                return;
+            if (currentRecipe.isEmpty()) return;
             setGenerating();
-            PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe, getLanguage(), session));
+            PacketHandler.sendToServer(new SGenIdeaPacket(menu.blockEntity.getBlockPos(), currentRecipe, getLanguage()));
         }
     }
-    public boolean mouseClicked(double p_98452_, double p_98453_, int p_98454_) {
-        if (this.recipeBookComponent.mouseClicked(p_98452_, p_98453_, p_98454_)) {
-            this.setFocused(this.recipeBookComponent);
-            return true;
-        } else {
-            return super.mouseClicked(p_98452_, p_98453_, p_98454_);
-        }
-    }
+
     public void handleIdeaPacket(ItemStack[] recipe, ItemIdeas idea, boolean err, String errMsg) {
         if (state == State.GENERATING) {
             if (err) {
-                System.out.println(errMsg);
                 Minecraft.getInstance().player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
                 Minecraft.getInstance().player.sendSystemMessage(Component.literal(errMsg).withStyle(ChatFormatting.RED));
-                errorMessage = "Error";
+                error = true;
                 setInitial();
+            } else if (new ItemStackArray(menu).equals(new ItemStackArray(recipe))) {
+                setGenerated(idea);
             } else {
-                if (new ItemStackArray(menu).equals(new ItemStackArray(recipe))) {
-                    setGenerated(idea);
-                } else
-                    System.out.println("Canceled, not putting ideas");
+                System.out.println("Canceled, not putting ideas");
             }
         }
     }
 
+    @Override
     public void containerTick() {
         super.containerTick();
         if (!currentRecipe.equals(new ItemStackArray(menu))) {
-            if (menu.hasCraftResult)
-                setProgress();
-            else
-                setInitial();
+            if (menu.hasCraftResult) setProgress();
+            else setInitial();
             currentRecipe = new ItemStackArray(menu);
         }
     }
 
-    public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
-        renderBackground(p_98479_);
+    @Override
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        renderBackground(poseStack);
         if (state != State.PROGRESS) {
-            var slot = menu.slots.get(0);
+            Slot slot = menu.slots.get(0);
             menu.slots.remove(0);
-            super.render(p_98479_, p_98480_, p_98481_, p_98482_);
+            super.render(poseStack, mouseX, mouseY, partialTicks);
             menu.slots.add(0, slot);
-            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
-            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
-        } else {
-            this.recipeBookComponent.render(p_98479_, p_98480_, p_98481_, p_98482_);
-            super.render(p_98479_, p_98480_, p_98481_, p_98482_);
-            this.recipeBookComponent.renderGhostRecipe(p_98479_, this.leftPos, this.topPos, true, p_98482_);
-        }
-        renderTooltip(p_98479_, p_98480_, p_98481_);
-        this.recipeBookComponent.renderTooltip(p_98479_, this.leftPos, this.topPos, p_98480_, p_98481_);
-        if (state == State.GENERATING)
-            font.draw(p_98479_, Component.literal("Generating"), (float) leftPos + 102, (float) topPos + 20, 4210752);
+        } else
+            super.render(poseStack, mouseX, mouseY, partialTicks);
 
-        drawSimpleWrappedString(p_98479_, font, errorMessage,leftPos + 102, topPos + 20,70, 10);
+        recipeBookComponent.render(poseStack, mouseX, mouseY, partialTicks);
+        recipeBookComponent.renderGhostRecipe(poseStack, leftPos, topPos, true, partialTicks);
+        renderTooltip(poseStack, mouseX, mouseY);
+        recipeBookComponent.renderTooltip(poseStack, leftPos, topPos, mouseX, mouseY);
+
+        if (state == State.GENERATING)
+            this.font.draw(poseStack, Component.literal("Generating"), leftPos + 102, topPos + 20, 4210752);
+        if (error)
+            this.font.draw(poseStack, Component.literal("Error"), leftPos + 102, topPos + 20, 4210752);
     }
 
-    protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
+    @Override
+    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
         if (state == State.INITIAL || state == State.GENERATING || state == State.GENERATED)
             RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_1);
         else if (state == State.PROGRESS)
             RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_2);
+
         int i = leftPos;
         int j = (height - imageHeight) / 2;
-        blit(p_98474_, i, j, 0, 0, imageWidth, imageHeight);
-        if (state == State.PROGRESS)  //draw progress bar
-            blit(p_98474_, i + 66, j + 34, 0, 167, menu.blockEntity.getProgress() / 10, 16);
+        blit(poseStack, i, j, 0, 0, imageWidth, imageHeight);
 
+        if (state == State.PROGRESS)  //progress arrow
+            blit(poseStack, i + 66, j + 34, 0, 167, menu.blockEntity.getProgress() / 10, 16);
         if (state == State.GENERATING) {  //locked button
-            blit(p_98474_, i + 67, j + 34, 0, 185, 27, 18);
-        } else if (mainBtn.isHoveredOrFocused()) {
-            blit(p_98474_, i + 67, j + 34, 0, 203, 27, 18);
+            blit(poseStack, i + 67, j + 34, 0, 185, 27, 18);
+        } else if (mainBtn.isHoveredOrFocused()) {  //hovered button
+            blit(poseStack, i + 67, j + 34, 0, 203, 27, 18);
         }
     }
 
     @Override
-    public void resize(Minecraft p_96575_, int p_96576_, int p_96577_) {
-        String[] msg = options.visible ? options.idea : null;
-        super.init(p_96575_, p_96576_, p_96577_);
-        this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-        updateWidgetPos();
-        if (msg != null)
-            options.setMessage(msg);
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (recipeBookComponent.mouseClicked(mouseX, mouseY, button)) {
+            setFocused(recipeBookComponent);
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    protected void slotClicked(Slot p_97778_, int p_97779_, int p_97780_, ClickType p_97781_) {
-        super.slotClicked(p_97778_, p_97779_, p_97780_, p_97781_);
-        this.recipeBookComponent.slotClicked(p_97778_);
+    public void resize(Minecraft minecraft, int width, int height) {
+        String[] msg = options.visible ? options.idea : null;
+        super.init(minecraft, width, height);
+        leftPos = recipeBookComponent.updateScreenPosition(this.width, imageWidth);
+        updateWidgetPos();
+        if (msg != null) options.setMessage(msg);
     }
-    protected boolean hasClickedOutside(double p_98456_, double p_98457_, int p_98458_, int p_98459_, int p_98460_) {
-        boolean flag = p_98456_ < (double)p_98458_ || p_98457_ < (double)p_98459_ || p_98456_ >= (double)(p_98458_ + this.imageWidth) || p_98457_ >= (double)(p_98459_ + this.imageHeight);
-        return this.recipeBookComponent.hasClickedOutside(p_98456_, p_98457_, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, p_98460_) && flag;
+
+    @Override
+    protected void slotClicked(Slot slot, int slotId, int mouseButton, ClickType type) {
+        super.slotClicked(slot, slotId, mouseButton, type);
+        recipeBookComponent.slotClicked(slot);
     }
-    private static String getLanguage(){
+
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int button) {
+        boolean outside = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + imageWidth || mouseY >= guiTop + imageHeight;
+        return recipeBookComponent.hasClickedOutside(mouseX, mouseY, leftPos, topPos, imageWidth, imageHeight, button) && outside;
+    }
+
+    private static String getLanguage() {
         LanguageManager langManager = Minecraft.getInstance().getLanguageManager();
         LanguageInfo currentLang = langManager.getSelected();
-        return currentLang.getCode(); // returns like "en_us"
-    }
-    public void drawSimpleWrappedString(PoseStack poseStack, Font font, String errorMessage, int x, int y, int maxWidth, int lineHeight) {
-        int currentY = y;
-        int start = 0;
-        while (start < errorMessage.length()) {
-            int end = start + 1;
-            while (end <= errorMessage.length() &&
-                    font.width(errorMessage.substring(start, end)) <= maxWidth) {
-                end++;
-            }
-            if (end == start + 1 && end <= errorMessage.length()) {
-                end++;
-            }
-            String line = errorMessage.substring(start, end - 1);
-            font.draw(poseStack, Component.literal(line), x, currentY, 0x404040);
-            currentY += lineHeight;
-            start = end - 1;
-        }
+        return currentLang.getCode(); // e.g. "en_us"
     }
 }

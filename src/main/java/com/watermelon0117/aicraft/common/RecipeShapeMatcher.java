@@ -9,12 +9,12 @@ public final class RecipeShapeMatcher {
     private static final List<Map.Entry<String, String>> PATTERNS = List.of(
             // Tools
             Map.entry("Pickaxe", "III S  S "),
-            Map.entry("Axe",     "II IS  S "),
-            Map.entry("Axe",     " II SI S "),
-            Map.entry("Shovel",  " I  S  S "),
-            Map.entry("Hoe",     "II  S  S "),
-            Map.entry("Hoe",     " II S  S "),
-            Map.entry("Sword",   " I  I  S ")
+            Map.entry("Axe", "II IS  S "),
+            Map.entry("Axe", " II SI S "),
+            Map.entry("Shovel", " I  S  S "),
+            Map.entry("Hoe", "II  S  S "),
+            Map.entry("Hoe", " II S  S "),
+            Map.entry("Sword", " I  I  S ")
 
             // Uncomment to re-enable armour
             // Map.entry("Helmet",    "IIII I   "),
@@ -24,14 +24,16 @@ public final class RecipeShapeMatcher {
     );
 
     public record Match(String shapeName, ItemStack material) {
-        public String materialName(){
+        public String materialName() {
             return strip(material().getDisplayName().getString());
         }
     }
 
     /*───────────────────────────── Public API ─────────────────────────────*/
 
-    /** Returns the first matching (shape, material) pair, or {@code null} if none. */
+    /**
+     * Returns the first matching (shape, material) pair, or {@code null} if none.
+     */
     public static Match match(ItemStackArray grid) {
         for (Map.Entry<String, String> entry : PATTERNS) {
             for (String shifted : shiftPattern(entry.getValue())) {
@@ -55,7 +57,9 @@ public final class RecipeShapeMatcher {
             ItemStack actual = grid[i];
 
             switch (expected) {
-                case ' ' -> { if (!actual.isEmpty()) return ItemStack.EMPTY; }
+                case ' ' -> {
+                    if (!actual.isEmpty()) return ItemStack.EMPTY;
+                }
                 case 'S' -> {
                     if (actual.isEmpty() || !ItemStack.isSameItemSameTags(actual, stick))
                         return ItemStack.EMPTY;
@@ -71,7 +75,9 @@ public final class RecipeShapeMatcher {
         return ingot;      // non-empty only on a full match
     }
 
-    /** Generate every valid shift of the compact pattern inside a 3 × 3 grid. */
+    /**
+     * Generate every valid shift of the compact pattern inside a 3 × 3 grid.
+     */
     private static List<String> shiftPattern(String pattern) {
         List<String> out = new ArrayList<>(9);
         char[][] src = new char[3][3];
@@ -82,8 +88,10 @@ public final class RecipeShapeMatcher {
         for (int y = 0; y < 3; y++)
             for (int x = 0; x < 3; x++)
                 if (src[y][x] != ' ') {
-                    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-                    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+                    minX = Math.min(minX, x);
+                    maxX = Math.max(maxX, x);
+                    minY = Math.min(minY, y);
+                    maxY = Math.max(maxY, y);
                 }
 
         int w = maxX - minX + 1, h = maxY - minY + 1;

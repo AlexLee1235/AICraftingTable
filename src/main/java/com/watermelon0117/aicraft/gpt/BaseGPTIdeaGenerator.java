@@ -22,8 +22,8 @@ public class BaseGPTIdeaGenerator {
                 sysMsg,
                 "json_object");
     }
-    public CompletableFuture<String[]> generate(String prompt) {
-        return client.chat(prompt).thenApply(rawResult->{
+    public CompletableFuture<String[]> generate(String prompt, String user) {
+        return client.chat(prompt, "Idea", user).thenApply(rawResult->{
             //System.out.println(rawResult);
             ItemResult result = gson.fromJson(rawResult, ItemResult.class);
             //System.out.println(result.reasoning);

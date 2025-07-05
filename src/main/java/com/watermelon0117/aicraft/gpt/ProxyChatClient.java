@@ -15,44 +15,37 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyChatClient {
-    private static final URI CHAT_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/chat");//https://aicraftingtableproxy.onrender.com
-    private static final URI TEST_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/");//https://aicraftingtableproxy.onrender.com
+    private static final URI CHAT_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/chat");
+    private static final URI TEST_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/");
 
-    private final HttpClient http;
-    private final Gson gson;
+    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+    ;
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+    ;
     public final String model;
     public final double temperature;
     public final int maxTokens;
     public final String systemMessage;
     public final String response_format;
+
     public ProxyChatClient(String model, double temperature, int maxTokens, String systemMessage, String response_format) {
         this.model = model;
-        this.temperature=temperature;
-        this.maxTokens=maxTokens;
-        this.systemMessage=systemMessage;
-        this.response_format=response_format;
-
-        this.http = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-
-        this.gson = new GsonBuilder()
-                // map Java camelCase ↔︎ JSON snake_case automatically
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
+        this.temperature = temperature;
+        this.maxTokens = maxTokens;
+        this.systemMessage = systemMessage;
+        this.response_format = response_format;
     }
 
-    public CompletableFuture<String> chat(String message) {
-        ArrayList<Message> list=new ArrayList<>();
+    public CompletableFuture<String> chat(String message, String metadata, String user) {
+        ArrayList<Message> list = new ArrayList<>();
         list.add(new Message("system", systemMessage));
         list.add(new Message("user", message));
-        return chat(list);
+        return chat(list, metadata, user);
     }
-    private CompletableFuture<String> chat(List<Message> messages) {
-        ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages, response_format);
 
-        String json  = gson.toJson(requestBody);
-
+    private CompletableFuture<String> chat(List<Message> messages, String metadata, String user) {
+        ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages, response_format, metadata, user);
+        String json = gson.toJson(requestBody);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(CHAT_URI)
                 .header("Content-Type", "application/json")
@@ -73,6 +66,7 @@ public class ProxyChatClient {
                     return CompletableFuture.completedFuture(chat.choices.get(0).message.content);
                 });
     }
+
     public static CompletableFuture<String> testConnect() {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -102,30 +96,46 @@ public class ProxyChatClient {
     private static final class ChatRequest {
         final String model;
         final double temperature;
-        @SerializedName("max_tokens") final int maxTokens;
+        final int max_tokens;
         final List<Message> messages;
         final ResponseFormat response_format;
+        final MetaData metadata;
+        final String user;
 
-        ChatRequest(String model, double temperature, int maxTokens, List<Message> messages, String response_format) {
+        ChatRequest(String model, double temperature, int max_tokens, List<Message> messages, String response_format, String metadata, String user) {
             this.model = model;
             this.temperature = temperature;
-            this.maxTokens = maxTokens;
+            this.max_tokens = max_tokens;
             this.messages = messages;
-            this.response_format=new ResponseFormat(response_format);
+            this.response_format = new ResponseFormat(response_format);
+            this.metadata = new MetaData(metadata);
+            this.user = user;
         }
     }
-    private static final class ResponseFormat{
+
+    private static final class ResponseFormat {
         String type;
-        ResponseFormat(String type){
-            this.type=type;
+
+        ResponseFormat(String type) {
+            this.type = type;
         }
     }
+
+    private static final class MetaData {
+        String data;
+
+        MetaData(String data) {
+            this.data = data;
+        }
+    }
+
     private static final class ChatResponse {
         List<ChatResponse.Choice> choices;
 
         static final class Choice {
             ChatResponse.ChatMessage message;
         }
+
         static final class ChatMessage {
             String role;
             String content;

@@ -37,7 +37,7 @@ public class GPTIdeaGenerator {
         prompt.append(inst2);
         return prompt.toString();
     }
-    public CompletableFuture<String[]> generate(ItemStackArray recipe){
-        return generator.generate(buildPrompt(recipe));
+    public CompletableFuture<String[]> generate(ItemStackArray recipe, String user){
+        return generator.generate(buildPrompt(recipe), user);
     }
 }

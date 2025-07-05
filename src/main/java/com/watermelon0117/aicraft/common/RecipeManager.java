@@ -100,9 +100,8 @@ public final class RecipeManager {
                 return ItemStack.EMPTY;
         } else {
             ItemStack[] itemStacks = new ItemStack[9];
-            for (int i = 0; i < 9; i++) {
+            for (int i = 0; i < 9; i++)
                 itemStacks[i] = container.getItem(i);
-            }
             itemstack = RecipeManager.get().match(itemStacks);
         }
         return itemstack;
@@ -114,6 +113,7 @@ public final class RecipeManager {
     }
 
     public void addRecipe(ItemStack result, ItemStack[] g, boolean shapeless) {
+        checkServer();
         ItemStack[] stored = shapeless ? sortShapeless(g) : Arrays.copyOf(g, 9);
         for (int i = 0; i < stored.length; i++) {
             if (!stored[i].isEmpty()) {
@@ -128,7 +128,7 @@ public final class RecipeManager {
     }
 
     public void removeItem(String id) {
-        if (id == null) return;
+        checkServer();
         backing().removeIf(r ->
                 (MainItem.isMainItem(r.result) && id.equals(MainItem.getID(r.result))) ||
                         Arrays.stream(r.grid).anyMatch(s -> MainItem.isMainItem(s) && id.equals(MainItem.getID(s)))

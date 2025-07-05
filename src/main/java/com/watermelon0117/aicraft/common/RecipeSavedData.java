@@ -15,7 +15,9 @@ import java.util.List;
 public class RecipeSavedData extends SavedData {
     private static final String NAME = "aicraft_recipes";
     public final List<RecipeManager.Recipe> recipes = new ArrayList<>();
-    @Override public CompoundTag save(CompoundTag tag) {
+
+    @Override
+    public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         for (RecipeManager.Recipe r : recipes) {
             CompoundTag rt = new CompoundTag();
@@ -31,6 +33,7 @@ public class RecipeSavedData extends SavedData {
         tag.put("Recipes", list);
         return tag;
     }
+
     static RecipeSavedData load(CompoundTag tag) {
         RecipeSavedData d = new RecipeSavedData();
         d.recipes.clear();
@@ -74,13 +77,14 @@ public class RecipeSavedData extends SavedData {
         list.clear();
         list.addAll(unique);
     }
+
     private static boolean sameRecipe(RecipeManager.Recipe a, RecipeManager.Recipe b) {
         if (a.shapeless != b.shapeless) return false;
         if (!ItemStack.isSameItemSameTags(a.result, b.result) ||
-                a.result.getCount() != b.result.getCount())        return false;
+                a.result.getCount() != b.result.getCount()) return false;
         for (int i = 0; i < 9; ++i) {
             if (!ItemStack.isSameItemSameTags(a.grid[i], b.grid[i]) ||
-                    a.grid[i].getCount() != b.grid[i].getCount())  return false;
+                    a.grid[i].getCount() != b.grid[i].getCount()) return false;
         }
         return true;
     }

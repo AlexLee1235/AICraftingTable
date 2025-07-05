@@ -105,10 +105,10 @@ public class GPTItemGenerator2 {
         }
     }
 
-    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
+    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate, String user) {
         String prompt = buildPrompt(id, recipe);
         System.out.println(prompt);
-        return client.chat(prompt).thenCompose(rawJson -> {
+        return client.chat(prompt, "Design", user).thenCompose(rawJson -> {
             System.out.println(rawJson);
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
             ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());

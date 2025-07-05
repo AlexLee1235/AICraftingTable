@@ -14,10 +14,10 @@ public class AIChatClient {
             proxyClient = new ProxyChatClient(model, temperature, maxTokens, systemMessage, response_format);
     }
 
-    public CompletableFuture<String> chat(String message) {
+    public CompletableFuture<String> chat(String message, String metadata, String user) {
         if (useOpenAI)
             return openAIClient.chat(message);
         else
-            return proxyClient.chat(message);
+            return proxyClient.chat(message, metadata, user);
     }
 }
