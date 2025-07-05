@@ -19,9 +19,7 @@ public class ProxyChatClient {
     private static final URI TEST_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/");
 
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-    ;
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-    ;
     public final String model;
     public final double temperature;
     public final int maxTokens;

@@ -17,24 +17,12 @@ import java.util.concurrent.CompletableFuture;
 public class ProxyImageClient {
     private static final URI ENDPOINT = URI.create("https://aicraftingtableproxy-production.up.railway.app/image");
 
-    private final HttpClient http;
-    private final Gson gson;
+    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(100)).build();
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 
-    public ProxyImageClient() {
-        this.http   = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(100))
-                .build();
-        this.gson   = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
-    }
-
-    /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
-
-
-    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality) {
-        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality);
-        String json  = gson.toJson(body);
+    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality, String user) {
+        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality, user);
+        String json = gson.toJson(body);
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(ENDPOINT)
@@ -45,16 +33,13 @@ public class ProxyImageClient {
 
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenCompose(resp -> {
-                    if (resp.statusCode() != 200) {
+                    if (resp.statusCode() != 200)
                         return CompletableFuture.failedFuture(
-                                new RuntimeException("OpenAI error " +
-                                        resp.statusCode() + ": " +
-                                        resp.body()));
-                    }
+                                new RuntimeException("OpenAI error " + resp.statusCode() + ": " + resp.body()));
 
                     Response parsed = gson.fromJson(resp.body(), Response.class);
-                    Data d      = parsed.data.get(0);          // n == 1
-                    byte[]   bytes  = Base64.getDecoder().decode(d.b64Json);
+                    Data d = parsed.data.get(0);          // n == 1
+                    byte[] bytes = Base64.getDecoder().decode(d.b64_json);
                     return CompletableFuture.completedFuture(bytes);
                 });
     }
@@ -67,8 +52,15 @@ public class ProxyImageClient {
                            String size,
                            String background,
                            String moderation,
-                           String quality) {}
+                           String quality,
+                           String user) {
+    }
 
-    private static final class Response { List<Data> data; }
-    private static final class Data     { @SerializedName("b64_json") String b64Json; }
+    private static final class Response {
+        List<Data> data;
+    }
+
+    private static final class Data {
+        String b64_json;
+    }
 }

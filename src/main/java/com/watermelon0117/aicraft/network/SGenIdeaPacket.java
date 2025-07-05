@@ -46,7 +46,7 @@ public class SGenIdeaPacket {
         GPTIdeaGenerator6 generator = new GPTIdeaGenerator6();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
-            generator.generate(new ItemStackArray(recipe), lang).thenAccept(results -> {
+            generator.generate(new ItemStackArray(recipe), lang, player.getStringUUID()).thenAccept(results -> {
                 PacketHandler.sendToPlayer(
                         new CGenIdeaPacket(pos, recipe, results, false, ""), player);
             }).exceptionally(e -> {

@@ -31,7 +31,7 @@ public class GPTItemGenerator3 {
                     "tier(equivalent in wooden, stone, iron, diamond, netherite, golden)?\n" +
                     "is_suitable_for_breaking_stone(like pickaxe)?\n" +
                     "is_suitable_for_breaking_woods(like axe)?\n" +
-                    "is_suitable_for_breaking_dirts(like shovel)?\n" +
+                    "is_suitable_for_breaking_dirt(like shovel)?\n" +
                     "is_suitable_to_plow(like hoe)?\n" +
                     "is_melee_weapon?\n" +
                     "damage(low, normal, high)?\n" +
@@ -44,15 +44,15 @@ public class GPTItemGenerator3 {
     private final GPTImageGenerator2 imgClient = new GPTImageGenerator2();
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 
-    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate) {
+    public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate, String user) {
         String prompt = buildPrompt(id, recipe);
         System.out.println(prompt);
 
-        return client.chat(prompt).thenCompose(rawJson -> {
+        return client.chat(prompt, "Design", user).thenCompose(rawJson -> {
             System.out.println(rawJson);
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
             ItemStack itemStack = makeItem(json, id, name);
-            return imgClient.generateItem(id, recipe.getDisplayNames(), getVisualDescription(name, recipe)).thenApply(textureBytes -> {
+            return imgClient.generateItem(id, recipe.getDisplayNames(), getVisualDescription(name, recipe), user).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
                     byte[] processedTexture = TextureManager.applyTexture(textureBytes, id);
                     PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));

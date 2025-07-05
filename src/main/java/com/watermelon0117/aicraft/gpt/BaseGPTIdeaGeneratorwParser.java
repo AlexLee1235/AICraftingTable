@@ -38,32 +38,19 @@ public class BaseGPTIdeaGeneratorwParser {
             "}\n" +
             "\n" +
             "Now extract and translate from this:\n";
-    private final Gson gson;
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     private final AIChatClient client, extractor;
 
     public BaseGPTIdeaGeneratorwParser(String sysMsg, String model, double temp) {
-        this.gson = new GsonBuilder()
-                // map Java camelCase ↔︎ JSON snake_case automatically
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
-        client = new AIChatClient(
-                model,  //gpt-4o gpt-4.1
-                temp,
-                2048,
-                sysMsg,
-                "text");
-        extractor = new AIChatClient(
-                "gpt-4.1",  //gpt-4o gpt-4.1
-                0.0,
-                1024,
-                "You are a helpful assistant that extracts structured data and translate.",
-                "json_object");
+        client = new AIChatClient(model, temp, 2048, sysMsg, "text");
+        extractor = new AIChatClient("gpt-4.1", 0.0, 1024,
+                "You are a helpful assistant that extracts structured data and translate.", "json_object");
     }
 
-    public CompletableFuture<ItemIdeas> generate(String prompt, String lang) {
-        return client.chat(prompt).thenCompose(rawResult -> {
+    public CompletableFuture<ItemIdeas> generate(String prompt, String lang, String user) {
+        return client.chat(prompt, "Idea", user).thenCompose(rawResult -> {
             System.out.println(rawResult);
-            return extractor.chat(inst2 + "Target language: " + lang + "\n" + rawResult);
+            return extractor.chat(inst2 + "Target language: " + lang + "\n" + rawResult, "Extract", user);
         }).thenApply(jsonResult -> {
             System.out.println(jsonResult);
             ItemResult result = gson.fromJson(jsonResult, ItemResult.class);

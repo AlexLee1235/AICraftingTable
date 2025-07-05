@@ -5,7 +5,7 @@ import com.watermelon0117.aicraft.common.ItemStackArray;
 import java.util.concurrent.CompletableFuture;
 
 public class GPTIdeaGenerator {
-    private static String inst1="### Goal  \n" +
+    /*private static String inst1="### Goal  \n" +
             "From the 3 × 3 crafting recipe below, invent **one to three item names** that could reasonably be produced by that pattern.  \n" +
             "*Key requirement*: in your `\"reasoning\"` sentence(s) you **must reference at least one concrete geometric feature** you observe (e.g. “horizontal row of three ingots”, “L-shape of planks”, “vertical shaft of sticks”).  \n" +
             "Keep it simple and making sense.\n" +
@@ -39,5 +39,5 @@ public class GPTIdeaGenerator {
     }
     public CompletableFuture<String[]> generate(ItemStackArray recipe, String user){
         return generator.generate(buildPrompt(recipe), user);
-    }
+    }*/
 }

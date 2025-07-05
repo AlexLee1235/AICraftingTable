@@ -6,7 +6,7 @@ import com.watermelon0117.aicraft.common.RecipeShapeMatcher;
 import java.util.concurrent.CompletableFuture;
 
 public class GPTIdeaGenerator4 {  //normal naming style
-    String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
+    /*String inst="Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
             "You are identifying the most natural, direct, and commonly accepted name for an item crafted in Minecraft, based on a 3×3 recipe.\n" +
             "You are not inventing a new name.\n" +
             "You are recognizing what the item *is*, based on the ingredients and layout.\n" +
@@ -54,6 +54,6 @@ public class GPTIdeaGenerator4 {  //normal naming style
 
     public CompletableFuture<ItemIdeas> generate(ItemStackArray recipe, String lang){
         return generator.generate(buildPrompt(recipe), lang);
-    }
+    }*/
 }
 

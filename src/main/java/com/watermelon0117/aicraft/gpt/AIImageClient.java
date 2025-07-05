@@ -16,10 +16,10 @@ public class AIImageClient {
             proxyClient = new ProxyImageClient();
     }
 
-    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality) {
+    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality, String user) {
         if (useOpenAI)
             return openAIClient.generateAsync(prompt, size, background, moderation, quality);
         else
-            return proxyClient.generateAsync(prompt, size, background, moderation, quality);
+            return proxyClient.generateAsync(prompt, size, background, moderation, quality, user);
     }
 }

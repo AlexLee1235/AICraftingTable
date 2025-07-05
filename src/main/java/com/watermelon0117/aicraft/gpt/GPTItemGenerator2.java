@@ -50,14 +50,8 @@ public class GPTItemGenerator2 {
             1024,
             "",
             "json_object");
-    private final Gson gson;
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     private final GPTImageGenerator2 imgClient = new GPTImageGenerator2();
-
-    public GPTItemGenerator2() {
-        this.gson = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
-    }
 
     private static String buildPrompt(String name, ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
@@ -115,7 +109,7 @@ public class GPTItemGenerator2 {
             itemStack.getOrCreateTag().put("aicraft", new CompoundTag());
             setTags(itemStack.getOrCreateTag().getCompound("aicraft"), json, id, name);
             if (json.visual_description == null) json.visual_description = "";
-            return imgClient.generateItem(id, recipe.getDisplayNames(), json.visual_description).thenApply(textureBytes -> {
+            return imgClient.generateItem(id, recipe.getDisplayNames(), json.visual_description, user).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
                     applyTexture(textureBytes, id);
                     SpecialItemManager.get().put(itemStack);

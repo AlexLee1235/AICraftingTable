@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class BaseGPTIdeaGenerator {
-    private final Gson gson;
+    /*private final Gson gson;
     private final AIChatClient client;
     public BaseGPTIdeaGenerator(String sysMsg){
         this.gson = new GsonBuilder()
@@ -37,5 +37,5 @@ public class BaseGPTIdeaGenerator {
         static final class MyItems {
             String name;
         }
-    }
+    }*/
 }

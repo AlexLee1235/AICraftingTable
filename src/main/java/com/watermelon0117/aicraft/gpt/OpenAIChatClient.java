@@ -16,8 +16,8 @@ import java.util.concurrent.CompletableFuture;
 public class OpenAIChatClient {
     private static final URI CHAT_URI = URI.create("https://api.openai.com/v1/chat/completions");
     public static String apiKey;
-    private final HttpClient http;
-    private final Gson gson;
+    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     public final String model;
     public final double temperature;
     public final int maxTokens;
@@ -29,15 +29,6 @@ public class OpenAIChatClient {
         this.maxTokens = maxTokens;
         this.systemMessage = systemMessage;
         this.response_format = response_format;
-
-        this.http = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-
-        this.gson = new GsonBuilder()
-                // map Java camelCase ↔︎ JSON snake_case automatically
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create();
     }
 
     public CompletableFuture<String> chat(String message) {
