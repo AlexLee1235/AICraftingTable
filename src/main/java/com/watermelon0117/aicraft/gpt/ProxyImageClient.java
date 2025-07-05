@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyImageClient {
-    private static final URI ENDPOINT = URI.create("https://aicraftingtableproxy-production.up.railway.app/image");
+    private static final URI ENDPOINT = URI.create("https://api.aicraftingtable.com/image");
 
-    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(100)).build();
+    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 
     public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality, String user) {

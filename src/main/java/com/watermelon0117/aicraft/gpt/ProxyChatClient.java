@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyChatClient {
-    private static final URI CHAT_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/chat");
-    private static final URI TEST_URI = URI.create("https://aicraftingtableproxy-production.up.railway.app/");
+    private static final URI CHAT_URI = URI.create("https://api.aicraftingtable.com/chat");
+    private static final URI TEST_URI = URI.create("https://api.aicraftingtable.com/");
 
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
