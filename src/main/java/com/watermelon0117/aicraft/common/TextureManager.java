@@ -31,7 +31,6 @@ public class TextureManager {
                             String name = file.getName().replace(".png", "");
                             map.put(name, data);
                         } catch (IOException e) {
-                            System.out.println("Error reading file: " + file.getName());
                             e.printStackTrace();
                         }
                     }
@@ -41,7 +40,8 @@ public class TextureManager {
             return map;
         });
     }
-    public static String getCurrentDateTime() {
+
+    private static String getCurrentDateTime() {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         return now.format(formatter);
@@ -58,9 +58,9 @@ public class TextureManager {
 
     public static byte[] applyTexture(byte[] bytes, String id) {
         try {
+            BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes), false);
             Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
             Files.write(FileUtil.getArchiveFolder(id + "_" + getCurrentDateTime() + ".png").toPath(), bytes);
-            BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes));
             ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), id + ".png"));
             return toBytes(txt);
         } catch (IOException e) {

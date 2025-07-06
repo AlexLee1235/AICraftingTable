@@ -3,25 +3,15 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.common.FileUtil;
-import com.watermelon0117.aicraft.common.ImageGridProcessor;
+import com.watermelon0117.aicraft.common.*;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.network.CAddTexturePacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
-import com.watermelon0117.aicraft.common.ItemStackArray;
-import com.watermelon0117.aicraft.common.RecipeManager;
-import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
@@ -51,7 +41,7 @@ public class GPTItemGenerator2 {
             "",
             "json_object");
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-    private final GPTImageGenerator2 imgClient = new GPTImageGenerator2();
+    private final GPTImageGenerator imgClient = new GPTImageGenerator();
 
     private static String buildPrompt(String name, ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
@@ -78,27 +68,6 @@ public class GPTItemGenerator2 {
         return now.format(formatter);
     }
 
-    private static byte[] toBytes(BufferedImage txt) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(txt, "png", baos);
-        baos.flush(); // ensure all bytes are written
-        byte[] bytes2 = baos.toByteArray();
-        baos.close();
-        return bytes2;
-    }
-
-    private static void applyTexture(byte[] bytes, String id) {
-        try {
-            Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
-            Files.write(FileUtil.getArchiveFolder(id + "_" + getCurrentDateTime() + ".png").toPath(), bytes);
-            BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes));
-            ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), id + ".png"));
-            PacketHandler.sendToAllClients(new CAddTexturePacket(id, toBytes(txt)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate, String user) {
         String prompt = buildPrompt(id, recipe);
         System.out.println(prompt);
@@ -111,7 +80,8 @@ public class GPTItemGenerator2 {
             if (json.visual_description == null) json.visual_description = "";
             return imgClient.generateItem(id, recipe.getDisplayNames(), json.visual_description, user).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
-                    applyTexture(textureBytes, id);
+                    byte[] processedTexture = TextureManager.applyTexture(textureBytes, id);
+                    PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
                     SpecialItemManager.get().put(itemStack);
                     RecipeManager.get().addRecipe(SpecialItemManager.get().getItem(id), recipe.items, json.is_shapeless_crafting);
                 }

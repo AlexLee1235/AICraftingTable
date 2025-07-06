@@ -18,27 +18,26 @@ public class ImageGridProcessor {
     private static final int BLACK_RGB = Color.BLACK.getRGB();
     private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(100,200);
 
-    public static BufferedImage process(BufferedImage image) {
+    public static BufferedImage process(BufferedImage image, boolean save) {
         try {
-            // 1. Read Image
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
-
-            saveImage(CannyEdgeDetector.overlayCannyEdges(image,100,200),
-                    FileUtil.getTempFolder("edges_image.png"));
+            if(save)
+                saveImage(CannyEdgeDetector.overlayCannyEdges(image,100,200), FileUtil.getTempFolder("edges_image.png"));
 
             // 2. Edge Detection
             BufferedImage edges = edgeDetection(image);
-            saveImage(edges, FileUtil.getTempFolder("edges.png"));
 
             // Remove Background
             image=removeBackgroundAuto(image, edges);
 
             // 3. Extract Lines using Morphological Operations
             BufferedImage verticalLines = extractVerticalLines(edges);
-            saveImage(verticalLines, FileUtil.getTempFolder("vertical_lines.png"));
             BufferedImage horizontalLines = extractHorizontalLines(edges);
-            saveImage(horizontalLines, FileUtil.getTempFolder("horizontal_lines.png"));
-
+            if(save) {
+                saveImage(edges, FileUtil.getTempFolder("edges.png"));
+                saveImage(verticalLines, FileUtil.getTempFolder("vertical_lines.png"));
+                saveImage(horizontalLines, FileUtil.getTempFolder("horizontal_lines.png"));
+            }
             // 4. Create Histograms
             int[] xHistogram = histogramNonZero(verticalLines, 'x');
             int[] yHistogram = histogramNonZero(horizontalLines, 'y');
@@ -72,17 +71,18 @@ public class ImageGridProcessor {
             System.out.println("Y Lines: " + yLines);
 
             // 8. Draw Grid and Save
-            BufferedImage gridImage = drawGridLines(image, xLines, yLines);
-            saveImage(gridImage, FileUtil.getTempFolder("grid_image.png"));
-
+            if(save) {
+                BufferedImage gridImage = drawGridLines(image, xLines, yLines);
+                saveImage(gridImage, FileUtil.getTempFolder("grid_image.png"));
+            }
             // 9. Average Colors in Grid
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
             System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
             BufferedImage pixels = padImageCentered(gridColors, calcPaddingSize(gridColors.getWidth(), gridColors.getHeight(), 1));
-            saveImage(pixels, FileUtil.getTempFolder("grid_colors.png"));
+            if(save)
+                saveImage(pixels, FileUtil.getTempFolder("grid_colors.png"));
             return pixels;
         } catch (IOException e) {
-            System.err.println("An error occurred: " + e.getMessage());
             e.printStackTrace();
             return null;
         }

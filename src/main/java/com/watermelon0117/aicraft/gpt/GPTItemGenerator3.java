@@ -12,14 +12,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
@@ -41,7 +33,7 @@ public class GPTItemGenerator3 {
                     "food_is_solid_or_liquid?\n";
 
     private final AIChatClient client = new AIChatClient("gpt-4o", 0.0, 1024, "", "json_object");
-    private final GPTImageGenerator2 imgClient = new GPTImageGenerator2();
+    private final GPTImageGenerator imgClient = new GPTImageGenerator();
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 
     public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate, String user) {

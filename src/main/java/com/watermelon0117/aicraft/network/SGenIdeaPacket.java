@@ -1,7 +1,5 @@
 package com.watermelon0117.aicraft.network;
 
-import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator4;
-import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator5;
 import com.watermelon0117.aicraft.gpt.GPTIdeaGenerator6;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.common.ItemStackArray;
