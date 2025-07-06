@@ -7,6 +7,7 @@ import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.Main;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
@@ -91,20 +92,35 @@ public final class RecipeManager {
 
     /* ── public API (identical names / params) ── */
     public static ItemStack callRecipeManager(CraftingContainer container, Level level){
-        ItemStack itemstack;
+        ItemStack result;
         Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, container, level);
         if (optional.isPresent()) {
             CraftingRecipe craftingrecipe = optional.get();
-            itemstack = craftingrecipe.assemble(container);
-            if (craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(itemstack))
+            result = craftingrecipe.assemble(container);
+            if (craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(result)) {
+                //already has 2 item and are all main item
+                ItemStack stack1 = null, stack2 = null;
+                for (int i = 0; i < 9; i++)
+                    if (!container.getItem(i).isEmpty())
+                        stack1 = container.getItem(i);
+                for (int i = 8; i >= 0; i--)
+                    if (!container.getItem(i).isEmpty())
+                        stack2 = container.getItem(i);
+                if (MainItem.getID(stack1).contentEquals(MainItem.getID(stack2))) {
+                    ItemStack ret = stack1.copy();
+                    ret.setDamageValue(Math.min(stack1.getMaxDamage(),
+                            stack1.getDamageValue() + stack2.getDamageValue() - stack1.getMaxDamage()));
+                    return ret;
+                }
                 return ItemStack.EMPTY;
+            }
         } else {
             ItemStack[] itemStacks = new ItemStack[9];
             for (int i = 0; i < 9; i++)
                 itemStacks[i] = container.getItem(i);
-            itemstack = RecipeManager.get().match(itemStacks);
+            result = RecipeManager.get().match(itemStacks);
         }
-        return itemstack;
+        return result;
     }
     public ItemStack match(ItemStack[] g) {
         return backing().stream()
@@ -129,10 +145,8 @@ public final class RecipeManager {
 
     public void removeItem(String id) {
         checkServer();
-        backing().removeIf(r ->
-                (MainItem.isMainItem(r.result) && id.equals(MainItem.getID(r.result))) ||
-                        Arrays.stream(r.grid).anyMatch(s -> MainItem.isMainItem(s) && id.equals(MainItem.getID(s)))
-        );
+        backing().removeIf(r -> (MainItem.isMainItem(r.result) && id.equals(MainItem.getID(r.result))) ||
+                        Arrays.stream(r.grid).anyMatch(s -> MainItem.isMainItem(s) && id.equals(MainItem.getID(s))));
         dirtyAndSync();
     }
 
@@ -147,8 +161,7 @@ public final class RecipeManager {
     }
 
     public boolean itemIsShapeless(ItemStack t) {
-        return t != null && !t.isEmpty() &&
-                backing().stream()
+        return t != null && !t.isEmpty() && backing().stream()
                         .anyMatch(r -> r.shapeless && ItemStack.isSameItemSameTags(r.result, t));
     }
     // Syncing part
@@ -158,9 +171,7 @@ public final class RecipeManager {
         return RecipeManager.ServerSide.INSTANCE;              // server singleton (initialised in FMLServerStartingEvent)
     }
     private List<RecipeManager.Recipe> backing() {
-        return !isServer()
-                ? ClientSide.CACHE
-                : ServerSide.data().recipes;
+        return !isServer() ? ClientSide.CACHE : ServerSide.data().recipes;
     }
 
     private void dirtyAndSync() {

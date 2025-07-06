@@ -16,14 +16,14 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class DynParticle extends Particle {
+public class DynFoodParticle extends Particle {
     private final float uo;
     private final float vo;
     protected float quadSize = 0.1F * (this.random.nextFloat() * 0.5F + 0.5F) * 2.0F;
     private final ItemStack itemStack;
 
-    public DynParticle(ClientLevel lvl, double x, double y, double z,
-                       double vx, double vy, double vz, ItemStack itemStack) {
+    public DynFoodParticle(ClientLevel lvl, double x, double y, double z,
+                           double vx, double vy, double vz, ItemStack itemStack) {
         super(lvl, x, y, z, 0, 0, 0);
         this.gravity = 1.0F;
         this.quadSize /= 2.0F;
@@ -99,9 +99,9 @@ public class DynParticle extends Particle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Provider implements ParticleProvider<DynParticleOption> {
-        public Particle createParticle(DynParticleOption p_105677_, ClientLevel p_105678_, double p_105679_, double p_105680_, double p_105681_, double p_105682_, double p_105683_, double p_105684_) {
-            return new DynParticle(p_105678_, p_105679_, p_105680_, p_105681_, p_105682_, p_105683_, p_105684_, p_105677_.getItem());
+    public static class Provider implements ParticleProvider<DynFoodParticleOption> {
+        public Particle createParticle(DynFoodParticleOption p_105677_, ClientLevel p_105678_, double p_105679_, double p_105680_, double p_105681_, double p_105682_, double p_105683_, double p_105684_) {
+            return new DynFoodParticle(p_105678_, p_105679_, p_105680_, p_105681_, p_105682_, p_105683_, p_105684_, p_105677_.getItem());
         }
     }
 }

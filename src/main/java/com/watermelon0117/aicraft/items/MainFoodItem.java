@@ -1,12 +1,8 @@
 package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.init.ParticleInit;
-import com.watermelon0117.aicraft.particle.DynParticle;
-import com.watermelon0117.aicraft.particle.DynParticleOption;
-import net.minecraft.client.particle.BreakingItemParticle;
+import com.watermelon0117.aicraft.particle.DynFoodParticleOption;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -15,16 +11,13 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Random;
 import java.util.function.Consumer;
 
 public class MainFoodItem extends MainItem {
@@ -86,9 +79,9 @@ public class MainFoodItem extends MainItem {
             vec31 = vec31.yRot(-ent.getYRot() * ((float)Math.PI / 180F));
             vec31 = vec31.add(ent.getX(), ent.getEyeY(), ent.getZ());
             if (ent.level instanceof ServerLevel) //Forge: Fix MC-2518 spawnParticle is nooped on server, need to use server specific variant
-                ((ServerLevel)ent.level).sendParticles(new DynParticleOption(ParticleInit.DYN.get(), stack), vec31.x, vec31.y, vec31.z, 1, vec3.x, vec3.y + 0.05D, vec3.z, 0.0D);
+                ((ServerLevel)ent.level).sendParticles(new DynFoodParticleOption(ParticleInit.DYN_FOOD.get(), stack), vec31.x, vec31.y, vec31.z, 1, vec3.x, vec3.y + 0.05D, vec3.z, 0.0D);
             else
-                ent.level.addParticle(new DynParticleOption(ParticleInit.DYN.get(), stack), vec31.x, vec31.y, vec31.z, vec3.x, vec3.y + 0.05D, vec3.z);
+                ent.level.addParticle(new DynFoodParticleOption(ParticleInit.DYN_FOOD.get(), stack), vec31.x, vec31.y, vec31.z, vec3.x, vec3.y + 0.05D, vec3.z);
         }
     }
     @Override

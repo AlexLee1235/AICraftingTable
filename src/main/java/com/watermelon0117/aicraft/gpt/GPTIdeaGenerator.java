@@ -5,7 +5,7 @@ import com.watermelon0117.aicraft.common.RecipeShapeMatcher;
 
 import java.util.concurrent.CompletableFuture;
 
-public class GPTIdeaGenerator6 {
+public class GPTIdeaGenerator {
     String inst = "Given a crafting grid filled with [Material] forming a [Shape], generate three item names.\n" +
             "You are identifying the most natural, direct, and commonly accepted name for an item crafted in Minecraft, based on a 3×3 recipe.\n" +
             "You are not inventing a new name.\n" +
@@ -33,8 +33,7 @@ public class GPTIdeaGenerator6 {
 
     protected String buildPrompt(ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
-        String prompt = String.format(
-                "%s\n" +
+        String prompt = String.format("%s\n" +
                         "Recipe(3x3 grid): \n" +
                         "Top Left: %s\n" +
                         "Top Middle: %s\n" +

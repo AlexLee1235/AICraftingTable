@@ -16,24 +16,24 @@ import java.util.stream.IntStream;
 public class ImageGridProcessor {
     private static final int WHITE_RGB = Color.WHITE.getRGB();
     private static final int BLACK_RGB = Color.BLACK.getRGB();
-    private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(100,200);
+    private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(100, 200);
 
     public static BufferedImage process(BufferedImage image, boolean save) {
         try {
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
-            if(save)
-                saveImage(CannyEdgeDetector.overlayCannyEdges(image,100,200), FileUtil.getTempFolder("edges_image.png"));
+            if (save)
+                saveImage(CannyEdgeDetector.overlayCannyEdges(image, 100, 200), FileUtil.getTempFolder("edges_image.png"));
 
             // 2. Edge Detection
-            BufferedImage edges = edgeDetection(image);
+            BufferedImage edges = cannyEdgeDetector.process(image);
 
             // Remove Background
-            image=removeBackgroundAuto(image, edges);
+            image = removeBackgroundAuto(image, edges);
 
             // 3. Extract Lines using Morphological Operations
             BufferedImage verticalLines = extractVerticalLines(edges);
             BufferedImage horizontalLines = extractHorizontalLines(edges);
-            if(save) {
+            if (save) {
                 saveImage(edges, FileUtil.getTempFolder("edges.png"));
                 saveImage(verticalLines, FileUtil.getTempFolder("vertical_lines.png"));
                 saveImage(horizontalLines, FileUtil.getTempFolder("horizontal_lines.png"));
@@ -56,9 +56,9 @@ public class ImageGridProcessor {
             double yGridSize = clusterAverage(yDiff);
             System.out.println("Grid size: " + xGridSize + ", " + yGridSize);
             int[] ratio = findNearestRatio(xGridSize, yGridSize);
-            System.out.println("Nearest ratio:"+ratio[0]+", "+ratio[1]);
-            xGridSize/=ratio[0];
-            yGridSize/=ratio[1];
+            System.out.println("Nearest ratio:" + ratio[0] + ", " + ratio[1]);
+            xGridSize /= ratio[0];
+            yGridSize /= ratio[1];
             System.out.println("Adjusted Grid size:" + xGridSize + ", " + yGridSize);
 
             // 7. Refine and Insert Lines
@@ -71,7 +71,7 @@ public class ImageGridProcessor {
             System.out.println("Y Lines: " + yLines);
 
             // 8. Draw Grid and Save
-            if(save) {
+            if (save) {
                 BufferedImage gridImage = drawGridLines(image, xLines, yLines);
                 saveImage(gridImage, FileUtil.getTempFolder("grid_image.png"));
             }
@@ -79,7 +79,7 @@ public class ImageGridProcessor {
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
             System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
             BufferedImage pixels = padImageCentered(gridColors, calcPaddingSize(gridColors.getWidth(), gridColors.getHeight(), 1));
-            if(save)
+            if (save)
                 saveImage(pixels, FileUtil.getTempFolder("grid_colors.png"));
             return pixels;
         } catch (IOException e) {
@@ -96,16 +96,15 @@ public class ImageGridProcessor {
             return ImageIO.read(bais);  // may return null if not a supported format
         }
     }
+
     public static BufferedImage readImage(File file) throws IOException {
         BufferedImage originalImage = ImageIO.read(file);
-        if (originalImage == null) {
+        if (originalImage == null)
             throw new IOException("Could not read image from path: " + file);
-        }
 
         // Ensure image is of type ARGB
-        if (originalImage.getType() == BufferedImage.TYPE_INT_ARGB) {
+        if (originalImage.getType() == BufferedImage.TYPE_INT_ARGB)
             return originalImage;
-        }
 
         BufferedImage imageWithAlpha = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = imageWithAlpha.createGraphics();
@@ -119,13 +118,6 @@ public class ImageGridProcessor {
      */
     public static void saveImage(BufferedImage image, File outputFile) throws IOException {
         ImageIO.write(image, "png", outputFile);
-    }
-
-    /**
-     * Placeholder for Canny edge detection. Converts to grayscale and applies a threshold.
-     */
-    public static BufferedImage edgeDetection(BufferedImage image) {
-        return cannyEdgeDetector.process(image);
     }
 
     /**
@@ -366,9 +358,8 @@ public class ImageGridProcessor {
         int gridCols = xLines.size() - 1;
         int gridRows = yLines.size() - 1;
 
-        if (gridCols <= 0 || gridRows <= 0) {
+        if (gridCols <= 0 || gridRows <= 0)
             return new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        }
 
         BufferedImage colorGridImage = new BufferedImage(gridCols, gridRows, BufferedImage.TYPE_INT_ARGB);
         int deltaX = (int) (xGridSize / 4);
@@ -543,8 +534,6 @@ public class ImageGridProcessor {
                 best[1] = (int) ratio[1];
             }
         }
-
         return best;
     }
-
 }

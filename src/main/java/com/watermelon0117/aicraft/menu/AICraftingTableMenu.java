@@ -136,7 +136,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     private static CraftingContainer getDummyContainer(AICraftingTableMenu menu){
         CraftingContainer craftingContainer = new CraftingContainer(menu, 3,3);
         for (int i = 0; i < 9; i++) {
-            craftingContainer.setItem(i, menu.blockEntity.getInventory().getStackInSlot(i + 1));
+            craftingContainer.setItem(i, menu.blockEntity.getInventory().getStackInSlot(i + 1).copy());
         }
         return craftingContainer;
     }

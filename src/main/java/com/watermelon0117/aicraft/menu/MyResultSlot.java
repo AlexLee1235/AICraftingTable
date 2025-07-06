@@ -19,9 +19,8 @@ public class MyResultSlot extends ResultSlot {
 
     public void onTake(Player player, ItemStack itemStack) {
         ItemStack[] itemStacks = new ItemStack[9];
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++)
             itemStacks[i] = this.craftSlots.getItem(i);
-        }
         ItemStack itemstack2 = RecipeManager.get().match(itemStacks);
         if (MainItem.isMainItem(itemstack2)) {
             for (int i = 0; i < 9; i++) {
@@ -35,8 +34,7 @@ public class MyResultSlot extends ResultSlot {
                         this.craftSlots.removeItem(i, 1);
                 }
             }
-        } else {
+        } else
             super.onTake(player, itemStack);
-        }
     }
 }

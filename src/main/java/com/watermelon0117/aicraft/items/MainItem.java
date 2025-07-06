@@ -162,11 +162,6 @@ public class MainItem extends Item {
         if (a == null) return false;
         return (a.is(ItemInit.MAIN_ITEM.get()) || a.is(ItemInit.MAIN_FOOD_ITEM.get()));
     }
-    public static boolean isSameMainItem(ItemStack a, ItemStack b) {
-        if (a == null || b == null) return false;
-        return (a.is(ItemInit.MAIN_ITEM.get()) && b.is(ItemInit.MAIN_ITEM.get())) ||
-                (a.is(ItemInit.MAIN_FOOD_ITEM.get()) && b.is(ItemInit.MAIN_FOOD_ITEM.get()));
-    }
     @Override
     public Object getRenderPropertiesInternal() {
         return super.getRenderPropertiesInternal();

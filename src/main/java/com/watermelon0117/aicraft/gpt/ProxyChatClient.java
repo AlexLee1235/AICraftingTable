@@ -66,7 +66,7 @@ public class ProxyChatClient {
     }
 
     public static CompletableFuture<String> testConnect() {
-        HttpClient client = HttpClient.newHttpClient();
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(TEST_URI)
                 .GET()

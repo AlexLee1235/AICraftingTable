@@ -3,8 +3,11 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.common.*;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
+import com.watermelon0117.aicraft.common.ItemStackArray;
+import com.watermelon0117.aicraft.common.RecipeManager;
+import com.watermelon0117.aicraft.common.SpecialItemManager;
+import com.watermelon0117.aicraft.common.TextureManager;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.network.CAddTexturePacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
@@ -12,15 +15,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public class GPTItemGenerator2 {
-    private static final String inst =
-            "given a minecraft item, please answer following questions:\n" +
-                    "visual_description(one sentence describing appearance of item, with respect to recipe and material)?\n" +
+public class GPTItemGenerator4 {
+    private static final String inst = "given a minecraft item, please answer following questions:\n" +
+                    "visual_description(a one sentence describe what the finished item itself looks like in-game. Highlight how the arrangement of materials informs the shape)?\n" +
                     "is_shapeless_crafting(true if is mixing, combine, etc)?\n" +
                     "is_tool?\n" +
                     "tier(equivalent in wooden, stone, iron, diamond, netherite, golden)?\n" +
@@ -40,8 +40,7 @@ public class GPTItemGenerator2 {
 
     private static String buildPrompt(String name, ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
-        String r = String.format(
-                "Recipe:\n\tTop Left: %s\n" +
+        String r = String.format("Recipe:\n\tTop Left: %s\n" +
                         "\tTop: %s\n" +
                         "\tTop Right: %s\n" +
                         "\tLeft: %s\n" +
@@ -52,9 +51,7 @@ public class GPTItemGenerator2 {
                         "\tBottom Right: %s\n",
                 in[0], in[1], in[2], in[3], in[4], in[5], in[6], in[7], in[8]
         );
-        return inst + String.format("Item: %s\n", name) +
-                r +
-                "\nplease answer in json format";
+        return inst + String.format("Item: %s\n", name) + r + "\nplease answer in json format";
     }
 
     public CompletableFuture<ItemStack> generate(String id, String name, ItemStackArray recipe, AICraftingTableBlockEntity be, Predicate<AICraftingTableBlockEntity> predicate, String user) {
@@ -63,9 +60,7 @@ public class GPTItemGenerator2 {
         return client.chat(prompt, "Design", user).thenCompose(rawJson -> {
             System.out.println(rawJson);
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
-            ItemStack itemStack = json.is_edible ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get()) : new ItemStack(ItemInit.MAIN_ITEM.get());
-            itemStack.getOrCreateTag().put("aicraft", new CompoundTag());
-            setTags(itemStack.getOrCreateTag().getCompound("aicraft"), json, id, name);
+            ItemStack itemStack = makeItem(json, id, name);
             if (json.visual_description == null) json.visual_description = "";
             return imgClient.generateItem(id, recipe.getDisplayNames(), json.visual_description, user).thenApply(textureBytes -> {
                 if (predicate.test(be)) {
@@ -79,68 +74,74 @@ public class GPTItemGenerator2 {
         });
     }
 
-    private static void setTags(CompoundTag tag, ItemResult json, String id, String name) {
+    private static ItemStack makeItem(ItemResult json, String id, String name) {
+        ItemStack itemStack = json.is_edible
+                ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get())
+                : new ItemStack(ItemInit.MAIN_ITEM.get());
+
+        CompoundTag tag = new CompoundTag();
         tag.putString("id", id);
         tag.putString("name", name);
-        if (json.is_suitable_for_breaking_stone)
-            tag.putBoolean("isPickaxe", true);
-        if (json.is_suitable_for_breaking_woods)
-            tag.putBoolean("isAxe", true);
-        if (json.is_suitable_for_breaking_dirt)
-            tag.putBoolean("isShovel", true);
-        if (json.is_suitable_to_plow)
-            tag.putBoolean("isHoe", true);
-        if (json.is_melee_weapon)
-            tag.putBoolean("isMelee", true);
-        if (json.is_tool || json.is_melee_weapon || json.is_suitable_for_breaking_stone || json.is_suitable_for_breaking_woods || json.is_suitable_for_breaking_dirt || json.is_suitable_to_plow) {
-            tag.putByte("tier", getTier(json));
-            //sword pickaxe axe shovel hoe
-            //double[] num1={3,1,7,1.5,-1};
-            //double[] num2={-2.4,-2.8,-3.2-3.0,-2.0};
-            double damage = switch (json.damage == null ? "normal" : json.damage) {
-                case "low" -> 1;
-                case "high" -> 7;
-                case "normal" -> 3;
-                default -> 3;
-            };
 
-            double attackSpeed = switch (json.attack_speed == null ? "normal" : json.attack_speed) {
-                case "fast" -> -2.0;
-                case "slow" -> -3.2;
-                case "normal" -> -2.5;
-                default -> -2.5;
-            };
-            tag.putDouble("attackDamage", damage);
-            tag.putDouble("attackSpeed", attackSpeed);
+        putBooleanIfTrue(tag, "isPickaxe", json.is_suitable_for_breaking_stone);
+        putBooleanIfTrue(tag, "isAxe", json.is_suitable_for_breaking_woods);
+        putBooleanIfTrue(tag, "isShovel", json.is_suitable_for_breaking_dirt);
+        putBooleanIfTrue(tag, "isHoe", json.is_suitable_to_plow);
+        putBooleanIfTrue(tag, "isMelee", json.is_melee_weapon);
+
+        if (isToolOrWeapon(json)) {
+            tag.putByte("tier", getTier(json));
+            tag.putDouble("attackDamage", getDamage(json.damage));
+            tag.putDouble("attackSpeed", getAttackSpeed(json.attack_speed));
         }
-        //food
+
         if (json.is_edible) {
             tag.putByte("nutrition", (byte) json.nutrition_value);
-            if (json.food_is_solid_or_liquid != null && json.food_is_solid_or_liquid.contentEquals("liquid"))
-                tag.putBoolean("isDrink", true);
-            else
-                tag.putBoolean("isFood", true);
+            tag.putBoolean(json.food_is_solid_or_liquid != null && json.food_is_solid_or_liquid.equals("liquid") ? "isDrink" : "isFood", true);
         }
+
+        itemStack.getOrCreateTag().put("aicraft", tag);
+        return itemStack;
+    }
+
+    private static void putBooleanIfTrue(CompoundTag tag, String key, boolean condition) {
+        if (condition) tag.putBoolean(key, true);
+    }
+
+    private static boolean isToolOrWeapon(ItemResult json) {
+        return json.is_tool || json.is_melee_weapon ||
+                json.is_suitable_for_breaking_stone || json.is_suitable_for_breaking_woods ||
+                json.is_suitable_for_breaking_dirt || json.is_suitable_to_plow;
     }
 
     private static byte getTier(ItemResult json) {
-        if (json.tier == null) {
-            System.out.println("found tool/weapon without tier!");
+        if (json.tier == null)
             return (byte) Tiers.STONE.ordinal();
-        }
-        if (json.tier.contentEquals("wooden"))
-            return (byte) Tiers.WOOD.ordinal();
-        else if (json.tier.contentEquals("stone"))
-            return (byte) Tiers.STONE.ordinal();
-        else if (json.tier.contentEquals("iron"))
-            return (byte) Tiers.IRON.ordinal();
-        else if (json.tier.contentEquals("diamond"))
-            return (byte) Tiers.DIAMOND.ordinal();
-        else if (json.tier.contentEquals("netherite"))
-            return (byte) Tiers.NETHERITE.ordinal();
-        else if (json.tier.contentEquals("golden"))
-            return (byte) Tiers.GOLD.ordinal();
-        return (byte) Tiers.STONE.ordinal();
+        return switch (json.tier) {
+            case "wooden" -> (byte) Tiers.WOOD.ordinal();
+            case "stone" -> (byte) Tiers.STONE.ordinal();
+            case "iron" -> (byte) Tiers.IRON.ordinal();
+            case "diamond" -> (byte) Tiers.DIAMOND.ordinal();
+            case "netherite" -> (byte) Tiers.NETHERITE.ordinal();
+            case "golden" -> (byte) Tiers.GOLD.ordinal();
+            default -> (byte) Tiers.STONE.ordinal();
+        };
+    }
+
+    private static double getDamage(String damage) {
+        return switch (damage == null ? "normal" : damage) {
+            case "low" -> 1;
+            case "high" -> 7;
+            default -> 3;
+        };
+    }
+
+    private static double getAttackSpeed(String attackSpeed) {
+        return switch (attackSpeed == null ? "normal" : attackSpeed) {
+            case "fast" -> -2.0;
+            case "slow" -> -3.2;
+            default -> -2.5;
+        };
     }
 
     private static final class ItemResult {
@@ -160,4 +161,5 @@ public class GPTItemGenerator2 {
         String food_is_solid_or_liquid;
     }
 }
+
 
