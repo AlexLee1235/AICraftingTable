@@ -31,7 +31,7 @@ public final class OpenAIImageClient {
 
 
     public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality) {
-        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality);
+        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality, "jpeg");
         String json  = gson.toJson(body);
 
         HttpRequest req = HttpRequest.newBuilder()
@@ -66,7 +66,8 @@ public final class OpenAIImageClient {
                            String size,
                            String background,
                            String moderation,
-                           String quality) {}
+                           String quality,
+                           String output_format) {}
 
     private static final class Response { List<Data> data; }
     private static final class Data     { @SerializedName("b64_json") String b64Json; }
