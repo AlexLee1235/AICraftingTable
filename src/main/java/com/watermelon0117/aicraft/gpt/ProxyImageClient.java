@@ -21,7 +21,7 @@ public class ProxyImageClient {
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 
     public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality, String user) {
-        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality, user);
+        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality, "jpeg", user);
         String json = gson.toJson(body);
 
         HttpRequest req = HttpRequest.newBuilder()
@@ -53,6 +53,7 @@ public class ProxyImageClient {
                            String background,
                            String moderation,
                            String quality,
+                           String output_format,
                            String user) {
     }
 

@@ -81,8 +81,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0) setProgress();
             else setInitial();
             currentRecipe = new ItemStackArray(menu);
+            first = false;
         }
-        first = false;
     }
 
     private void updateWidgetPos() {
@@ -129,9 +129,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
             PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true));
             setProgress();
-        } else {
+        } else
             System.out.println("Can't regen because no item");
-        }
     }
 
     private void optBtnPress(Button button, int i) {
@@ -214,11 +213,10 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
         if (state == State.PROGRESS)  //progress arrow
             blit(poseStack, i + 66, j + 34, 0, 167, menu.blockEntity.getProgress() / 10, 16);
-        if (state == State.GENERATING) {  //locked button
+        if (state == State.GENERATING)   //locked button
             blit(poseStack, i + 67, j + 34, 0, 185, 27, 18);
-        } else if (mainBtn.isHoveredOrFocused()) {  //hovered button
+        else if (mainBtn.isHoveredOrFocused())   //hovered button
             blit(poseStack, i + 67, j + 34, 0, 203, 27, 18);
-        }
     }
 
     @Override

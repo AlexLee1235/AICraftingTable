@@ -58,9 +58,9 @@ public class TextureManager {
 
     public static byte[] applyTexture(byte[] bytes, String id) {
         try {
+            Files.write(FileUtil.getTempFolder("source.jpeg").toPath(), bytes);
+            Files.write(FileUtil.getArchiveFolder(id + "_" + getCurrentDateTime() + ".jpeg").toPath(), bytes);
             BufferedImage txt = ImageGridProcessor.process(ImageGridProcessor.readImageFromBytes(bytes), false);
-            Files.write(FileUtil.getTempFolder("source.png").toPath(), bytes);
-            Files.write(FileUtil.getArchiveFolder(id + "_" + getCurrentDateTime() + ".png").toPath(), bytes);
             ImageGridProcessor.saveImage(txt, new File(FileUtil.getTextureFolder(), id + ".png"));
             return toBytes(txt);
         } catch (IOException e) {
