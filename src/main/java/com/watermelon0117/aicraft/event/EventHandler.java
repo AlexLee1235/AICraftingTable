@@ -5,6 +5,8 @@ import com.watermelon0117.aicraft.commands.MyItemArgument;
 import com.watermelon0117.aicraft.commands.RemoveItemCommand;
 import com.watermelon0117.aicraft.common.*;
 import com.watermelon0117.aicraft.gpt.*;
+import com.watermelon0117.aicraft.gpt.opanai.OpenAIChatClient;
+import com.watermelon0117.aicraft.gpt.opanai.OpenAIImageClient;
 import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
 import com.watermelon0117.aicraft.network.CSyncRecipesPacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
@@ -15,7 +17,6 @@ import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -23,19 +24,6 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EventHandler {

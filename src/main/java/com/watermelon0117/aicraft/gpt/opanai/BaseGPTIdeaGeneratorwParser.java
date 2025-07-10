@@ -1,8 +1,9 @@
-package com.watermelon0117.aicraft.gpt;
+package com.watermelon0117.aicraft.gpt.opanai;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.gpt.ItemIdeas;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.gpt;
+package com.watermelon0117.aicraft.gpt.opanai;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;

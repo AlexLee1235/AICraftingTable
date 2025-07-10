@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.gpt;
+package com.watermelon0117.aicraft.gpt.opanai;
 
 import java.util.concurrent.CompletableFuture;
 
