@@ -40,11 +40,11 @@ public class BaseGPTIdeaGeneratorwParser {
             "\n" +
             "Now extract and translate from this:\n";
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-    private final AIChatClient client, extractor;
+    private final OpenAIChatClient client, extractor;
 
     public BaseGPTIdeaGeneratorwParser(String sysMsg, String model, double temp) {
-        client = new AIChatClient(model, temp, 2048, sysMsg, "text");
-        extractor = new AIChatClient("gpt-4.1", 0.0, 1024,
+        client = new OpenAIChatClient(model, temp, 2048, sysMsg, "text");
+        extractor = new OpenAIChatClient("gpt-4.1", 0.0, 1024,
                 "You are a helpful assistant that extracts structured data and translate.", "json_object");
     }
 
@@ -63,7 +63,7 @@ public class BaseGPTIdeaGeneratorwParser {
 
     public static final class ItemResult {
         boolean error;
-        List<String> items;
-        List<String> translated;
+        public List<String> items;
+        public List<String> translated;
     }
 }

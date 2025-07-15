@@ -129,6 +129,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
             PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true));
             setProgress();
+            // send feedback
         } else
             System.out.println("Can't regen because no item");
     }

@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
+import com.watermelon0117.aicraft.common.TextureManager;
+import com.watermelon0117.aicraft.gpt.delegate.ItemGenerator;
 import com.watermelon0117.aicraft.gpt.opanai.GPTItemGenerator4;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
@@ -56,7 +58,7 @@ public class SSelectIdeaPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        GPTItemGenerator4 generator = new GPTItemGenerator4();
+        ItemGenerator generator = new ItemGenerator();
         ServerPlayer player = contextSupplier.get().getSender();
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
@@ -72,8 +74,13 @@ public class SSelectIdeaPacket {
                     int tId = incrementID++;
                     be.taskID = tId;
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                    generator.generate(id, name, new ItemStackArray(recipe), be, b -> b.taskID == tId && b.getProgress() != 0, player.getStringUUID()).thenAccept(itemStack -> {
+                    generator.generate(id, name, new ItemStackArray(recipe), player.getStringUUID()).thenAccept(generatedItem -> {
                         if (be.taskID == tId && be.getProgress() != 0) {
+                            ItemStack itemStack=generatedItem.itemStack();
+                            byte[] processedTexture = TextureManager.applyTexture(generatedItem.rawTexture(), id);
+                            PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
+                            SpecialItemManager.get().put(itemStack);
+                            RecipeManager.get().addRecipe(SpecialItemManager.get().getItem(id), recipe, generatedItem.shapeless());
                             be.getInventory().setStackInSlot(0, itemStack);
                             be.setProgress(580);
                         } else

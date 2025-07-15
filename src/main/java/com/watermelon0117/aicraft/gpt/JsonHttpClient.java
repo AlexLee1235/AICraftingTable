@@ -18,24 +18,23 @@ public class JsonHttpClient<T, U> {
     private final URI endpoint;
     private final Class<U> responseClass; // store Class<U> for deserialization
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();
 
     public JsonHttpClient(String uri, Class<U> responseClass) {
         this.endpoint = URI.create(uri);
         this.responseClass = responseClass;
     }
 
-    public CompletableFuture<U> send(T request) {
+    public CompletableFuture<U> send(T request, String user) {
         String json = gson.toJson(request);
-
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(endpoint)
                 //.header("Authorization", "Bearer " + apiKey)
+                .header("X-User-Id", user)
                 .header("Content-Type", "application/json")
                 .timeout(Duration.ofSeconds(100))
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
-
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {

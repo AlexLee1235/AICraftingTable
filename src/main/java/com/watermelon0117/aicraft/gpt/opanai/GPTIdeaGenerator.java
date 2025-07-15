@@ -32,7 +32,7 @@ public class GPTIdeaGenerator {
             "Output your analysis step by step before listing item names.\n";
     BaseGPTIdeaGeneratorwParser generator = new BaseGPTIdeaGeneratorwParser("You are a Minecraft crafting recipe solver", "gpt-4.1", 0.0);
 
-    protected String buildPrompt(ItemStackArray recipe) {
+    private String buildPrompt(ItemStackArray recipe) {
         String[] in = recipe.getDisplayNames();
         String prompt = String.format("%s\n" +
                         "Recipe(3x3 grid): \n" +

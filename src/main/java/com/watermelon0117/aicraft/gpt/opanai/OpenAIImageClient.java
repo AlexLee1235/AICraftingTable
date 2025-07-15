@@ -30,7 +30,7 @@ public final class OpenAIImageClient {
     /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
 
 
-    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality) {
+    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality, String user) {
         Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality, "jpeg");
         String json  = gson.toJson(body);
 

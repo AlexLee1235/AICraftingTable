@@ -31,7 +31,7 @@ public class OpenAIChatClient {
         this.response_format = response_format;
     }
 
-    public CompletableFuture<String> chat(String message) {
+    public CompletableFuture<String> chat(String message, String type, String user) {
         ArrayList<Message> list=new ArrayList<>();
         list.add(new Message("system", systemMessage));
         list.add(new Message("user", message));
@@ -39,9 +39,7 @@ public class OpenAIChatClient {
     }
     private CompletableFuture<String> chat(List<Message> messages) {
         ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages, response_format);
-
-        String json  = gson.toJson(requestBody);
-
+        String json = gson.toJson(requestBody);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(CHAT_URI)
                 .header("Authorization", "Bearer " + apiKey)
@@ -49,7 +47,6 @@ public class OpenAIChatClient {
                 .timeout(Duration.ofSeconds(30))
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
-
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {
@@ -58,7 +55,6 @@ public class OpenAIChatClient {
                                         resp.statusCode() + ": " +
                                         resp.body()));
                     }
-
                     ChatResponse chat = gson.fromJson(resp.body(), ChatResponse.class);
                     return CompletableFuture.completedFuture(chat.choices.get(0).message.content);
                 });

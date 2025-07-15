@@ -37,11 +37,8 @@ public class EventHandler {
     public static void EntityJoinLevelEvent(EntityJoinLevelEvent event){
         if(event.getEntity() instanceof Player player) {
             if (!event.getEntity().level.isClientSide) {
-                if (!AIChatClient.useOpenAI) {
-                    ProxyChatClient.testConnect().exceptionally(err->{
-                        player.sendSystemMessage(Component.literal("AICraftingTable: Unable to connect to AI server").withStyle(ChatFormatting.RED));
-                        return null;
-                    });
+                if (!AICraftingTableCommonConfigs.useOpenAI) {
+                    //todo: test connect server
                 }
             }
         }
@@ -56,10 +53,11 @@ public class EventHandler {
         SpecialItemManager.ServerSide.init(e.getServer());
         RecipeManager.ServerSide.init(e.getServer());
         String key = AICraftingTableCommonConfigs.OPENAI_API_KEY.get();
-        AIChatClient.useOpenAI = !key.isEmpty();
-        AIImageClient.useOpenAI = !key.isEmpty();
-        OpenAIChatClient.apiKey = key;
-        OpenAIImageClient.apiKey = key;
+        AICraftingTableCommonConfigs.useOpenAI = !key.isEmpty();
+        if(!key.isEmpty()) {
+            OpenAIChatClient.apiKey = key;
+            OpenAIImageClient.apiKey = key;
+        }
     }
 
 
