@@ -39,8 +39,7 @@ public class GPTItemGenerator4 {
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     private final GPTImageGenerator imgClient = new GPTImageGenerator();
 
-    private static String buildPrompt(String name, ItemStackArray recipe) {
-        String[] in = recipe.getDisplayNames();
+    private static String buildPrompt(String name, String[] in) {
         String r = String.format("Recipe:\n\tTop Left: %s\n" +
                         "\tTop: %s\n" +
                         "\tTop Right: %s\n" +
@@ -54,20 +53,38 @@ public class GPTItemGenerator4 {
         );
         return inst + String.format("Item: %s\n", name) + r + "\nplease answer in json format";
     }
-    public CompletableFuture<GeneratedItem> generate(String id, String name, ItemStackArray recipe, String user) {
+    public CompletableFuture<JsonTexPair> generate(String id, String[] recipe, String user) {
         String prompt = buildPrompt(id, recipe);
         System.out.println(prompt);
         return client.chat(prompt, "Design", user).thenCompose(rawJson -> {
             System.out.println(rawJson);
             GeneratedItem.ItemResult json = gson.fromJson(rawJson, GeneratedItem.ItemResult.class);
             if (json.visual_description == null) json.visual_description = "";
-            return imgClient.generateItem(id, recipe.getDisplayNames(), json.visual_description, user).thenApply(textureBytes -> {
-                return GeneratedItem.fromJson(json, id, name, textureBytes);
+            return imgClient.generateItem(id, json.visual_description).thenApply(textureB64 -> {
+                return new JsonTexPair(rawJson, textureB64);
             });
         });
     }
-
-
+    public record JsonTexPair(String json, String b64Tex){}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

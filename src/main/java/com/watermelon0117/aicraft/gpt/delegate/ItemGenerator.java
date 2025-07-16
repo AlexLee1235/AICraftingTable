@@ -17,7 +17,7 @@ public class ItemGenerator {
 
     public CompletableFuture<GeneratedItem> generate(String id, String name, ItemStackArray recipe, String user)  {
         if (AICraftingTableCommonConfigs.useOpenAI)
-            return gptItemGenerator.generate(id, name, recipe, user);
+            return gptItemGenerator.generate(id, recipe.getDisplayNames(), user);
         else
             return proxyItemGenerator.generate(id, name, recipe, user);
     }

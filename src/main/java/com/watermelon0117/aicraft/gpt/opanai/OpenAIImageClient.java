@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class OpenAIImageClient {
     private static final URI ENDPOINT = URI.create("https://api.openai.com/v1/images/generations");
-    public static String apiKey;
+    public static String apiKey="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";
     private final HttpClient http;
     private final Gson gson;
 
@@ -30,7 +30,7 @@ public final class OpenAIImageClient {
     /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
 
 
-    public CompletableFuture<byte[]> generateAsync(String prompt, String size, String background, String moderation, String quality, String user) {
+    public CompletableFuture<String> generateAsync(String prompt, String size, String background, String moderation, String quality) {
         Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality, "jpeg");
         String json  = gson.toJson(body);
 
@@ -53,8 +53,7 @@ public final class OpenAIImageClient {
 
                     Response parsed = gson.fromJson(resp.body(), Response.class);
                     Data     d      = parsed.data.get(0);          // n == 1
-                    byte[]   bytes  = Base64.getDecoder().decode(d.b64Json);
-                    return CompletableFuture.completedFuture(bytes);
+                    return CompletableFuture.completedFuture(d.b64_json);
                 });
     }
 
@@ -70,5 +69,5 @@ public final class OpenAIImageClient {
                            String output_format) {}
 
     private static final class Response { List<Data> data; }
-    private static final class Data     { @SerializedName("b64_json") String b64Json; }
+    private static final class Data     { String b64_json; }
 }

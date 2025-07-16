@@ -91,7 +91,7 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
 
     public static final class ItemResult {
         public String visual_description;
-        boolean is_shapeless_crafting;
+        public boolean is_shapeless_crafting;
         boolean is_tool;
         String tier;
         boolean is_suitable_for_breaking_stone;
