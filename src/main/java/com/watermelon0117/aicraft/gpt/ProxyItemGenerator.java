@@ -7,7 +7,7 @@ import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyItemGenerator {
-    JsonHttpClient<ItemRequest, ItemRespond> client = new JsonHttpClient<>("http://localhost:8080/textures", ItemRespond.class);
+    JsonHttpClient<ItemRequest, ItemRespond> client = new JsonHttpClient<>("https://mod.aicraftingtable.com/textures", ItemRespond.class);
 
     public CompletableFuture<GeneratedItem> generate(String id, String name, ItemStackArray recipe, String user) {
         ItemRequest request = new ItemRequest(recipe.getDisplayNames(), id, name);

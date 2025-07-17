@@ -29,7 +29,7 @@ public class JsonHttpClient<T, U> {
         String json = gson.toJson(request);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(endpoint)
-                //.header("Authorization", "Bearer " + apiKey)
+                .header("Authorization", "Bearer " + "MY_SUPER_SECRET_KEY")
                 .header("X-User-Id", user)
                 .header("Content-Type", "application/json")
                 .timeout(Duration.ofSeconds(100))
@@ -38,10 +38,8 @@ public class JsonHttpClient<T, U> {
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {
-                        return CompletableFuture.failedFuture(
-                                new RuntimeException("Server error " +
-                                        resp.statusCode() + ": " +
-                                        resp.body()));
+                        String msg=resp.body().replace("\\n", "\n").replace("\\", "");
+                        return CompletableFuture.failedFuture(new RuntimeException(msg));
                     }
 
                     U chat = gson.fromJson(resp.body(), responseClass);
