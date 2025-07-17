@@ -9,16 +9,18 @@ import com.watermelon0117.aicraft.gpt.ProxyItemGenerator;
 import com.watermelon0117.aicraft.gpt.opanai.GPTIdeaGenerator;
 import com.watermelon0117.aicraft.gpt.opanai.GPTItemGenerator4;
 
+import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 
 public class ItemGenerator {
     GPTItemGenerator4 gptItemGenerator = new GPTItemGenerator4();
     ProxyItemGenerator proxyItemGenerator = new ProxyItemGenerator();
 
-    public CompletableFuture<GeneratedItem> generate(String id, String name, ItemStackArray recipe, String user)  {
-        if (AICraftingTableCommonConfigs.useOpenAI)
-            return gptItemGenerator.generate(id, recipe.getDisplayNames(), user);
-        else
+    public CompletableFuture<GeneratedItem> generate(String id, String name, ItemStackArray recipe, String user) {
+        if (AICraftingTableCommonConfigs.useOpenAI) {
+            return gptItemGenerator.generate(id, recipe.getDisplayNames(), user).thenApply(res ->
+                    GeneratedItem.fromJson(res.json(), id, name, Base64.getDecoder().decode(res.b64Tex())));
+        } else
             return proxyItemGenerator.generate(id, name, recipe, user);
     }
 }

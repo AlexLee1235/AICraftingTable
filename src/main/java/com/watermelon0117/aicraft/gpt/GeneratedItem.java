@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.gpt.opanai.ItemResult;
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -87,22 +88,5 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
             case "slow" -> -3.2;
             default -> -2.5;
         };
-    }
-
-    public static final class ItemResult {
-        public String visual_description;
-        public boolean is_shapeless_crafting;
-        boolean is_tool;
-        String tier;
-        boolean is_suitable_for_breaking_stone;
-        boolean is_suitable_for_breaking_woods;
-        boolean is_suitable_for_breaking_dirt;
-        boolean is_suitable_to_plow;
-        boolean is_melee_weapon;
-        String damage;
-        String attack_speed;
-        boolean is_edible;
-        int nutrition_value;
-        String food_is_solid_or_liquid;
     }
 }
