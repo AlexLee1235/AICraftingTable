@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.common;
 
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -28,12 +29,6 @@ public class ItemStackArray {
             r.items[i] = other.items[i].copy();
         return r;
     }
-    public void setItem(int i, ItemStack itemStack) {
-        items[i] = itemStack;
-    }
-    private static String strip(String s){
-        return s.replace("[","").replace("]","");
-    }
 
     public String[] getDisplayNames() {
         String[] list = new String[9];
@@ -41,15 +36,28 @@ public class ItemStackArray {
             if (items[i].isEmpty())
                 list[i] = "empty";
             else
-                list[i] = strip(items[i].getDisplayName().getString());
+                list[i] = toTitleCase(ForgeRegistries.ITEMS.getKey(items[i].getItem()).getPath());//strip(items[i].getDisplayName().getString());
+
         }
         return list;
     }
-    public String getUniqueNames() {
-        return Arrays.stream(getDisplayNames())
-                .distinct()
-                .filter(s -> !s.contentEquals("empty"))
-                .collect(Collectors.joining(", "));
+    public static String toTitleCase(String input) {
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = true; // capitalize the first character
+        for (char c : input.toCharArray()) {
+            if (c == '_') {
+                result.append(' ');
+                capitalizeNext = true; // next char should be capitalized
+            } else {
+                if (capitalizeNext) {
+                    result.append(Character.toUpperCase(c));
+                    capitalizeNext = false;
+                } else {
+                    result.append(c);
+                }
+            }
+        }
+        return result.toString();
     }
     public boolean isEmpty(){
         for (int i = 0; i < 9; i++)
