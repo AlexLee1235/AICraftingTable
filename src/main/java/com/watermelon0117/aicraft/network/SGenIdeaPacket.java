@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.net.ConnectException;
 import java.util.function.Supplier;
 
 public class SGenIdeaPacket {
@@ -20,7 +21,7 @@ public class SGenIdeaPacket {
     public SGenIdeaPacket(BlockPos pos, ItemStackArray recipe, String lang) {
         this.pos = pos;
         this.recipe = recipe.items;
-        this.lang=lang;
+        this.lang = lang;
     }
 
     public SGenIdeaPacket(FriendlyByteBuf buf) {
@@ -30,7 +31,7 @@ public class SGenIdeaPacket {
             recipe[i] = buf.readItem();
         }
         this.recipe = recipe;
-        this.lang=buf.readUtf();
+        this.lang = buf.readUtf();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -50,8 +51,8 @@ public class SGenIdeaPacket {
                         new CGenIdeaPacket(pos, recipe, results, false, ""), player);
             }).exceptionally(e -> {
                 e.printStackTrace();
-                PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, recipe, new ItemIdeas(), true, e.getMessage()), player);
+                PacketHandler.sendToPlayer(new CGenIdeaPacket(pos, recipe, new ItemIdeas(), true,
+                        e.getCause() instanceof ConnectException ? "Unable to connect to the server. Please check your internet connection or try again later." : e.getMessage()), player);
                 return null;
             });
         }

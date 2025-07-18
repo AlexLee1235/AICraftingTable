@@ -38,7 +38,8 @@ public class JsonHttpClient<T, U> {
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {
-                        String msg=resp.body().replace("\\n", "\n").replace("\\", "");
+                        String msg = resp.body().replace("\\n", "\n").replace("\\", "");
+                        if (msg.isEmpty()) msg = "Unknown server error";
                         return CompletableFuture.failedFuture(new RuntimeException(msg));
                     }
 
