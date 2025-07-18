@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.common;
+package com.watermelon0117.aicraft.gpt.opanai;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -23,10 +23,7 @@ public final class RecipeShapeMatcher {
             // Map.entry("Boots",     "I II I   ")
     );
 
-    public record Match(String shapeName, ItemStack material) {
-        public String materialName() {
-            return strip(material().getDisplayName().getString());
-        }
+    public record Match(String shapeName, String material) {
     }
 
     /*───────────────────────────── Public API ─────────────────────────────*/
@@ -34,10 +31,11 @@ public final class RecipeShapeMatcher {
     /**
      * Returns the first matching (shape, material) pair, or {@code null} if none.
      */
-    public static Match match(ItemStackArray grid) {
+    public static Match match(String[] grid) {
+        System.out.println(Arrays.toString(grid));
         for (Map.Entry<String, String> entry : PATTERNS) {
             for (String shifted : shiftPattern(entry.getValue())) {
-                ItemStack mat = tryMatch(grid.items, shifted);
+                String mat = tryMatch(grid, shifted);
                 if (!mat.isEmpty()) {
                     return new Match(entry.getKey(), mat);
                 }
@@ -48,27 +46,27 @@ public final class RecipeShapeMatcher {
 
     /*───────────────────────────── Internals ──────────────────────────────*/
 
-    private static ItemStack tryMatch(ItemStack[] grid, String pattern) {
-        ItemStack ingot = ItemStack.EMPTY;
-        ItemStack stick = new ItemStack(Items.STICK);
-
+    private static String tryMatch(String[] grid, String pattern) {
+        String ingot = "";
+        String stick = "Stick";
+        System.out.println("hi");
         for (int i = 0; i < 9; i++) {
             char expected = pattern.charAt(i);
-            ItemStack actual = grid[i];
-
+            String actual = grid[i];
+            System.out.println(actual);
             switch (expected) {
                 case ' ' -> {
-                    if (!actual.isEmpty()) return ItemStack.EMPTY;
+                    if (!actual.contentEquals("empty")) return "";
                 }
                 case 'S' -> {
-                    if (actual.isEmpty() || !ItemStack.isSameItemSameTags(actual, stick))
-                        return ItemStack.EMPTY;
+                    if (!actual.contentEquals(stick))
+                        return "";
                 }
                 case 'I' -> {
-                    if (actual.isEmpty()) return ItemStack.EMPTY;
+                    if (actual.contentEquals("empty")) return "";
                     if (ingot.isEmpty()) ingot = actual;
-                    else if (!ItemStack.isSameItemSameTags(actual, ingot))
-                        return ItemStack.EMPTY;
+                    else if (!actual.contentEquals(ingot))
+                        return "";
                 }
             }
         }
