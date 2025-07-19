@@ -33,7 +33,6 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     private final Player player;
     public final AICraftingTableBlockEntity blockEntity;
     public boolean hasCraftResult;
-
     public ItemStackArray currentRecipe;
     //Client Constructor
     public AICraftingTableMenu(int id, Inventory inventory, FriendlyByteBuf buf){
