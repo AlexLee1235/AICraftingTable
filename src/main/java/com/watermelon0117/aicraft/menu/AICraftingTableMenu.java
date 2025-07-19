@@ -206,13 +206,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         }
         return need.isEmpty();                                   // true ⇒ everything found
     }
-    private static boolean sameItem(ItemStack a, ItemStack b) {
-        // Example implementation; keep whatever logic you already use.
-        if (a == null || b == null) return false;
-        if (a.isEmpty() || b.isEmpty()) return false;
-        return ItemStack.isSameItemSameTags(a, b);
-    }
-    public boolean moveItemStackTo(ItemStack stack, int start, int end, boolean reverse) {
+    public boolean moveItemStackTo(ItemStack stack, int start, int end, boolean reverse) { //make it public
         return super.moveItemStackTo(stack, start, end, reverse);
     }
 }

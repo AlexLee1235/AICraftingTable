@@ -1,5 +1,7 @@
 package com.watermelon0117.aicraft.common;
 
+import com.watermelon0117.aicraft.init.ItemInit;
+import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -35,9 +37,12 @@ public class ItemStackArray {
         for (int i = 0; i < 9; i++) {
             if (items[i].isEmpty())
                 list[i] = "empty";
-            else
-                list[i] = toTitleCase(ForgeRegistries.ITEMS.getKey(items[i].getItem()).getPath());//strip(items[i].getDisplayName().getString());
-
+            else {
+                if (MainItem.isMainItem(items[i]))
+                    list[i] = MainItem.getID(items[i]);
+                else
+                    list[i] = toTitleCase(ForgeRegistries.ITEMS.getKey(items[i].getItem()).getPath());//strip(items[i].getDisplayName().getString());
+            }
         }
         return list;
     }
