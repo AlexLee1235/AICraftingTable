@@ -1,6 +1,12 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube",
   "textures": {
-    "all": "aicraft:blocks/ai_crafting_table"
+    "down": "aicraft:block/ai_crafting_table_bottom",
+    "east": "aicraft:block/ai_crafting_table_side",
+    "north": "aicraft:block/ai_crafting_table_front",
+    "particle": "aicraft:block/ai_crafting_table_front",
+    "south": "aicraft:block/ai_crafting_table_side",
+    "up": "aicraft:block/ai_crafting_table_top",
+    "west": "aicraft:block/ai_crafting_table_front"
   }
 }
