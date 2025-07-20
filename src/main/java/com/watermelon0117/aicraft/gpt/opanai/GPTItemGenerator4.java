@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class GPTItemGenerator4 {
     private static final String inst = "given a minecraft item, please answer following questions:\n" +
-            "visual_description(a one sentence describe what the finished item itself looks like in-game. Highlight how the arrangement of materials informs the shape)?\n" +
+            "visual_description(one sentence describe what the finished item(not block) itself looks like in-game. Based on the arrangement of materials)?\n" +
             "is_shapeless_crafting(true if is mixing, combine, etc)?\n" +
             "is_tool?\n" +
             "tier(equivalent in wooden, stone, iron, diamond, netherite, golden)?\n" +
@@ -22,7 +22,7 @@ public class GPTItemGenerator4 {
             "is_edible?\n" +
             "nutrition_value(0 to 20, apple is 4 for reference)?\n" +
             "food_is_solid_or_liquid?\n";
-    private final OpenAIChatClient client = new OpenAIChatClient("gpt-4o", 0.0, 1024, "", "json_object");
+    private final OpenAIChatClient client = new OpenAIChatClient("gpt-4.1", 1.0, 1024, "", "json_object");
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     private final GPTImageGenerator imgClient = new GPTImageGenerator();
 

@@ -205,7 +205,4 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         }
         return need.isEmpty();                                   // true ⇒ everything found
     }
-    public boolean moveItemStackTo(ItemStack stack, int start, int end, boolean reverse) { //make it public
-        return super.moveItemStackTo(stack, start, end, reverse);
-    }
 }

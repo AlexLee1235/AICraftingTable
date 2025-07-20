@@ -49,7 +49,6 @@ public final class RecipeShapeMatcher {
     private static String tryMatch(String[] grid, String pattern) {
         String ingot = "";
         String stick = "Stick";
-        System.out.println("hi");
         for (int i = 0; i < 9; i++) {
             char expected = pattern.charAt(i);
             String actual = grid[i];
