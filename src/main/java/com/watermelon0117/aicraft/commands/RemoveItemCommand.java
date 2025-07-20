@@ -9,6 +9,7 @@ import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.commands.GiveCommand;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -21,7 +22,7 @@ public class RemoveItemCommand {
         dispatcher.register(
                 literal("aicraft").requires(cs -> cs.hasPermission(2)).then(
                         literal("removeItem").then(
-                                argument("items", MyItemArgument.item(context))
+                                argument("items", MyItemArgument.item())
                                         .executes(ctx -> {
                                             String selected = ctx.getArgument("items", String.class).replace('_', ' ');
                                             if(!SpecialItemManager.get().hasItem(selected)){

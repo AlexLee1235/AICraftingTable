@@ -24,6 +24,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.server.command.EnumArgument;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EventHandler {
@@ -46,7 +47,6 @@ public class EventHandler {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event){
         RemoveItemCommand.register(event.getDispatcher(), event.getBuildContext());
-        ArgumentTypeInfos.registerByClass(MyItemArgument.class, SingletonArgumentInfo.contextAware(MyItemArgument::item));
     }
     @SubscribeEvent
     public static void onServerStart(ServerAboutToStartEvent e) {

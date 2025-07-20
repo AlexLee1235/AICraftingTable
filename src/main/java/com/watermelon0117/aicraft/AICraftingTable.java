@@ -34,6 +34,7 @@ public class AICraftingTable {
         FluidInit.FLUIDS.register(bus);
         MenuInit.MENU_TYPES.register(bus);
         ParticleInit.PARTICLE_TYPES.register(bus);
+        ArgumentInit.ARGUMENTS.register(bus);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, AICraftingTableCommonConfigs.SPEC);
     }
  
