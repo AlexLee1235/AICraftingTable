@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.commands;
 
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -10,21 +11,23 @@ import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.server.command.EnumArgument;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class MyItemArgument implements ArgumentType<String> {
-    private final CommandBuildContext context;
 
-    public MyItemArgument(CommandBuildContext context) {
-        this.context = context;
+    public MyItemArgument() {
     }
 
     /** Factory method for registration */
-    public static MyItemArgument item(CommandBuildContext context) {
-        return new MyItemArgument(context);
+    public static MyItemArgument item() {
+        return new MyItemArgument();
     }
 
     @Override
