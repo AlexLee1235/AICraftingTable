@@ -21,9 +21,10 @@ public class ImageGridProcessor {
     public static BufferedImage process(BufferedImage image, boolean save) {
         try {
             System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
-            if (save)
+            if (save) {
+                saveImage(image, FileUtil.getTempFolder("source.png"));
                 saveImage(CannyEdgeDetector.overlayCannyEdges(image, 100, 200), FileUtil.getTempFolder("edges_image.png"));
-
+            }
             // 2. Edge Detection
             BufferedImage edges = cannyEdgeDetector.process(image);
 
@@ -34,6 +35,7 @@ public class ImageGridProcessor {
             BufferedImage verticalLines = extractVerticalLines(edges);
             BufferedImage horizontalLines = extractHorizontalLines(edges);
             if (save) {
+                saveImage(image, FileUtil.getTempFolder("rembg.png"));
                 saveImage(edges, FileUtil.getTempFolder("edges.png"));
                 saveImage(verticalLines, FileUtil.getTempFolder("vertical_lines.png"));
                 saveImage(horizontalLines, FileUtil.getTempFolder("horizontal_lines.png"));
