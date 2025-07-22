@@ -76,7 +76,7 @@ public class SSelectIdeaPacket {
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                     generator.generate(id, name, new ItemStackArray(recipe), player.getStringUUID()).thenAccept(generatedItem -> {
                         if (be.taskID == tId && be.getProgress() != 0) {
-                            ItemStack itemStack=generatedItem.itemStack();
+                            ItemStack itemStack = generatedItem.itemStack();
                             byte[] processedTexture = TextureManager.applyTexture(generatedItem.rawTexture(), id);
                             PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
                             SpecialItemManager.get().put(itemStack);
