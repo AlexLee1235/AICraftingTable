@@ -47,7 +47,7 @@ public class AICraftingTable {
         @Override
         public void fillItemList(NonNullList<ItemStack> list) {
             super.fillItemList(list);
-            for(ItemStack stack: SpecialItemManager.get().list()){
+            for(ItemStack stack: SpecialItemManager.get(Minecraft.getInstance().player.level).list()){
                 list.add(1, stack);
             }
         }

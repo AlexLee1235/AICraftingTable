@@ -63,10 +63,10 @@ public class SSelectIdeaPacket {
         if (player != null && !player.level.isClientSide) {
             BlockEntity blockEntity = player.level.getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
-                if (SpecialItemManager.get().hasItem(id) && !override) {  //use exist item
-                    ItemStack stack = SpecialItemManager.get().getItem(id);
+                if (SpecialItemManager.get(player.level).hasItem(id) && !override) {  //use exist item
+                    ItemStack stack = SpecialItemManager.get(player.level).getItem(id);
                     RecipeManager.get().addRecipe(stack, recipe, RecipeManager.get().itemIsShapeless(stack));
-                    be.getInventory().setStackInSlot(0, SpecialItemManager.get().getItem(id));
+                    be.getInventory().setStackInSlot(0, SpecialItemManager.get(player.level).getItem(id));
                     be.setProgress(580);
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
                 } else {
@@ -79,8 +79,8 @@ public class SSelectIdeaPacket {
                             ItemStack itemStack = generatedItem.itemStack();
                             byte[] processedTexture = TextureManager.applyTexture(generatedItem.rawTexture(), id);
                             PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
-                            SpecialItemManager.get().put(itemStack);
-                            RecipeManager.get().addRecipe(SpecialItemManager.get().getItem(id), recipe, generatedItem.shapeless());
+                            SpecialItemManager.get(player.level).put(itemStack);
+                            RecipeManager.get().addRecipe(SpecialItemManager.get(player.level).getItem(id), recipe, generatedItem.shapeless());
                             be.getInventory().setStackInSlot(0, itemStack);
                             be.setProgress(580);
                         } else

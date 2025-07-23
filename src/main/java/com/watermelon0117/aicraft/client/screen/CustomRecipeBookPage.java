@@ -32,7 +32,7 @@ public class CustomRecipeBookPage {
         for(int i = 0; i < 20; ++i) {
             this.buttons.add(new CustomRecipeButton());
         }
-        this.totalPages = (int)Math.ceil((double)(SpecialItemManager.get().list().size()) / 20.0D);
+        this.totalPages = (int)Math.ceil((double)(SpecialItemManager.get(Minecraft.getInstance().player.level).list().size()) / 20.0D);
     }
 
     public void init(Minecraft p_100429_, int p_100430_, int p_100431_, AICraftingTableMenu menu) {
@@ -52,7 +52,7 @@ public class CustomRecipeBookPage {
 
     private void updateButtonsForPage() {
         int i = 20 * this.currentPage;
-        List<ItemStack> allItems= SpecialItemManager.get().list();
+        List<ItemStack> allItems= SpecialItemManager.get(Minecraft.getInstance().player.level).list();
         for(int j = 0; j < this.buttons.size(); ++j) {
             CustomRecipeButton recipebutton = this.buttons.get(j);
             if (i + j < allItems.size()) {

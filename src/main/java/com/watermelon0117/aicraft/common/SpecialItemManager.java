@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.util.thread.EffectiveSide;
@@ -22,12 +23,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * Use SpecialItemManager.get(level) to obtain the correct impl for the current side.
  */
 public final class SpecialItemManager {
+    private final boolean isServer;
+
+    SpecialItemManager(boolean isServer) {
+        this.isServer = isServer;
+    }
 
     /* -----------------------------------------------------------
      *  1.  Public, side-agnostic API
      * ----------------------------------------------------------- */
-    public static SpecialItemManager get() {
-        if (!isServer())
+    public static SpecialItemManager get(Level level) {
+        if (level.isClientSide)
             return ClientSide.INSTANCE;          // client singleton
         return ServerSide.INSTANCE;              // server singleton (initialised in FMLServerStartingEvent)
     }
@@ -37,6 +43,7 @@ public final class SpecialItemManager {
         if (tag == null) throw new RuntimeException("SpecialItemManager: get non-exist item");
         return ItemStack.of(tag);
     }
+
     public boolean hasItem(String id) {
         return backing().containsKey(id);
     }
@@ -64,42 +71,43 @@ public final class SpecialItemManager {
      * ----------------------------------------------------------- */
 
     private Map<String, CompoundTag> backing() {
-        return !isServer()
+        return !isServer
                 ? ClientSide.CACHE
                 : ServerSide.data().data;
     }
 
     private void dirtyAndSync() {
-        if (isServer()) {
+        if (isServer) {
             ServerSide.data().setDirty();
             PacketHandler.sendToAllClients(new CSyncSpecialItemsPacket(ServerSide.data().data));
         }
     }
 
-    private static void checkServer() {
-        if (!isServer())
+    private void checkServer() {
+        if (!isServer)
             throw new UnsupportedOperationException("Cannot mutate SpecialItemManager on the client");
-    }
-    private static boolean isServer() {
-        return EffectiveSide.get() == LogicalSide.SERVER;
     }
 
     public static final class ClientSide {
-        private static final SpecialItemManager INSTANCE = new SpecialItemManager();
+        private static final SpecialItemManager INSTANCE = new SpecialItemManager(false);
         private static final Map<String, CompoundTag> CACHE = new ConcurrentHashMap<>();
+
         /* Packet handler fills the cache */
         public static void refill(Map<String, CompoundTag> fresh) {
             CACHE.clear();
             CACHE.putAll(fresh);
         }
     }
+
     public static final class ServerSide {
         private static SpecialItemManager INSTANCE;
         private static MinecraftServer SERVER;
+
         public static void init(MinecraftServer srv) {
             SERVER = srv;
-            INSTANCE = new SpecialItemManager();
+            INSTANCE = new SpecialItemManager(true);
         }
+
         public static GlobalData data() {
             return GlobalData.get(SERVER);
         }
@@ -135,5 +143,4 @@ public final class SpecialItemManager {
             return d;
         }
     }
-
 }

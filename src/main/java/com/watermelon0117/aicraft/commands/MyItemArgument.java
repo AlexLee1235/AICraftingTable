@@ -39,8 +39,8 @@ public class MyItemArgument implements ArgumentType<String> {
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> ctx, SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggest(listEscapedNames(), builder);
     }
-    public static List<String> listEscapedNames() {
-        SpecialItemManager mgr = SpecialItemManager.get();
+    private static List<String> listEscapedNames() {
+        SpecialItemManager mgr = SpecialItemManager.get(Minecraft.getInstance().player.level);
         // Immutable list produced by the stream pipeline
         return mgr.list().stream()
                 .map(MainItem::getID)         // Component
