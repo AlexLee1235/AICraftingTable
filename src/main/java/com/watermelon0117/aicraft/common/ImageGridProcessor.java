@@ -20,7 +20,7 @@ public class ImageGridProcessor {
 
     public static BufferedImage process(BufferedImage image, boolean save) {
         try {
-            System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
+            //System.out.println("Image shape: " + image.getWidth() + "x" + image.getHeight());
             if (save) {
                 saveImage(image, FileUtil.getTempFolder("source.png"));
                 saveImage(CannyEdgeDetector.overlayCannyEdges(image, 100, 200), FileUtil.getTempFolder("edges_image.png"));
@@ -46,9 +46,9 @@ public class ImageGridProcessor {
 
             // 5. Find Pikes (peaks) in histograms
             int[] xPikes = findPikes(xHistogram, 10);
-            System.out.println("X Pikes: " + Arrays.toString(xPikes));
+            //System.out.println("X Pikes: " + Arrays.toString(xPikes));
             int[] yPikes = findPikes(yHistogram, 10);
-            System.out.println("Y Pikes: " + Arrays.toString(yPikes));
+            //System.out.println("Y Pikes: " + Arrays.toString(yPikes));
 
             // 6. Calculate Grid Size
             int[] xDiff = removeSmallLines(calculateDifferences(xPikes));
@@ -56,12 +56,12 @@ public class ImageGridProcessor {
 
             double xGridSize = clusterAverage(xDiff);
             double yGridSize = clusterAverage(yDiff);
-            System.out.println("Grid size: " + xGridSize + ", " + yGridSize);
+            //System.out.println("Grid size: " + xGridSize + ", " + yGridSize);
             int[] ratio = findNearestRatio(xGridSize, yGridSize);
-            System.out.println("Nearest ratio:" + ratio[0] + ", " + ratio[1]);
+            //System.out.println("Nearest ratio:" + ratio[0] + ", " + ratio[1]);
             xGridSize /= ratio[0];
             yGridSize /= ratio[1];
-            System.out.println("Adjusted Grid size:" + xGridSize + ", " + yGridSize);
+            //System.out.println("Adjusted Grid size:" + xGridSize + ", " + yGridSize);
 
             // 7. Refine and Insert Lines
             List<Integer> oldXLines = removeDuplicates(xPikes, 5);
@@ -69,8 +69,8 @@ public class ImageGridProcessor {
 
             List<Integer> xLines = insertLines(oldXLines, xGridSize);
             List<Integer> yLines = insertLines(oldYLines, yGridSize);
-            System.out.println("X Lines: " + xLines);
-            System.out.println("Y Lines: " + yLines);
+            //System.out.println("X Lines: " + xLines);
+            //System.out.println("Y Lines: " + yLines);
 
             // 8. Draw Grid and Save
             if (save) {
@@ -79,7 +79,7 @@ public class ImageGridProcessor {
             }
             // 9. Average Colors in Grid
             BufferedImage gridColors = averageColorsInGrid(image, xLines, yLines, xGridSize, yGridSize);
-            System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
+            //System.out.println("Pixel shape: " + gridColors.getWidth() + "x" + gridColors.getHeight());
             BufferedImage pixels = padImageCentered(gridColors, calcPaddingSize(gridColors.getWidth(), gridColors.getHeight(), 1));
             if (save)
                 saveImage(pixels, FileUtil.getTempFolder("grid_colors.png"));
