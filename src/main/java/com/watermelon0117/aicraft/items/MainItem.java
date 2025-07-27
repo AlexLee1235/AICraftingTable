@@ -5,7 +5,9 @@ import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
 import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRenderer;
 import com.watermelon0117.aicraft.init.ItemInit;
+import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,7 +35,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.ToolActions;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -149,9 +153,13 @@ public class MainItem extends Item {
     }*/
 
     @Override
-    public Component getDescription() {
-        return Component.literal("hi");
+    public void appendHoverText(ItemStack stack, @Nullable Level p_41422_, List<Component> tooltip, TooltipFlag p_41424_) {
+        if (Screen.hasShiftDown()) {
+            CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
+            tooltip.add(Component.literal(tag.toString()).withStyle(ChatFormatting.GRAY));
+        }
     }
+
     @Override
     public Component getName(ItemStack itemStack) {
         CompoundTag tag = itemStack.getOrCreateTag().getCompound("aicraft");
