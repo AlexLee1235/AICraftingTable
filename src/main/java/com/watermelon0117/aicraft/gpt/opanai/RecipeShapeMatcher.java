@@ -14,13 +14,13 @@ public final class RecipeShapeMatcher {
             Map.entry("Shovel", " I  S  S "),
             Map.entry("Hoe", "II  S  S "),
             Map.entry("Hoe", " II S  S "),
-            Map.entry("Sword", " I  I  S ")
+            Map.entry("Sword", " I  I  S "),
 
             // Uncomment to re-enable armour
-            // Map.entry("Helmet",    "IIII I   "),
-            // Map.entry("Chestplate","I IIIIIII"),
-            // Map.entry("Leggings",  "IIII II I"),
-            // Map.entry("Boots",     "I II I   ")
+             Map.entry("Helmet",    "IIII I   "),
+             Map.entry("Chestplate","I IIIIIII"),
+             Map.entry("Leggings",  "IIII II I"),
+             Map.entry("Boots",     "I II I   ")
     );
 
     public record Match(String shapeName, String material) {

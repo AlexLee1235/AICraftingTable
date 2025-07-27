@@ -11,7 +11,7 @@ public class GPTItemGenerator4 {
             "visual_description(one sentence describe what the finished item(not block) itself looks like in-game. Based on the arrangement of materials)?\n" +
             "is_shapeless_crafting(true if is mixing, combine, etc)?\n" +
             "is_tool?\n" +
-            "tier(equivalent in wooden, stone, iron, diamond, netherite, golden)?\n" +
+            "tier(equivalent in wooden, stone, iron, diamond, netherite, bedrock, golden)?\n" +
             "is_suitable_for_breaking_stone(like pickaxe)?\n" +
             "is_suitable_for_breaking_woods(like axe)?\n" +
             "is_suitable_for_breaking_dirt(like shovel)?\n" +

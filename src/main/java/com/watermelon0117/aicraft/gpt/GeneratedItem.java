@@ -37,6 +37,8 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
 
         if (isToolOrWeapon(json)) {
             tag.putByte("tier", getTier(json));
+            if (json.tier != null && json.tier.contentEquals("bedrock"))
+                tag.putBoolean("invincible", true);
             tag.putDouble("attackDamage", getDamage(json.damage));
             tag.putDouble("attackSpeed", getAttackSpeed(json.attack_speed));
         }
@@ -68,7 +70,7 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
             case "stone" -> (byte) Tiers.STONE.ordinal();
             case "iron" -> (byte) Tiers.IRON.ordinal();
             case "diamond" -> (byte) Tiers.DIAMOND.ordinal();
-            case "netherite" -> (byte) Tiers.NETHERITE.ordinal();
+            case "netherite", "bedrock" -> (byte) Tiers.NETHERITE.ordinal();
             case "golden" -> (byte) Tiers.GOLD.ordinal();
             default -> (byte) Tiers.STONE.ordinal();
         };

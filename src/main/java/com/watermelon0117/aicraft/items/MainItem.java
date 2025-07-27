@@ -77,12 +77,13 @@ public class MainItem extends Item {
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
-        return isCorrectTool(stack, state) && net.minecraftforge.common.TierSortingRegistry.isCorrectTierForDrops(Tiers.values()[tag.getByte("tier")], state);
+        return isCorrectTool(stack, state) && net.minecraftforge.common.TierSortingRegistry.isCorrectTierForDrops(
+                getTier(tag), state);
     }
     @Override
     public float getDestroySpeed(ItemStack itemStack, BlockState state) {
         CompoundTag tag = itemStack.getOrCreateTag().getCompound("aicraft");
-        return isCorrectTool(itemStack, state) ? Tiers.values()[tag.getByte("tier")].getSpeed() : 1.0F;
+        return isCorrectTool(itemStack, state) ? getTier(tag).getSpeed() : 1.0F;
     }
     public boolean hurtEnemy(ItemStack p_40994_, LivingEntity p_40995_, LivingEntity p_40996_) {
         p_40994_.hurtAndBreak(2, p_40996_, (p_41007_) -> {
@@ -101,29 +102,33 @@ public class MainItem extends Item {
     @Override
     public boolean isDamageable(ItemStack stack) {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
-        return (tag.getBoolean("isPickaxe") ||
+        return !tag.getBoolean("invincible") && isToolMelee(stack);
+    }
+    private static boolean isToolMelee(ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
+        return tag.getBoolean("isPickaxe") ||
                 tag.getBoolean("isAxe") ||
-                tag.getBoolean("isShovel")) ||
+                tag.getBoolean("isShovel") ||
                 tag.getBoolean("isHoe") ||
                 tag.getBoolean("isMelee");
     }
     @Override
     public int getMaxStackSize(ItemStack stack) {
-        return isDamageable(stack) ? 1 : 64;
+        return isToolMelee(stack) ? 1 : 64;
     }
     @Override
     public int getMaxDamage(ItemStack stack) {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
-        return Tiers.values()[tag.getByte("tier")].getUses();
+        return getTier(tag).getUses();
     }
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot p_43274_, ItemStack stack) {
-        if(!this.isDamageable(stack))
+        if(!isToolMelee(stack))
             return ImmutableMultimap.of();
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         double num1=tag.getDouble("attackDamage");
         double num2=tag.getDouble("attackSpeed");
-        double attackDamage=num1 + Tiers.values()[tag.getByte("tier")].getAttackDamageBonus();
+        double attackDamage=num1 + getTier(tag).getAttackDamageBonus();
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
         builder.put(Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier",
@@ -135,7 +140,7 @@ public class MainItem extends Item {
     }
     /*@Override
     public boolean isRepairable(ItemStack stack) {
-        return this.isDamageable(stack);
+        return isToolMelee(stack);
     }
     @Override
     public boolean isValidRepairItem(ItemStack stack, ItemStack material) {
@@ -143,6 +148,10 @@ public class MainItem extends Item {
         return tag.getString("repairMaterial").contentEquals(strip(material.getDisplayName().getString()));
     }*/
 
+    @Override
+    public Component getDescription() {
+        return Component.literal("hi");
+    }
     @Override
     public Component getName(ItemStack itemStack) {
         CompoundTag tag = itemStack.getOrCreateTag().getCompound("aicraft");
@@ -162,9 +171,8 @@ public class MainItem extends Item {
         if (a == null) return false;
         return (a.is(ItemInit.MAIN_ITEM.get()) || a.is(ItemInit.MAIN_FOOD_ITEM.get()));
     }
-    @Override
-    public Object getRenderPropertiesInternal() {
-        return super.getRenderPropertiesInternal();
+    private static Tier getTier(CompoundTag tag){
+        return Tiers.values()[tag.getByte("tier")];
     }
 
     @Override
