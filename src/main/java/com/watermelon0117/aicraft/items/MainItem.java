@@ -64,7 +64,7 @@ public class MainItem extends Item {
         return InteractionResult.PASS;
     }
     public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
-        return toolAction!= ToolActions.SWORD_SWEEP;
+        return getID(stack).contains("Sword") || toolAction != ToolActions.SWORD_SWEEP;
     }
     private static boolean isCorrectTool(ItemStack stack, BlockState state){
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");

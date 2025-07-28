@@ -6,7 +6,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.concurrent.CompletableFuture;
 
-public class GPTItemGenerator4 {
+public class GPTItemGenerator {
     private static final String inst = "given a minecraft item, please answer following questions:\n" +
             "visual_description(one sentence describe what the finished item(not block) itself looks like in-game. Based on the arrangement of materials)?\n" +
             "is_shapeless_crafting(true if is mixing, combine, etc)?\n" +

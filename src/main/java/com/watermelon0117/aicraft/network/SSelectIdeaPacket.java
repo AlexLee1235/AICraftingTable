@@ -3,7 +3,6 @@ package com.watermelon0117.aicraft.network;
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.common.TextureManager;
 import com.watermelon0117.aicraft.gpt.delegate.ItemGenerator;
-import com.watermelon0117.aicraft.gpt.opanai.GPTItemGenerator4;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;

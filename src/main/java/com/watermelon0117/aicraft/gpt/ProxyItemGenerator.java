@@ -1,7 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
 import com.watermelon0117.aicraft.common.ItemStackArray;
-import com.watermelon0117.aicraft.gpt.opanai.GPTItemGenerator4;
 
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
