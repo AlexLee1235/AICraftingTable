@@ -35,7 +35,7 @@ public class MainFoodItem extends MainItem {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return (new FoodProperties.Builder())
                 .nutrition(tag.getByte("nutrition"))
-                .saturationMod(1)
+                .saturationMod(0.5f)
                 .build();
     }
     public UseAnim getUseAnimation(ItemStack p_41358_) {

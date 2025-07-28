@@ -7,6 +7,7 @@ import com.watermelon0117.aicraft.client.renderer.MyBlockEntityWithoutLevelRende
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
@@ -154,7 +155,7 @@ public class MainItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level p_41422_, List<Component> tooltip, TooltipFlag p_41424_) {
-        if (Screen.hasShiftDown()) {
+        if (Minecraft.getInstance().options.advancedItemTooltips) {
             CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
             tooltip.add(Component.literal(tag.toString()).withStyle(ChatFormatting.GRAY));
         }
