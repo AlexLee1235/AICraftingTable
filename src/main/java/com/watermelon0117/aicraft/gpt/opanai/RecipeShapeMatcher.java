@@ -7,7 +7,6 @@ import java.util.*;
 
 public final class RecipeShapeMatcher {
     private static final List<Map.Entry<String, String>> PATTERNS = List.of(
-            // Tools
             Map.entry("Pickaxe", "III S  S "),
             Map.entry("Axe", "II IS  S "),
             Map.entry("Axe", " II SI S "),
