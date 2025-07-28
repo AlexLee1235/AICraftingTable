@@ -16,7 +16,6 @@ public final class RecipeShapeMatcher {
             Map.entry("Hoe", " II S  S "),
             Map.entry("Sword", " I  I  S "),
 
-            // Uncomment to re-enable armour
             Map.entry("Helmet",    "IIII I   "),
             Map.entry("Chestplate","I IIIIIII"),
             Map.entry("Leggings",  "IIII II I"),
@@ -72,9 +71,6 @@ public final class RecipeShapeMatcher {
         return ingot;      // non-empty only on a full match
     }
 
-    /**
-     * Generate every valid shift of the compact pattern inside a 3 × 3 grid.
-     */
     private static List<String> shiftPattern(String pattern) {
         List<String> out = new ArrayList<>(9);
         char[][] src = new char[3][3];
@@ -105,9 +101,5 @@ public final class RecipeShapeMatcher {
                 out.add(sb.toString());
             }
         return out;
-    }
-
-    private static String strip(String s) {
-        return s.replace("[", "").replace("]", "");
     }
 }
