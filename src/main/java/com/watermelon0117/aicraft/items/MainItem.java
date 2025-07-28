@@ -157,7 +157,7 @@ public class MainItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level p_41422_, List<Component> tooltip, TooltipFlag p_41424_) {
         if (Minecraft.getInstance().options.advancedItemTooltips) {
             CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
-            tooltip.add(Component.literal(tag.toString()).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(tag.toString()).withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 
