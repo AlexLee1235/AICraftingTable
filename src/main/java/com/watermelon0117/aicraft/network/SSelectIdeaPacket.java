@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
+import com.watermelon0117.aicraft.gpt.GeneratedItem;
 import com.watermelon0117.aicraft.common.TextureManager;
 import com.watermelon0117.aicraft.gpt.delegate.ItemGenerator;
 import com.watermelon0117.aicraft.common.ItemStackArray;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class SSelectIdeaPacket {
@@ -71,28 +73,71 @@ public class SSelectIdeaPacket {
                 } else {
                     be.setProgress(10);  //show a pixel first
                     int tId = incrementID++;
+                    ItemStack[] recipeSnapshot = Arrays.copyOf(recipe, recipe.length);
                     be.taskID = tId;
                     player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
-                    generator.generate(id, name, new ItemStackArray(recipe), player.getStringUUID()).thenAccept(generatedItem -> {
-                        if (be.taskID == tId && be.getProgress() != 0) {
-                            ItemStack itemStack = generatedItem.itemStack();
-                            byte[] processedTexture = TextureManager.applyTexture(generatedItem.rawTexture(), id);
-                            PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
-                            SpecialItemManager.get(player.level).put(itemStack);
-                            RecipeManager.get().addRecipe(SpecialItemManager.get(player.level).getItem(id), recipe, generatedItem.shapeless());
-                            be.getInventory().setStackInSlot(0, itemStack);
-                            be.setProgress(580);
-                        } else
-                            System.out.println("Canceled, not putting image");
+                    generator.generate(id, name, new ItemStackArray(recipeSnapshot), player.getStringUUID()).thenAccept(generatedItem -> {
+                        if (player.getServer() == null) {
+                            return;
+                        }
+                        player.getServer().execute(() -> applyGeneratedResult(player, pos, id, recipeSnapshot, tId, generatedItem));
                     }).exceptionally(ex -> {
-                        ex.printStackTrace();
-                        be.setProgress(0);
-                        sendErrToAll(player.level, ex.getMessage());
+                        if (player.getServer() != null) {
+                            player.getServer().execute(() -> applyGeneratedFailure(player, pos, ex));
+                        } else {
+                            ex.printStackTrace();
+                        }
                         return null;
                     });
                 }
             }
         }
+    }
+
+    private static void applyGeneratedResult(ServerPlayer player, BlockPos pos, String id, ItemStack[] recipe, int taskId, GeneratedItem generatedItem) {
+        if (player.level.isClientSide) {
+            return;
+        }
+        BlockEntity blockEntity = player.level.getBlockEntity(pos);
+        if (!(blockEntity instanceof AICraftingTableBlockEntity be)) {
+            return;
+        }
+        if (be.taskID != taskId || be.getProgress() == 0) {
+            System.out.println("Canceled, not putting image");
+            return;
+        }
+
+        ItemStack itemStack = generatedItem.itemStack();
+        byte[] processedTexture = TextureManager.applyTexture(generatedItem.rawTexture(), id);
+        PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
+        SpecialItemManager.get(player.level).put(itemStack);
+        RecipeManager.get().addRecipe(SpecialItemManager.get(player.level).getItem(id), recipe, generatedItem.shapeless());
+        be.getInventory().setStackInSlot(0, itemStack);
+        be.setProgress(580);
+        player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+    }
+
+    private static void applyGeneratedFailure(ServerPlayer player, BlockPos pos, Throwable error) {
+        error.printStackTrace();
+        if (player.level.isClientSide) {
+            return;
+        }
+        BlockEntity blockEntity = player.level.getBlockEntity(pos);
+        if (blockEntity instanceof AICraftingTableBlockEntity be) {
+            be.setProgress(0);
+        }
+        sendErrToAll(player.level, unwrapMessage(error));
+    }
+
+    private static String unwrapMessage(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current.getMessage() != null && !current.getMessage().isBlank()) {
+                return current.getMessage();
+            }
+            current = current.getCause();
+        }
+        return "Unknown error";
     }
 
     private static void sendErrToAll(Level level, String msg) {
