@@ -16,6 +16,8 @@ out
 # gradle
 build
 .gradle
+gradle
+.gradle-home
 
 # other
 eclipse
@@ -23,3 +25,4 @@ run
 
 # Files from Forge MDK
 forge*changelog.txt
+
