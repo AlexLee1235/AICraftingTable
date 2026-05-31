@@ -1,7 +1,6 @@
 package com.watermelon0117.aicraft.init;
 
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.base.FluidRegistryContainer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Blocks;

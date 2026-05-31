@@ -2,21 +2,21 @@ package com.watermelon0117.aicraft.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
 import com.watermelon0117.aicraft.common.FileUtil;
 import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
@@ -54,7 +54,7 @@ public final class MyBlockEntityWithoutLevelRenderer extends BlockEntityWithoutL
     }
 
     @Override
-    public void renderByItem(ItemStack stack, ItemTransforms.TransformType ctx,
+    public void renderByItem(ItemStack stack, ItemDisplayContext ctx,
                              PoseStack poseStack, MultiBufferSource buffers,
                              int light, int overlay) {
         String id = Optional.ofNullable(MainItem.getID(stack)).orElse(FALLBACK_ID);

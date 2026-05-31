@@ -61,21 +61,21 @@ public class SSelectIdeaPacket {
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         ItemGenerator generator = new ItemGenerator();
         ServerPlayer player = contextSupplier.get().getSender();
-        if (player != null && !player.level.isClientSide) {
-            BlockEntity blockEntity = player.level.getBlockEntity(pos);
+        if (player != null && !player.level().isClientSide) {
+            BlockEntity blockEntity = player.level().getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
-                if (SpecialItemManager.get(player.level).hasItem(id) && !override) {  //use exist item
-                    ItemStack stack = SpecialItemManager.get(player.level).getItem(id);
+                if (SpecialItemManager.get(player.level()).hasItem(id) && !override) {  //use exist item
+                    ItemStack stack = SpecialItemManager.get(player.level()).getItem(id);
                     RecipeManager.get().addRecipe(stack, recipe, RecipeManager.get().itemIsShapeless(stack));
-                    be.getInventory().setStackInSlot(0, SpecialItemManager.get(player.level).getItem(id));
+                    be.getInventory().setStackInSlot(0, SpecialItemManager.get(player.level()).getItem(id));
                     be.setProgress(580);
-                    player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+                    player.level().sendBlockUpdated(pos, player.level().getBlockState(pos), player.level().getBlockState(pos), Block.UPDATE_ALL);
                 } else {
                     be.setProgress(10);  //show a pixel first
                     int tId = incrementID++;
                     ItemStack[] recipeSnapshot = Arrays.copyOf(recipe, recipe.length);
                     be.taskID = tId;
-                    player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+                    player.level().sendBlockUpdated(pos, player.level().getBlockState(pos), player.level().getBlockState(pos), Block.UPDATE_ALL);
                     generator.generate(id, name, new ItemStackArray(recipeSnapshot), player.getStringUUID()).thenAccept(generatedItem -> {
                         if (player.getServer() == null) {
                             return;
@@ -95,10 +95,10 @@ public class SSelectIdeaPacket {
     }
 
     private static void applyGeneratedResult(ServerPlayer player, BlockPos pos, String id, ItemStack[] recipe, int taskId, GeneratedItem generatedItem) {
-        if (player.level.isClientSide) {
+        if (player.level().isClientSide) {
             return;
         }
-        BlockEntity blockEntity = player.level.getBlockEntity(pos);
+        BlockEntity blockEntity = player.level().getBlockEntity(pos);
         if (!(blockEntity instanceof AICraftingTableBlockEntity be)) {
             return;
         }
@@ -110,23 +110,23 @@ public class SSelectIdeaPacket {
         ItemStack itemStack = generatedItem.itemStack();
         byte[] processedTexture = TextureManager.applyTexture(generatedItem.rawTexture(), id);
         PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
-        SpecialItemManager.get(player.level).put(itemStack);
-        RecipeManager.get().addRecipe(SpecialItemManager.get(player.level).getItem(id), recipe, generatedItem.shapeless());
+        SpecialItemManager.get(player.level()).put(itemStack);
+        RecipeManager.get().addRecipe(SpecialItemManager.get(player.level()).getItem(id), recipe, generatedItem.shapeless());
         be.getInventory().setStackInSlot(0, itemStack);
         be.setProgress(580);
-        player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+        player.level().sendBlockUpdated(pos, player.level().getBlockState(pos), player.level().getBlockState(pos), Block.UPDATE_ALL);
     }
 
     private static void applyGeneratedFailure(ServerPlayer player, BlockPos pos, Throwable error) {
         error.printStackTrace();
-        if (player.level.isClientSide) {
+        if (player.level().isClientSide) {
             return;
         }
-        BlockEntity blockEntity = player.level.getBlockEntity(pos);
+        BlockEntity blockEntity = player.level().getBlockEntity(pos);
         if (blockEntity instanceof AICraftingTableBlockEntity be) {
             be.setProgress(0);
         }
-        sendErrToAll(player.level, unwrapMessage(error));
+        sendErrToAll(player.level(), unwrapMessage(error));
     }
 
     private static String unwrapMessage(Throwable error) {

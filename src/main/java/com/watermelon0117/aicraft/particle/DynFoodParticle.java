@@ -2,8 +2,6 @@ package com.watermelon0117.aicraft.particle;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
 import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -15,6 +13,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 public class DynFoodParticle extends Particle {
     private final float uo;
@@ -66,23 +66,23 @@ public class DynFoodParticle extends Particle {
         float f = (float) (Mth.lerp(pt, this.xo, this.x) - vec3.x());
         float f1 = (float) (Mth.lerp(pt, this.yo, this.y) - vec3.y());
         float f2 = (float) (Mth.lerp(pt, this.zo, this.z) - vec3.z());
-        Quaternion quaternion;
+        Quaternionf quaternion;
         if (this.roll == 0.0F) {
             quaternion = cam.rotation();
         } else {
-            quaternion = new Quaternion(cam.rotation());
+            quaternion = new Quaternionf(cam.rotation());
             float f3 = Mth.lerp(pt, this.oRoll, this.roll);
-            quaternion.mul(Vector3f.ZP.rotation(f3));
+            quaternion.rotateZ(f3);
         }
 
         Vector3f vector3f1 = new Vector3f(-1.0F, -1.0F, 0.0F);
-        vector3f1.transform(quaternion);
+        vector3f1.rotate(quaternion);
         Vector3f[] avector3f = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
         float f4 = this.quadSize;
 
         for (int i = 0; i < 4; ++i) {
             Vector3f vector3f = avector3f[i];
-            vector3f.transform(quaternion);
+            vector3f.rotate(quaternion);
             vector3f.mul(f4);
             vector3f.add(f, f1, f2);
         }

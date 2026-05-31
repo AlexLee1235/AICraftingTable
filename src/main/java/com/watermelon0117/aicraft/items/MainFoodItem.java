@@ -48,18 +48,18 @@ public class MainFoodItem extends MainItem {
     }
 
     @Override
-    public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
+    public void onUseTick(Level level, LivingEntity player, ItemStack stack, int count) {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         if(tag.getBoolean("isFood")) {
             int fullDuration = this.getUseDuration(stack);   // e.g. 32 ticks
             boolean nearFinish = count <= fullDuration - 7;    // last 7 ticks
             boolean shouldParticle = nearFinish && (count % 4 == 0);
 
-            if (shouldParticle && player.level.isClientSide) {
+            if (shouldParticle && player.level().isClientSide) {
                 spawnDynParticles(player, stack, 5);
             }
         }
-        super.onUsingTick(stack, player, count);
+        super.onUseTick(level, player, stack, count);
     }
 
     @Override
@@ -79,10 +79,10 @@ public class MainFoodItem extends MainItem {
             vec31 = vec31.xRot(-ent.getXRot() * ((float)Math.PI / 180F));
             vec31 = vec31.yRot(-ent.getYRot() * ((float)Math.PI / 180F));
             vec31 = vec31.add(ent.getX(), ent.getEyeY(), ent.getZ());
-            if (ent.level instanceof ServerLevel) //Forge: Fix MC-2518 spawnParticle is nooped on server, need to use server specific variant
-                ((ServerLevel)ent.level).sendParticles(new DynFoodParticleOption(ParticleInit.DYN_FOOD.get(), stack), vec31.x, vec31.y, vec31.z, 1, vec3.x, vec3.y + 0.05D, vec3.z, 0.0D);
+            if (ent.level() instanceof ServerLevel) //Forge: Fix MC-2518 spawnParticle is nooped on server, need to use server specific variant
+                ((ServerLevel)ent.level()).sendParticles(new DynFoodParticleOption(ParticleInit.DYN_FOOD.get(), stack), vec31.x, vec31.y, vec31.z, 1, vec3.x, vec3.y + 0.05D, vec3.z, 0.0D);
             else
-                ent.level.addParticle(new DynFoodParticleOption(ParticleInit.DYN_FOOD.get(), stack), vec31.x, vec31.y, vec31.z, vec3.x, vec3.y + 0.05D, vec3.z);
+                ent.level().addParticle(new DynFoodParticleOption(ParticleInit.DYN_FOOD.get(), stack), vec31.x, vec31.y, vec31.z, vec3.x, vec3.y + 0.05D, vec3.z);
         }
     }
     @Override

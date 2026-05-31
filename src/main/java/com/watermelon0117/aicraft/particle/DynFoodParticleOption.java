@@ -5,8 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.commands.arguments.item.ItemParser;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
@@ -16,7 +15,7 @@ public class DynFoodParticleOption implements ParticleOptions {
     public static final ParticleOptions.Deserializer<DynFoodParticleOption> DESERIALIZER = new ParticleOptions.Deserializer<DynFoodParticleOption>() {
         public DynFoodParticleOption fromCommand(ParticleType<DynFoodParticleOption> p_123721_, StringReader p_123722_) throws CommandSyntaxException {
             p_123722_.expect(' ');
-            ItemParser.ItemResult itemparser$itemresult = ItemParser.parseForItem(HolderLookup.forRegistry(Registry.ITEM), p_123722_);
+            ItemParser.ItemResult itemparser$itemresult = ItemParser.parseForItem(BuiltInRegistries.ITEM.asLookup(), p_123722_);
             ItemStack itemstack = (new ItemInput(itemparser$itemresult.item(), itemparser$itemresult.nbt())).createItemStack(1, false);
             return new DynFoodParticleOption(p_123721_, itemstack);
         }
@@ -46,7 +45,7 @@ public class DynFoodParticleOption implements ParticleOptions {
     }
 
     public String writeToString() {
-        return Registry.PARTICLE_TYPE.getKey(this.getType()) + " " + (new ItemInput(this.itemStack.getItemHolder(), this.itemStack.getTag())).serialize();
+        return BuiltInRegistries.PARTICLE_TYPE.getKey(this.getType()) + " " + (new ItemInput(this.itemStack.getItemHolder(), this.itemStack.getTag())).serialize();
     }
 
     public ParticleType<DynFoodParticleOption> getType() {

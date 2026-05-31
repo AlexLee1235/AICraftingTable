@@ -44,11 +44,11 @@ public class SPlaceRecipePacket {
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         ServerPlayer player = contextSupplier.get().getSender();
-        if (player != null && !player.level.isClientSide) {
-            BlockEntity blockEntity = player.level.getBlockEntity(pos);
+        if (player != null && !player.level().isClientSide) {
+            BlockEntity blockEntity = player.level().getBlockEntity(pos);
             if (blockEntity instanceof AICraftingTableBlockEntity be) {
                 placeRecipe(be, player);
-                player.level.sendBlockUpdated(pos, player.level.getBlockState(pos), player.level.getBlockState(pos), Block.UPDATE_ALL);
+                player.level().sendBlockUpdated(pos, player.level().getBlockState(pos), player.level().getBlockState(pos), Block.UPDATE_ALL);
             }
         }
     }

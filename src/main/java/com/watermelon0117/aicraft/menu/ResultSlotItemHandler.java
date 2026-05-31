@@ -8,6 +8,7 @@ import net.minecraft.server.Main;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -50,16 +51,16 @@ public class ResultSlotItemHandler extends SlotItemHandler {
 
     protected void checkTakeAchievements(ItemStack p_40185_) {
         if (this.removeCount > 0) {
-            p_40185_.onCraftedBy(this.player.level, this.player, this.removeCount);
+            p_40185_.onCraftedBy(this.player.level(), this.player, this.removeCount);
         }
 
         this.removeCount = 0;
     }
     private NonNullList<ItemStack> callRecipeManager(){
-        CraftingContainer craftingContainer = new CraftingContainer(menu, 3,3);
+        CraftingContainer craftingContainer = new TransientCraftingContainer(menu, 3,3);
         for (int i = 0; i < 9; i++)
             craftingContainer.setItem(i, this.craftSlots.getStackInSlot(i+1));
-        NonNullList<ItemStack> nonnulllist = player.level.getRecipeManager().getRemainingItemsFor(RecipeType.CRAFTING, craftingContainer, player.level);
+        NonNullList<ItemStack> nonnulllist = player.level().getRecipeManager().getRemainingItemsFor(RecipeType.CRAFTING, craftingContainer, player.level());
         return nonnulllist;
     }
     public void onTake(Player p_150638_, ItemStack p_150639_) {
@@ -91,7 +92,7 @@ public class ResultSlotItemHandler extends SlotItemHandler {
                 if (!itemstack1.isEmpty()) {
                     if (itemstack.isEmpty()) {
                         this.craftSlots.setStackInSlot(i + 1, itemstack1);
-                    } else if (ItemStack.isSame(itemstack, itemstack1) && ItemStack.tagMatches(itemstack, itemstack1)) {
+                    } else if (ItemStack.isSameItemSameTags(itemstack, itemstack1)) {
                         itemstack1.grow(itemstack.getCount());
                         this.craftSlots.setStackInSlot(i + 1, itemstack1);
                     } else if (!this.player.getInventory().add(itemstack1)) {

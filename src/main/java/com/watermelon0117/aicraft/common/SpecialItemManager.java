@@ -3,8 +3,6 @@ package com.watermelon0117.aicraft.common;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
-import net.minecraft.CrashReport;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -87,7 +85,7 @@ public final class SpecialItemManager {
 
     private void checkServer() {
         if (!isServer)
-            Minecraft.crash(new CrashReport("Cannot mutate SpecialItemManager on the client", new UnsupportedOperationException()));
+            throw new UnsupportedOperationException("Cannot mutate SpecialItemManager on the client");
     }
 
     public static final class ClientSide {
@@ -98,6 +96,10 @@ public final class SpecialItemManager {
         public static void refill(Map<String, CompoundTag> fresh) {
             CACHE.clear();
             CACHE.putAll(fresh);
+        }
+
+        public static List<ItemStack> list() {
+            return CACHE.values().stream().map(ItemStack::of).toList();
         }
     }
 

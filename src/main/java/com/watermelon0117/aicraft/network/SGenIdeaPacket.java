@@ -45,7 +45,7 @@ public class SGenIdeaPacket {
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         IdeaGenerator generator = new IdeaGenerator();
         ServerPlayer player = contextSupplier.get().getSender();
-        if (player != null && !player.level.isClientSide) {
+        if (player != null && !player.level().isClientSide) {
             generator.generate(new ItemStackArray(recipe), lang, player.getStringUUID()).thenAccept(results -> {
                 PacketHandler.sendToPlayer(
                         new CGenIdeaPacket(pos, recipe, results, false, ""), player);

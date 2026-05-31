@@ -1,15 +1,14 @@
 package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SPlaceRecipePacket;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -23,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-public class CustomRecipeBookComponent extends GuiComponent implements Widget, GuiEventListener, NarratableEntry {
+public class CustomRecipeBookComponent implements Renderable, GuiEventListener, NarratableEntry {
     protected static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation("textures/gui/recipe_book.png");
     private static final Component SEARCH_HINT = Component.translatable("gui.recipebook.search_hint").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY);
     public static final int IMAGE_WIDTH = 147;
@@ -39,6 +38,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
     protected final CustomGhostRecipe ghostRecipe = new CustomGhostRecipe();
     private final CustomRecipeBookPage recipeBookPage = new CustomRecipeBookPage();
     public boolean visible;
+    private boolean focused;
     int times=0;
 
     public void init(int p_100310_, int p_100311_, Minecraft p_100312_, AICraftingTableMenu menu) {
@@ -57,31 +57,31 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
             this.ghostRecipe.clear();
         }
     }
-    public void render(PoseStack p_100319_, int p_100320_, int p_100321_, float p_100322_) {
+    public void render(GuiGraphics p_100319_, int p_100320_, int p_100321_, float p_100322_) {
         if (this.visible) {
-            p_100319_.pushPose();
-            p_100319_.translate(0.0D, 0.0D, 100.0D);
+            p_100319_.pose().pushPose();
+            p_100319_.pose().translate(0.0D, 0.0D, 100.0D);
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, RECIPE_BOOK_LOCATION);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             int i = (this.width - 147) / 2 - this.xOffset;
             int j = (this.height - 166) / 2;
-            this.blit(p_100319_, i, j, 1, 1, 147, 166);
+            p_100319_.blit(RECIPE_BOOK_LOCATION, i, j, 1, 1, 147, 166);
 
             this.recipeBookPage.render(p_100319_, i, j, p_100320_, p_100321_, p_100322_);
-            p_100319_.popPose();
+            p_100319_.pose().popPose();
         }
     }
-    public void renderGhostRecipe(PoseStack p_100323_, int p_100324_, int p_100325_, boolean p_100326_, float p_100327_) {
+    public void renderGhostRecipe(GuiGraphics p_100323_, int p_100324_, int p_100325_, boolean p_100326_, float p_100327_) {
         this.ghostRecipe.render(p_100323_, this.minecraft, p_100324_, p_100325_, false, p_100327_);
     }
-    public void renderTooltip(PoseStack p_100362_, int p_100363_, int p_100364_, int p_100365_, int p_100366_) {
+    public void renderTooltip(GuiGraphics p_100362_, int p_100363_, int p_100364_, int p_100365_, int p_100366_) {
         if (this.visible) {
             this.recipeBookPage.renderTooltip(p_100362_, p_100365_, p_100366_);
         }
         this.renderGhostRecipeTooltip(p_100362_, p_100363_, p_100364_, p_100365_, p_100366_);
     }
-    private void renderGhostRecipeTooltip(PoseStack p_100375_, int p_100376_, int p_100377_, int p_100378_, int p_100379_) {
+    private void renderGhostRecipeTooltip(GuiGraphics p_100375_, int p_100376_, int p_100377_, int p_100378_, int p_100379_) {
         if (this.ghostRecipe.itemStacks == null) return;
         ItemStack itemstack = null;
         for (int i = 0; i < 9; ++i) {
@@ -93,7 +93,7 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
             }
         }
         if (itemstack != null && !itemstack.isEmpty() && this.minecraft.screen != null) {
-            this.minecraft.screen.renderComponentTooltip(p_100375_, this.minecraft.screen.getTooltipFromItem(itemstack), p_100378_, p_100379_, itemstack);
+            p_100375_.renderComponentTooltip(this.minecraft.font, Screen.getTooltipFromItem(this.minecraft, itemstack), p_100378_, p_100379_, itemstack);
         }
     }
     public boolean mouseClicked(double p_100294_, double p_100295_, int p_100296_) {
@@ -145,5 +145,24 @@ public class CustomRecipeBookComponent extends GuiComponent implements Widget, G
         return NarratableEntry.NarrationPriority.NONE;
     }
     public void updateNarration(NarrationElementOutput p_170046_) {}
-}
 
+    @Override
+    public void setFocused(boolean focused) {
+        this.focused = focused;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return this.focused;
+    }
+
+    @Override
+    public boolean isMouseOver(double mouseX, double mouseY) {
+        if (!this.visible) {
+            return false;
+        }
+        int i = (this.width - 147) / 2 - this.xOffset;
+        int j = (this.height - 166) / 2;
+        return mouseX >= i && mouseY >= j && mouseX < i + IMAGE_WIDTH && mouseY < j + IMAGE_HEIGHT;
+    }
+}

@@ -1,1 +1,1 @@
-aicraft,com.watermelon0117.aicraft,AICraftingTable
+aicraftingtable1201,com.watermelon0117.aicraftingtable1201,AICraftingTable1201,forge-1.20.1-47.4.10

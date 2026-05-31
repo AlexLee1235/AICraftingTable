@@ -26,12 +26,12 @@ public class RemoveItemCommand {
                                         .executes(ctx -> {
                                             if(ctx.getSource().getPlayer()==null)   return -1;
                                             String selected = ctx.getArgument("items", String.class).replace('_', ' ');
-                                            if(!SpecialItemManager.get(ctx.getSource().getPlayer().level).hasItem(selected)){
+                                            if(!SpecialItemManager.get(ctx.getSource().getPlayer().level()).hasItem(selected)){
                                                 throw ITEM_NOT_FOUND.create();
                                             }
                                             RecipeManager.get().removeItem(selected);
-                                            SpecialItemManager.get(ctx.getSource().getPlayer().level).remove(selected);
-                                            ctx.getSource().sendSuccess(Component.literal("You removed: " + selected), false);
+                                            SpecialItemManager.get(ctx.getSource().getPlayer().level()).remove(selected);
+                                            ctx.getSource().sendSuccess(() -> Component.literal("You removed: " + selected), false);
                                             return 1;
                                         })
                         )

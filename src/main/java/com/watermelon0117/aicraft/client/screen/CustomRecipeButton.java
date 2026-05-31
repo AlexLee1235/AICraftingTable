@@ -2,9 +2,9 @@ package com.watermelon0117.aicraft.client.screen;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -39,11 +39,12 @@ public class CustomRecipeButton extends AbstractWidget {
     }
 
     public void setPosition(int p_100475_, int p_100476_) {
-        this.x = p_100475_;
-        this.y = p_100476_;
+        this.setX(p_100475_);
+        this.setY(p_100476_);
     }
 
-    public void renderButton(PoseStack p_100484_, int p_100485_, int p_100486_, float p_100487_) {
+    @Override
+    protected void renderWidget(GuiGraphics p_100484_, int p_100485_, int p_100486_, float p_100487_) {
         Minecraft minecraft = Minecraft.getInstance();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, RECIPE_BOOK_LOCATION);
@@ -52,15 +53,16 @@ public class CustomRecipeButton extends AbstractWidget {
             i += 25;
         }
         int j = 206;
-        this.blit(p_100484_, this.x, this.y, i, j, this.width, this.height);
+        p_100484_.blit(RECIPE_BOOK_LOCATION, this.getX(), this.getY(), i, j, this.width, this.height);
         int k = 4;
-        minecraft.getItemRenderer().renderAndDecorateFakeItem(itemStack, this.x + k, this.y + k);
+        p_100484_.renderFakeItem(itemStack, this.getX() + k, this.getY() + k);
     }
     public List<Component> getTooltipText(Screen p_100478_) {
         return List.of(itemStack.getHoverName());
     }
 
-    public void updateNarration(NarrationElementOutput p_170060_) {}
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput p_170060_) {}
 
     public int getWidth() {
         return 25;

@@ -1,7 +1,6 @@
 package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.init.ItemInit;
@@ -13,13 +12,11 @@ import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SSelectIdeaPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CraftingScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.resources.language.LanguageInfo;
 import net.minecraft.client.resources.language.LanguageManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -27,8 +24,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.Arrays;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
@@ -56,13 +51,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     protected void init() {
         super.init();
         titleLabelX = 29;
-        mainBtn = addRenderableWidget(new Button(leftPos + 67, topPos + 34, 26, 17, Component.empty(), this::btnPress) {
-            @Override
-            public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                if (visible) isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
-            }
-        });
-        reBtn = addWidget(new Button(leftPos + 155, topPos + 49, 6, 6, Component.empty(), this::reBtnPress));
+        mainBtn = addRenderableWidget(new InvisibleButton(leftPos + 67, topPos + 34, 26, 17, this::btnPress));
+        reBtn = addRenderableWidget(new InvisibleButton(leftPos + 155, topPos + 49, 6, 6, this::reBtnPress));
 
         recipeBookComponent.init(width, height, minecraft, menu);
         options = addRenderableWidget(new OptionsComponent());
@@ -88,10 +78,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private void updateWidgetPos() {
         bookBtn.setPosition(leftPos + 70, topPos + 56);
         options.updateWidgetPos(leftPos, topPos);
-        mainBtn.x = leftPos + 67;
-        mainBtn.y = topPos + 34;
-        reBtn.x = leftPos + 155;
-        reBtn.y = topPos + 49;
+        mainBtn.setPosition(leftPos + 67, topPos + 34);
+        reBtn.setPosition(leftPos + 155, topPos + 49);
     }
 
     private void setInitial() {
@@ -177,47 +165,48 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(poseStack);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        renderBackground(guiGraphics);
         if (state != State.PROGRESS) {
             Slot slot = menu.slots.get(0);
             menu.slots.remove(0);
-            super.render(poseStack, mouseX, mouseY, partialTicks);
+            super.render(guiGraphics, mouseX, mouseY, partialTicks);
             menu.slots.add(0, slot);
         } else
-            super.render(poseStack, mouseX, mouseY, partialTicks);
+            super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-        recipeBookComponent.render(poseStack, mouseX, mouseY, partialTicks);
-        recipeBookComponent.renderGhostRecipe(poseStack, leftPos, topPos, true, partialTicks);
-        renderTooltip(poseStack, mouseX, mouseY);
-        recipeBookComponent.renderTooltip(poseStack, leftPos, topPos, mouseX, mouseY);
+        recipeBookComponent.render(guiGraphics, mouseX, mouseY, partialTicks);
+        recipeBookComponent.renderGhostRecipe(guiGraphics, leftPos, topPos, true, partialTicks);
+        renderTooltip(guiGraphics, mouseX, mouseY);
+        recipeBookComponent.renderTooltip(guiGraphics, leftPos, topPos, mouseX, mouseY);
 
         if (state == State.GENERATING)
-            this.font.draw(poseStack, Component.literal("Generating"), leftPos + 102, topPos + 20, 4210752);
+            guiGraphics.drawString(this.font, Component.literal("Generating"), leftPos + 102, topPos + 20, 4210752, false);
         if (error)
-            this.font.draw(poseStack, Component.literal("Error"), leftPos + 102, topPos + 20, 4210752);
+            guiGraphics.drawString(this.font, Component.literal("Error"), leftPos + 102, topPos + 20, 4210752, false);
     }
 
     @Override
-    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
+        ResourceLocation texture = CRAFTING_TABLE_LOCATION_1;
         if (state == State.INITIAL || state == State.GENERATING || state == State.GENERATED)
-            RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_1);
+            texture = CRAFTING_TABLE_LOCATION_1;
         else if (state == State.PROGRESS)
-            RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION_2);
+            texture = CRAFTING_TABLE_LOCATION_2;
 
         int i = leftPos;
         int j = (height - imageHeight) / 2;
-        blit(poseStack, i, j, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(texture, i, j, 0, 0, imageWidth, imageHeight);
 
         if (state == State.PROGRESS)  //progress arrow
-            blit(poseStack, i + 66, j + 34, 0, 167, menu.blockEntity.getProgress() / 10, 16);
+            guiGraphics.blit(texture, i + 66, j + 34, 0, 167, menu.blockEntity.getProgress() / 10, 16);
         if (state == State.GENERATING)   //locked button
-            blit(poseStack, i + 67, j + 34, 0, 185, 27, 18);
+            guiGraphics.blit(texture, i + 67, j + 34, 0, 185, 27, 18);
         else if (mainBtn.isHoveredOrFocused())   //hovered button
-            blit(poseStack, i + 67, j + 34, 0, 203, 27, 18);
+            guiGraphics.blit(texture, i + 67, j + 34, 0, 203, 27, 18);
     }
 
     @Override
@@ -252,7 +241,16 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
 
     private static String getLanguage() {
         LanguageManager langManager = Minecraft.getInstance().getLanguageManager();
-        LanguageInfo currentLang = langManager.getSelected();
-        return currentLang.getCode(); // e.g. "en_us"
+        return langManager.getSelected(); // e.g. "en_us"
+    }
+
+    private static class InvisibleButton extends Button {
+        protected InvisibleButton(int x, int y, int width, int height, OnPress onPress) {
+            super(x, y, width, height, Component.empty(), onPress, supplier -> supplier.get());
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        }
     }
 }

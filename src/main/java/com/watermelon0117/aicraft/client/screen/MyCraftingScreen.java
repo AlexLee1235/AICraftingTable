@@ -1,8 +1,8 @@
 package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.MyCraftingMenu;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
@@ -45,7 +45,7 @@ public class MyCraftingScreen extends AbstractContainerScreen<MyCraftingMenu> im
         this.recipeBookComponent.tick();
     }
 
-    public void render(PoseStack p_98479_, int p_98480_, int p_98481_, float p_98482_) {
+    public void render(GuiGraphics p_98479_, int p_98480_, int p_98481_, float p_98482_) {
         this.renderBackground(p_98479_);
         if (this.recipeBookComponent.isVisible() && this.widthTooNarrow) {
             this.renderBg(p_98479_, p_98482_, p_98480_, p_98481_);
@@ -60,13 +60,13 @@ public class MyCraftingScreen extends AbstractContainerScreen<MyCraftingMenu> im
         this.recipeBookComponent.renderTooltip(p_98479_, this.leftPos, this.topPos, p_98480_, p_98481_);
     }
 
-    protected void renderBg(PoseStack p_98474_, float p_98475_, int p_98476_, int p_98477_) {
+    protected void renderBg(GuiGraphics p_98474_, float p_98475_, int p_98476_, int p_98477_) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, CRAFTING_TABLE_LOCATION);
         int i = this.leftPos;
         int j = (this.height - this.imageHeight) / 2;
-        this.blit(p_98474_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        p_98474_.blit(CRAFTING_TABLE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     protected boolean isHovering(int p_98462_, int p_98463_, int p_98464_, int p_98465_, double p_98466_, double p_98467_) {
@@ -97,7 +97,6 @@ public class MyCraftingScreen extends AbstractContainerScreen<MyCraftingMenu> im
     }
 
     public void removed() {
-        this.recipeBookComponent.removed();
         super.removed();
     }
 

@@ -1,10 +1,10 @@
 package com.watermelon0117.aicraft.client.screen;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.StateSwitchingButton;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +32,7 @@ public class CustomRecipeBookPage {
         for(int i = 0; i < 20; ++i) {
             this.buttons.add(new CustomRecipeButton());
         }
-        this.totalPages = (int)Math.ceil((double)(SpecialItemManager.get(Minecraft.getInstance().player.level).list().size()) / 20.0D);
+        this.totalPages = (int)Math.ceil((double)(SpecialItemManager.get(Minecraft.getInstance().player.level()).list().size()) / 20.0D);
     }
 
     public void init(Minecraft p_100429_, int p_100430_, int p_100431_, AICraftingTableMenu menu) {
@@ -52,7 +52,8 @@ public class CustomRecipeBookPage {
 
     private void updateButtonsForPage() {
         int i = 20 * this.currentPage;
-        List<ItemStack> allItems= SpecialItemManager.get(Minecraft.getInstance().player.level).list();
+        List<ItemStack> allItems= SpecialItemManager.get(Minecraft.getInstance().player.level()).list();
+        this.totalPages = (int)Math.ceil((double)allItems.size() / 20.0D);
         for(int j = 0; j < this.buttons.size(); ++j) {
             CustomRecipeButton recipebutton = this.buttons.get(j);
             if (i + j < allItems.size()) {
@@ -72,11 +73,11 @@ public class CustomRecipeBookPage {
         this.backButton.visible = this.totalPages > 1 && this.currentPage > 0;
     }
 
-    public void render(PoseStack p_100422_, int p_100423_, int p_100424_, int p_100425_, int p_100426_, float p_100427_) {
+    public void render(GuiGraphics p_100422_, int p_100423_, int p_100424_, int p_100425_, int p_100426_, float p_100427_) {
         if (this.totalPages > 1) {
             String s = this.currentPage + 1 + "/" + this.totalPages;
             int i = this.minecraft.font.width(s);
-            this.minecraft.font.draw(p_100422_, s, (float)(p_100423_ - i / 2 + 73), (float)(p_100424_ + 141), -1);
+            p_100422_.drawString(this.minecraft.font, s, p_100423_ - i / 2 + 73, p_100424_ + 141, -1, false);
         }
 
         this.hoveredButton = null;
@@ -91,9 +92,9 @@ public class CustomRecipeBookPage {
         this.backButton.render(p_100422_, p_100425_, p_100426_, p_100427_);
         this.forwardButton.render(p_100422_, p_100425_, p_100426_, p_100427_);
     }
-    public void renderTooltip(PoseStack p_100418_, int p_100419_, int p_100420_) {
+    public void renderTooltip(GuiGraphics p_100418_, int p_100419_, int p_100420_) {
         if (this.minecraft.screen != null && this.hoveredButton != null) {
-            this.minecraft.screen.renderComponentTooltip(p_100418_, this.hoveredButton.getTooltipText(this.minecraft.screen), p_100419_, p_100420_, this.hoveredButton.itemStack);
+            p_100418_.renderComponentTooltip(this.minecraft.font, this.hoveredButton.getTooltipText(this.minecraft.screen), p_100419_, p_100420_, this.hoveredButton.itemStack);
         }
 
     }

@@ -36,7 +36,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     public ItemStackArray currentRecipe;
     //Client Constructor
     public AICraftingTableMenu(int id, Inventory inventory, FriendlyByteBuf buf){
-        this(id, inventory, inventory.player.level.getBlockEntity(buf.readBlockPos()));
+        this(id, inventory, inventory.player.level().getBlockEntity(buf.readBlockPos()));
     }
     //Server Constructor
     public AICraftingTableMenu(int id, Inventory inventory, BlockEntity blockEntity) {
@@ -123,7 +123,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player player, int slotId) {
         ItemStackArray recipe= ItemStackArray.deepCopy(currentRecipe);
         ItemStack itemStack=delegateQuickMoveStack(player,slotId);
-        handleInterrupt(recipe,this,player.level,player);
+        handleInterrupt(recipe,this,player.level(),player);
         return itemStack;
     }
 
@@ -133,7 +133,7 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
     }
 
     private static CraftingContainer getDummyContainer(AICraftingTableMenu menu){
-        CraftingContainer craftingContainer = new CraftingContainer(menu, 3,3);
+        CraftingContainer craftingContainer = new TransientCraftingContainer(menu, 3,3);
         for (int i = 0; i < 9; i++) {
             craftingContainer.setItem(i, menu.blockEntity.getInventory().getStackInSlot(i + 1).copy());
         }

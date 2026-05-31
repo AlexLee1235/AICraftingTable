@@ -1,30 +1,24 @@
 package com.watermelon0117.aicraft.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.recipebook.RecipeShownListener;
 import net.minecraft.network.chat.Component;
-import net.minecraft.recipebook.PlaceRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
 
-public class OptionsComponent extends GuiComponent implements Widget, GuiEventListener, NarratableEntry {
+public class OptionsComponent implements Renderable, GuiEventListener, NarratableEntry {
     private Button optBtn1, optBtn2, optBtn3;
     public boolean visible = false;
     public OnPressNum optBtnPress;
     public String[] idea;
+    private boolean focused;
 
     public void init(int leftPos, int topPos, OnPressNum optBtnPress) {
-        optBtn1 = new Button(leftPos + 98, topPos + 16, 70, 17,
-                Component.empty(), this::optBtnPress1);
-        optBtn2 = new Button(leftPos + 98, topPos + 33, 70, 17,
-                Component.empty(), this::optBtnPress2);
-        optBtn3 = new Button(leftPos + 98, topPos + 50, 70, 18,
-                Component.empty(), this::optBtnPress3);
+        optBtn1 = Button.builder(Component.empty(), this::optBtnPress1).bounds(leftPos + 98, topPos + 16, 70, 17).build();
+        optBtn2 = Button.builder(Component.empty(), this::optBtnPress2).bounds(leftPos + 98, topPos + 33, 70, 17).build();
+        optBtn3 = Button.builder(Component.empty(), this::optBtnPress3).bounds(leftPos + 98, topPos + 50, 70, 18).build();
         this.optBtnPress = optBtnPress;
     }
 
@@ -41,16 +35,13 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
     }
 
     public void updateWidgetPos(int leftPos, int topPos) {
-        optBtn1.x = leftPos + 98;
-        optBtn2.x = leftPos + 98;
-        optBtn3.x = leftPos + 98;
-        optBtn1.y = topPos + 16;
-        optBtn2.y = topPos + 33;
-        optBtn3.y = topPos + 50;
+        optBtn1.setPosition(leftPos + 98, topPos + 16);
+        optBtn2.setPosition(leftPos + 98, topPos + 33);
+        optBtn3.setPosition(leftPos + 98, topPos + 50);
     }
 
     @Override
-    public void render(PoseStack p_94669_, int p_94670_, int p_94671_, float p_94672_) {
+    public void render(GuiGraphics p_94669_, int p_94670_, int p_94671_, float p_94672_) {
         if (this.visible) {
             optBtn1.render(p_94669_, p_94670_, p_94671_, p_94672_);
             optBtn2.render(p_94669_, p_94670_, p_94671_, p_94672_);
@@ -84,6 +75,21 @@ public class OptionsComponent extends GuiComponent implements Widget, GuiEventLi
     @Override
     public void updateNarration(NarrationElementOutput p_169152_) {
 
+    }
+
+    @Override
+    public void setFocused(boolean focused) {
+        this.focused = focused;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return this.focused;
+    }
+
+    @Override
+    public boolean isMouseOver(double mouseX, double mouseY) {
+        return visible && (optBtn1.isMouseOver(mouseX, mouseY) || optBtn2.isMouseOver(mouseX, mouseY) || optBtn3.isMouseOver(mouseX, mouseY));
     }
 
     public interface OnPressNum {

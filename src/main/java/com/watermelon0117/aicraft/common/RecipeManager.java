@@ -95,7 +95,7 @@ public final class RecipeManager {
         Optional<CraftingRecipe> optional = level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, container, level);
         if (optional.isPresent()) {
             CraftingRecipe craftingrecipe = optional.get();
-            result = craftingrecipe.assemble(container);
+            result = craftingrecipe.assemble(container, level.registryAccess());
             if (craftingrecipe instanceof RepairItemRecipe && MainItem.isMainItem(result)) {
                 //already has 2 item and are all main item
                 ItemStack stack1 = null, stack2 = null;
