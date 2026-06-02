@@ -1,6 +1,5 @@
 package com.watermelon0117.aicraft.commands;
 
-import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -8,17 +7,12 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import com.watermelon0117.aicraft.items.MainItem;
-import net.minecraft.client.Minecraft;
-import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.item.ItemArgument;
-import net.minecraft.commands.synchronization.ArgumentTypeInfo;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.server.command.EnumArgument;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
 
 public class MyItemArgument implements ArgumentType<String> {
 
@@ -37,14 +31,22 @@ public class MyItemArgument implements ArgumentType<String> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> ctx, SuggestionsBuilder builder) {
-        return SharedSuggestionProvider.suggest(listEscapedNames(), builder);
+        List<ItemStack> items;
+        if (ctx.getSource() instanceof CommandSourceStack source) {
+            items = SpecialItemManager.get(source.getLevel()).list();
+        } else {
+            items = SpecialItemManager.ClientSide.list();
+        }
+        return SharedSuggestionProvider.suggest(listEscapedNames(items), builder);
     }
-    private static List<String> listEscapedNames() {
-        SpecialItemManager mgr = SpecialItemManager.get(Minecraft.getInstance().player.level);
+
+    private static List<String> listEscapedNames(List<ItemStack> items) {
         // Immutable list produced by the stream pipeline
-        return mgr.list().stream()
+        return items.stream()
                 .map(MainItem::getID)         // Component
                 .map(name -> name.replace(' ', '_'))
+                .distinct()
+                .sorted()
                 .toList();
     }
 }
