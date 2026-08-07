@@ -27,6 +27,20 @@ public class ItemIdeas {
             names[i] = buf.readUtf();
     }
 
+    public ItemIdeas sanitizeIds() {
+        if (id == null || id.length != 3) {
+            throw new IllegalArgumentException("AI returned an invalid item ID list");
+        }
+        for (int i = 0; i < id.length; i++) {
+            String sanitized = ItemIdSanitizer.sanitize(id[i]);
+            if (sanitized == null || sanitized.isBlank()) {
+                throw new IllegalArgumentException("AI returned an empty item ID at index " + i);
+            }
+            id[i] = sanitized;
+        }
+        return this;
+    }
+
     public void write(FriendlyByteBuf buf) {
         for (int i = 0; i < 3; i++)
             buf.writeUtf(id[i]);
