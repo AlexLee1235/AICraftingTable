@@ -13,9 +13,9 @@ public class IdeaGenerator {
     ProxyIdeaGenerator proxyIdeaGenerator = new ProxyIdeaGenerator();
 
     public CompletableFuture<ItemIdeas> generate(ItemStackArray recipe, String lang, String user) {
-        if (AICraftingTableCommonConfigs.useOpenAI)
-            return gptIdeaGenerator.generate(recipe, lang, user);
-        else
-            return proxyIdeaGenerator.generate(recipe, lang, user);
+        CompletableFuture<ItemIdeas> generated = AICraftingTableCommonConfigs.useOpenAI
+                ? gptIdeaGenerator.generate(recipe, lang, user)
+                : proxyIdeaGenerator.generate(recipe, lang, user);
+        return generated.thenApply(ItemIdeas::sanitizeIds);
     }
 }
