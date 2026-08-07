@@ -1,13 +1,11 @@
 package com.watermelon0117.aicraft.common;
 
-import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class ItemStackArray {
     public ItemStack[] items=new ItemStack[9];
@@ -18,18 +16,16 @@ public class ItemStackArray {
     }
     public ItemStackArray(AICraftingTableMenu menu){
         for (int i = 0; i < 9; i++)
-            items[i] = menu.slots.get(i+1).getItem();
+            items[i] = menu.slots.get(i+1).getItem().copy();
     }
     public ItemStackArray(ItemStack[] items) {
         if (items == null || items.length != 9)
             throw new IllegalArgumentException();
-        this.items = items;
+        for (int i = 0; i < 9; i++)
+            this.items[i] = items[i].copy();
     }
     public static ItemStackArray deepCopy(ItemStackArray other){
-        ItemStackArray r=new ItemStackArray();
-        for (int i = 0; i < 9; i++)
-            r.items[i] = other.items[i].copy();
-        return r;
+        return new ItemStackArray(other.items);
     }
 
     public String[] getDisplayNames() {
