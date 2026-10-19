@@ -14,6 +14,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class OpenAIImageClient {
     private static final URI ENDPOINT = URI.create("https://api.openai.com/v1/images/generations");
+    /** gpt-image-1 shuts down on 2026-10-23; the texture server uses the same model. */
+    private static final String MODEL = "gpt-image-2.5-sunburst";
     public static String apiKey;
     private final HttpClient http;
     private final Gson gson;
@@ -30,8 +32,8 @@ public final class OpenAIImageClient {
     /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
 
 
-    public CompletableFuture<String> generateAsync(String prompt, String size, String background, String moderation, String quality) {
-        Request body = new Request(prompt, "gpt-image-1", 1, size, background, moderation, quality, "jpeg");
+    public CompletableFuture<String> generateAsync(String prompt, String size, String background, String moderation, String quality, String outputFormat) {
+        Request body = new Request(prompt, MODEL, 1, size, background, moderation, quality, outputFormat);
         String json  = gson.toJson(body);
 
         HttpRequest req = HttpRequest.newBuilder()
