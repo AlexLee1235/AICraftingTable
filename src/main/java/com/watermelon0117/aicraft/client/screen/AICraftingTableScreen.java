@@ -215,7 +215,11 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             setFocused(recipeBookComponent);
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        boolean handled = super.mouseClicked(mouseX, mouseY, button);
+        // A clicked button stays focused and keeps its hover texture, so return focus to the recipe book.
+        if (getFocused() instanceof Button)
+            setFocused(recipeBookComponent);
+        return handled;
     }
 
     @Override

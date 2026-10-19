@@ -20,6 +20,7 @@ public class MyCraftingScreen extends AbstractContainerScreen<MyCraftingMenu> im
     private static final ResourceLocation RECIPE_BUTTON_LOCATION = new ResourceLocation("textures/gui/recipe_button.png");
     private final RecipeBookComponent recipeBookComponent = new RecipeBookComponent();
     private boolean widthTooNarrow;
+    private ImageButton recipeButton;
 
     public MyCraftingScreen(MyCraftingMenu p_98448_, Inventory p_98449_, Component p_98450_) {
         super(p_98448_, p_98449_, p_98450_);
@@ -30,7 +31,7 @@ public class MyCraftingScreen extends AbstractContainerScreen<MyCraftingMenu> im
         this.widthTooNarrow = this.width < 379;
         this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
         this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-        this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
+        this.recipeButton = this.addRenderableWidget(new ImageButton(this.leftPos + 5, this.height / 2 - 49, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (p_98484_) -> {
             this.recipeBookComponent.toggleVisibility();
             this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
             ((ImageButton)p_98484_).setPosition(this.leftPos + 5, this.height / 2 - 49);
@@ -77,8 +78,14 @@ public class MyCraftingScreen extends AbstractContainerScreen<MyCraftingMenu> im
         if (this.recipeBookComponent.mouseClicked(p_98452_, p_98453_, p_98454_)) {
             this.setFocused(this.recipeBookComponent);
             return true;
+        } else if (this.widthTooNarrow && this.recipeBookComponent.isVisible()) {
+            return true;
         } else {
-            return this.widthTooNarrow && this.recipeBookComponent.isVisible() ? true : super.mouseClicked(p_98452_, p_98453_, p_98454_);
+            boolean handled = super.mouseClicked(p_98452_, p_98453_, p_98454_);
+            // A clicked button stays focused and keeps its hover texture, so return focus to the recipe book.
+            if (this.getFocused() == this.recipeButton)
+                this.setFocused(this.recipeBookComponent);
+            return handled;
         }
     }
 
