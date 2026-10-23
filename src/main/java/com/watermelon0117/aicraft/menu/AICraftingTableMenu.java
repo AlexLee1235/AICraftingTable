@@ -124,6 +124,9 @@ public class AICraftingTableMenu extends AbstractContainerMenu {
         ItemStackArray recipe= ItemStackArray.deepCopy(currentRecipe);
         ItemStack itemStack=delegateQuickMoveStack(player,slotId);
         handleInterrupt(recipe,this,player.level(),player);
+        //vanilla keeps shift crafting while the result is the same Item, but all AI items share meta_item
+        if (slotId == RESULT_SLOT && !ItemStack.isSameItemSameTags(itemStack, this.getSlot(RESULT_SLOT).getItem()))
+            return ItemStack.EMPTY;
         return itemStack;
     }
 
