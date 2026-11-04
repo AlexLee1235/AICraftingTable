@@ -19,9 +19,10 @@ import java.util.concurrent.CompletableFuture;
 
 public class TextureManager {
     public static CompletableFuture<Map<String, byte[]>> loadFromFileAsync() {
+        // Resolved here on the server thread: the world path comes from a plain HashMap, and touching it from another thread can fail a player's login.
+        File folder = FileUtil.getTextureFolder();
         return CompletableFuture.supplyAsync(() -> {
             Map<String, byte[]> map = new HashMap<>();
-            File folder = FileUtil.getTextureFolder();
             File[] files = folder.listFiles();
 
             if (files != null) {

@@ -5,11 +5,17 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.io.File;
+import java.nio.file.Path;
 
 public class FileUtil {
     public static File getTextureFolder() {
         File folder = new File(ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT) + "\\aicraft\\textures");
         return ensureExist(folder);
+    }
+
+    public static Path getBlockTextureFolder() {
+        Path folder = ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT).resolve("aicraft").resolve("block_textures");
+        return ensureExist(folder.toFile()).toPath();
     }
 
     public static File getTempFolder(String name) {

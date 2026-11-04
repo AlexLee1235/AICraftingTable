@@ -1,10 +1,10 @@
 package com.watermelon0117.aicraft.gpt;
 
-final class ItemIdSanitizer {
+public final class ItemIdSanitizer {
     private ItemIdSanitizer() {
     }
 
-    static String sanitize(String id) {
+    public static String sanitize(String id) {
         if (id == null) {
             return null;
         }

@@ -1,14 +1,19 @@
 package com.watermelon0117.aicraft.event;
 
+import com.mojang.logging.LogUtils;
 import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.commands.GenerateBlockCommand;
 import com.watermelon0117.aicraft.commands.RemoveItemCommand;
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
+import com.watermelon0117.aicraft.common.BlockTextureStore;
+import com.watermelon0117.aicraft.common.FileUtil;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import com.watermelon0117.aicraft.common.TextureManager;
 import com.watermelon0117.aicraft.gpt.opanai.OpenAIChatClient;
 import com.watermelon0117.aicraft.gpt.opanai.OpenAIImageClient;
 import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
+import com.watermelon0117.aicraft.network.CSendBlockTexturesPacket;
 import com.watermelon0117.aicraft.network.CSyncRecipesPacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
@@ -21,9 +26,12 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.slf4j.Logger;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EventHandler {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     @SubscribeEvent
     public static void playerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event){
     }
@@ -46,6 +54,7 @@ public class EventHandler {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event){
         RemoveItemCommand.register(event.getDispatcher(), event.getBuildContext());
+        GenerateBlockCommand.register(event.getDispatcher());
     }
 
     @SubscribeEvent
@@ -66,6 +75,22 @@ public class EventHandler {
             PacketHandler.sendToPlayer(new CSyncSpecialItemsPacket(SpecialItemManager.ServerSide.data().data), sp);
             PacketHandler.sendToPlayer(new CSyncRecipesPacket(RecipeManager.ServerSide.data().recipes), sp);
             TextureManager.loadFromFileAsync().thenAccept(map-> PacketHandler.sendToPlayer(new CSendAllTexturePacket(map), sp));
+            sendBlockTextures(sp);
+        }
+    }
+
+    /** A failure here costs the player some textures. Thrown out of the login event, it would cost them the login. */
+    private static void sendBlockTextures(ServerPlayer player) {
+        try {
+            BlockTextureStore.loadAllAsync(FileUtil.getBlockTextureFolder())
+                    .thenAcceptAsync(map -> BlockTextureStore.batches(map, BlockTextureStore.MAX_BATCH_BYTES)
+                            .forEach(batch -> PacketHandler.sendToPlayer(new CSendBlockTexturesPacket(batch), player)), player.getServer())
+                    .exceptionally(error -> {
+                        LOGGER.error("Could not send AI block textures to {}", player.getName().getString(), error);
+                        return null;
+                    });
+        } catch (RuntimeException error) {
+            LOGGER.error("Could not send AI block textures to {}", player.getName().getString(), error);
         }
     }
 }

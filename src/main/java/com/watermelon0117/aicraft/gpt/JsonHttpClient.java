@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class JsonHttpClient<T, U> {
+    /** AICRAFT_API_KEY lets a development client use a local gateway, which has its own key. */
+    private static final String API_KEY = System.getenv().getOrDefault("AICRAFT_API_KEY", "MY_SUPER_SECRET_KEY");
+
     private final URI endpoint;
     private final Class<U> responseClass; // store Class<U> for deserialization
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
@@ -29,7 +32,7 @@ public class JsonHttpClient<T, U> {
         String json = gson.toJson(request);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(endpoint)
-                .header("Authorization", "Bearer " + "MY_SUPER_SECRET_KEY")
+                .header("Authorization", "Bearer " + API_KEY)
                 .header("X-User-Id", user)
                 .header("Content-Type", "application/json")
                 .timeout(Duration.ofSeconds(100))
