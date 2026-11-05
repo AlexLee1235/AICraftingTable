@@ -19,6 +19,11 @@ public final class ItemIdSanitizer {
         return sanitized.toString();
     }
 
+    /** Whether an id is something the idea step could have handed out, which is safe to use in a file name. */
+    public static boolean isClean(String id) {
+        return id != null && !id.isBlank() && id.equals(sanitize(id));
+    }
+
     private static boolean isAllowed(char character) {
         return character >= 'A' && character <= 'Z'
                 || character >= 'a' && character <= 'z'

@@ -17,15 +17,29 @@ import java.util.concurrent.CompletableFuture;
 public class JsonHttpClient<T, U> {
     /** AICRAFT_API_KEY lets a development client use a local gateway, which has its own key. */
     private static final String API_KEY = System.getenv().getOrDefault("AICRAFT_API_KEY", "MY_SUPER_SECRET_KEY");
+    private static final String DEFAULT_API_BASE = "https://mod.aicraftingtable.com";
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(100);
 
     private final URI endpoint;
     private final Class<U> responseClass; // store Class<U> for deserialization
+    private final Duration timeout;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();
 
     public JsonHttpClient(String uri, Class<U> responseClass) {
+        this(uri, responseClass, DEFAULT_TIMEOUT);
+    }
+
+    public JsonHttpClient(String uri, Class<U> responseClass, Duration timeout) {
         this.endpoint = URI.create(uri);
         this.responseClass = responseClass;
+        this.timeout = timeout;
+    }
+
+    /** AICRAFT_API_BASE points a development client at a local gateway. */
+    public static String apiBase() {
+        String base = System.getenv("AICRAFT_API_BASE");
+        return base == null || base.isBlank() ? DEFAULT_API_BASE : base;
     }
 
     public CompletableFuture<U> send(T request, String user) {
@@ -35,7 +49,7 @@ public class JsonHttpClient<T, U> {
                 .header("Authorization", "Bearer " + API_KEY)
                 .header("X-User-Id", user)
                 .header("Content-Type", "application/json")
-                .timeout(Duration.ofSeconds(100))
+                .timeout(timeout)
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())

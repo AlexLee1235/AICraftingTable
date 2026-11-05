@@ -33,11 +33,14 @@ public class ResultSlotItemHandler extends SlotItemHandler {
         return false;
     }
 
+    /**
+     * Takes the whole result whatever was asked for, as vanilla's ResultContainer does. A right click asks for half and Q for one,
+     * and the rest would be lost when the grid is worked out again.
+     */
     public ItemStack remove(int p_40173_) {
-        if (this.hasItem()) {
-            this.removeCount += Math.min(p_40173_, this.getItem().getCount());
-        }
-        return super.remove(p_40173_);
+        int count = this.getItem().getCount();
+        this.removeCount += count;
+        return super.remove(count);
     }
 
     protected void onQuickCraft(ItemStack p_40180_, int p_40181_) {

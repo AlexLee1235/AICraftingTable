@@ -9,31 +9,36 @@ import com.watermelon0117.aicraft.common.BlockFaces;
 import java.util.Base64;
 import java.util.Locale;
 
-public record GeneratedBlock(AIBlockShape shape, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light, BlockFaces faces) {
-    /** What the texture server answers, with the fields this mod reads. */
-    public record Response(String type, String model, String kind, String tool, String hardness, String light, String texture, String top, String front, String side) {
-    }
+public record GeneratedBlock(AIBlockShape shape, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light,
+                             int count, boolean shapeless, BlockFaces faces) implements GeneratedResult {
+    /** A stack holds 64, and the server never asks for more than 8. */
+    private static final int MAX_COUNT = 64;
 
     /** @throws IllegalArgumentException if the texture server's answer is not a usable block */
-    public static GeneratedBlock fromResponse(Response response) {
-        if (!"block".equals(response.type())) {
-            throw new IllegalArgumentException("The judge says this is not a block");
-        }
+    public static GeneratedBlock fromResponse(GeneratedResult.Response response) {
         AIBlockShape shape = AIBlockShape.fromModel(response.model());
         AIBlockTool tool = parse("tool", response.tool(), AIBlockTool.class);
         AIBlockHardness hardness = parse("hardness", response.hardness(), AIBlockHardness.class);
         AIBlockLight light = parse("light", response.light(), AIBlockLight.class);
-        return new GeneratedBlock(shape, tool, hardness, light, shape == AIBlockShape.CROSS ? crossFaces(response) : faces(response));
+        Integer count = response.count();
+        if (count == null) {
+            throw new IllegalArgumentException("The texture server's answer has no count");
+        }
+        if (count < 1 || count > MAX_COUNT) {
+            throw new IllegalArgumentException("The texture server's answer has a count out of range: " + count);
+        }
+        return new GeneratedBlock(shape, tool, hardness, light, count, Boolean.TRUE.equals(response.shapeless()),
+                shape == AIBlockShape.CROSS ? crossFaces(response) : faces(response));
     }
 
-    private static BlockFaces crossFaces(Response response) {
+    private static BlockFaces crossFaces(GeneratedResult.Response response) {
         if (response.texture() == null) {
             throw new IllegalArgumentException("The texture server's answer has no plant picture");
         }
         return BlockFaces.ofCross(Base64.getDecoder().decode(response.texture())).validatedCross();
     }
 
-    private static BlockFaces faces(Response response) {
+    private static BlockFaces faces(GeneratedResult.Response response) {
         if (response.top() == null || response.front() == null || response.side() == null) {
             throw new IllegalArgumentException("The texture server's answer has no block faces");
         }

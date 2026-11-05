@@ -5,6 +5,7 @@ import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
+import com.watermelon0117.aicraft.gpt.GeneratedResult;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -38,15 +39,15 @@ class BlockFacesTest {
     }
 
     private static GeneratedBlock cube(String kind, String tool, String hardness, String light, String top, String front, String side) {
-        return GeneratedBlock.fromResponse(new GeneratedBlock.Response("block", "cube_material", kind, tool, hardness, light, null, top, front, side));
+        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, "cube_material", kind, tool, hardness, light, 1, false, null, top, front, side));
     }
 
     private static GeneratedBlock material(String model, String face) {
-        return GeneratedBlock.fromResponse(new GeneratedBlock.Response("block", model, "material", "axe", "hard", "dim", null, face, face, face));
+        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, model, "material", "axe", "hard", "dim", 6, false, null, face, face, face));
     }
 
     private static GeneratedBlock cross(String texture) {
-        return GeneratedBlock.fromResponse(new GeneratedBlock.Response("block", "cross", null, "none", "instant", "none", texture, null, null, null));
+        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, "cross", null, "none", "instant", "none", 1, false, texture, null, null, null));
     }
 
     @Test
@@ -200,14 +201,6 @@ class BlockFacesTest {
 
         IllegalArgumentException none = assertThrows(IllegalArgumentException.class, () -> material(null, face));
         assertTrue(none.getMessage().contains("no model"), none.getMessage());
-    }
-
-    @Test
-    void anItemIsNotABlock() throws IOException {
-        String face = base64(png(16, 0xFF111111));
-        IllegalArgumentException item = assertThrows(IllegalArgumentException.class,
-                () -> GeneratedBlock.fromResponse(new GeneratedBlock.Response("item", null, null, null, null, null, face, null, null, null)));
-        assertTrue(item.getMessage().contains("not a block"), item.getMessage());
     }
 
     @Test

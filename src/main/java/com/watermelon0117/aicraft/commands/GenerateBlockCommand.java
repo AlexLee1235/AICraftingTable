@@ -4,17 +4,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.watermelon0117.aicraft.common.AIBlockInstaller;
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
-import com.watermelon0117.aicraft.common.BlockTextureStore;
-import com.watermelon0117.aicraft.common.FileUtil;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.ItemIdSanitizer;
-import com.watermelon0117.aicraft.gpt.ProxyBlockGenerator;
-import com.watermelon0117.aicraft.init.BlockInit;
-import com.watermelon0117.aicraft.network.CAddBlockTexturePacket;
-import com.watermelon0117.aicraft.network.PacketHandler;
+import com.watermelon0117.aicraft.gpt.ProxyItemGenerator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -30,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
-/** Until blocks can be crafted, this is the only way to get one: it is for checking how they look and behave in game. */
+/** Gives a stack of a block from its name alone, with no recipe: it is for checking how blocks look and behave in game. */
 public class GenerateBlockCommand {
     private static final int GIVEN_COUNT = 64;
     private static final SimpleCommandExceptionType NEEDS_TEXTURE_SERVER = new SimpleCommandExceptionType(
@@ -42,7 +38,7 @@ public class GenerateBlockCommand {
     private static final SimpleCommandExceptionType IN_PROGRESS = new SimpleCommandExceptionType(
             Component.literal("That block is already being generated."));
 
-    private static final ProxyBlockGenerator GENERATOR = new ProxyBlockGenerator();
+    private static final ProxyItemGenerator GENERATOR = new ProxyItemGenerator();
     private static final Set<String> IN_FLIGHT = ConcurrentHashMap.newKeySet();
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -72,27 +68,29 @@ public class GenerateBlockCommand {
             throw IN_PROGRESS.create();
         }
         source.sendSuccess(() -> Component.literal("Generating " + id + "..."), false);
-        GENERATOR.generate(id, new ItemStackArray().getDisplayNames(), player.getStringUUID())
-                .whenComplete((block, error) -> player.getServer().execute(() -> {
+        GENERATOR.generate(id, name.trim(), new ItemStackArray(), player.getStringUUID())
+                .whenComplete((result, error) -> player.getServer().execute(() -> {
                     IN_FLIGHT.remove(id);
                     if (error != null) {
                         fail(player, error);
-                    } else {
+                    } else if (result instanceof GeneratedBlock block) {
                         apply(player, id, name.trim(), block);
+                    } else {
+                        // The server has already paid for the item's image by now.
+                        fail(player, new IllegalArgumentException("The judge says this is not a block"));
                     }
                 }));
         return 1;
     }
 
     private static void apply(ServerPlayer player, String id, String name, GeneratedBlock block) {
+        ItemStack stack;
         try {
-            BlockTextureStore.save(FileUtil.getBlockTextureFolder(), id, block.faces());
+            stack = AIBlockInstaller.install(id, name, block);
         } catch (IOException e) {
             fail(player, e);
             return;
         }
-        PacketHandler.sendToAllClients(new CAddBlockTexturePacket(id, block.faces()));
-        ItemStack stack = BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), block.hardness(), block.light());
         SpecialItemManager.get(player.level()).put(stack);
         ItemStack given = stack.copyWithCount(GIVEN_COUNT);
         if (!player.getInventory().add(given)) {

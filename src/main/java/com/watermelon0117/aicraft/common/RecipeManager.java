@@ -127,8 +127,16 @@ public final class RecipeManager {
                 .findFirst().orElse(ItemStack.EMPTY);
     }
 
-    public void addRecipe(ItemStack result, ItemStack[] g, boolean shapeless) {
+    /**
+     * Makes this grid give the result, with the result's count, and every other recipe of the result's id give it too.
+     * Matching takes the first recipe that fits, so a regenerated result appended after the old one would never come out.
+     */
+    public void putRecipe(ItemStack result, ItemStack[] g, boolean shapeless) {
         checkServer();
+        String id = MainItem.getID(result);
+        List<Recipe> recipes = backing();
+        recipes.removeIf(r -> Objects.equals(id, MainItem.getID(r.result)) && r.match(g));
+        recipes.replaceAll(r -> Objects.equals(id, MainItem.getID(r.result)) ? new Recipe(result.copy(), r.grid, r.shapeless) : r);
         ItemStack[] stored = shapeless ? sortShapeless(g) : Arrays.copyOf(g, 9);
         for (int i = 0; i < stored.length; i++) {
             if (!stored[i].isEmpty()) {
@@ -136,10 +144,15 @@ public final class RecipeManager {
                 stored[i].setCount(1);        // …then force stack-size to 1
             }
         }
-        ItemStack resCopy=result.copy();
-        resCopy.setCount(1);
-        backing().add(new Recipe(resCopy, stored, shapeless));
+        recipes.add(new Recipe(result.copy(), stored, shapeless));
         dirtyAndSync();
+    }
+
+    /** @return how many the first recipe of this id makes, or 1 if it has none */
+    public int craftedCount(String id) {
+        return backing().stream()
+                .filter(r -> Objects.equals(id, MainItem.getID(r.result)))
+                .findFirst().map(r -> r.result.getCount()).orElse(1);
     }
 
     public void removeItem(String id) {

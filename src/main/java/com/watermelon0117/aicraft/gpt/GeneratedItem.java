@@ -9,7 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
-public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shapeless) {
+public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shapeless) implements GeneratedResult {
     private static final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     public static GeneratedItem fromJson(ItemResult json, String id, String name, byte[] rawTexture){
         ItemStack itemStack1=makeItem(json, id, name);
@@ -18,6 +18,12 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
     public static GeneratedItem fromJson(String rawJson, String id, String name, byte[] rawTexture) {
         var json = gson.fromJson(rawJson, ItemResult.class);
         return GeneratedItem.fromJson(json, id, name, rawTexture);
+    }
+
+    /** The item prompt asks for no count, and an item has always come one at a time. */
+    @Override
+    public int count() {
+        return 1;
     }
 
     public static ItemStack makeItem(ItemResult json, String id, String name) {
