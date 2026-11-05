@@ -1,7 +1,7 @@
 package com.watermelon0117.aicraft.init;
 
 import com.watermelon0117.aicraft.blocks.AIBlock;
-import com.watermelon0117.aicraft.blocks.AIBlockMaterial;
+import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.blocks.AICraftingTableBlock;
 import com.watermelon0117.aicraft.blocks.MyCraftingTableBlock;
 import com.watermelon0117.aicraft.AICraftingTable;
@@ -34,23 +34,23 @@ public class BlockInit {
     public static final RegistryObject<BlockItem> MY_CRAFTING_TABLE_BLOCK_ITEM = VANILLA_BLOCK_ITEMS.register("crafting_table",
             () -> new BlockItem(MY_CRAFTING_TABLE.get(), new Item.Properties()));
 
-    private static final Map<AIBlockMaterial, RegistryObject<Block>> AI_BLOCKS = new EnumMap<>(AIBlockMaterial.class);
-    private static final Map<AIBlockMaterial, RegistryObject<AIBlockItem>> AI_BLOCK_ITEMS = new EnumMap<>(AIBlockMaterial.class);
+    private static final Map<AIBlockTool, RegistryObject<Block>> AI_BLOCKS = new EnumMap<>(AIBlockTool.class);
+    private static final Map<AIBlockTool, RegistryObject<AIBlockItem>> AI_BLOCK_ITEMS = new EnumMap<>(AIBlockTool.class);
 
     static {
-        for (AIBlockMaterial material : AIBlockMaterial.values()) {
-            RegistryObject<Block> block = BLOCKS.register(material.blockName(), () -> new AIBlock(material));
-            AI_BLOCKS.put(material, block);
-            AI_BLOCK_ITEMS.put(material, BLOCK_ITEMS.register(material.blockName(), () -> new AIBlockItem(block.get(), new Item.Properties())));
+        for (AIBlockTool tool : AIBlockTool.values()) {
+            RegistryObject<Block> block = BLOCKS.register(tool.blockName(), () -> new AIBlock(tool));
+            AI_BLOCKS.put(tool, block);
+            AI_BLOCK_ITEMS.put(tool, BLOCK_ITEMS.register(tool.blockName(), () -> new AIBlockItem(block.get(), new Item.Properties())));
         }
     }
 
-    public static Block aiBlock(AIBlockMaterial material) {
-        return AI_BLOCKS.get(material).get();
+    public static Block aiBlock(AIBlockTool tool) {
+        return AI_BLOCKS.get(tool).get();
     }
 
-    public static AIBlockItem aiBlockItem(AIBlockMaterial material) {
-        return AI_BLOCK_ITEMS.get(material).get();
+    public static AIBlockItem aiBlockItem(AIBlockTool tool) {
+        return AI_BLOCK_ITEMS.get(tool).get();
     }
 
 /*PROGRAM INSERT POINT*/

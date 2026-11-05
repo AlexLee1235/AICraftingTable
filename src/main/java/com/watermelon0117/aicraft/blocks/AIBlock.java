@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,27 +25,23 @@ import org.jetbrains.annotations.Nullable;
 public class AIBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    private final AIBlockMaterial material;
+    private final AIBlockTool tool;
 
-    public AIBlock(AIBlockMaterial material) {
-        super(propertiesOf(material));
-        this.material = material;
+    public AIBlock(AIBlockTool tool) {
+        super(propertiesOf(tool));
+        this.tool = tool;
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
-    /** The values of the vanilla block each material stands for: stone, iron block, oak planks, dirt and white wool. */
-    private static BlockBehaviour.Properties propertiesOf(AIBlockMaterial material) {
+    /** Fixed for now, whatever the block looks like: the values of stone, oak planks, dirt, a hay bale and white wool. */
+    private static BlockBehaviour.Properties propertiesOf(AIBlockTool tool) {
         BlockBehaviour.Properties properties = BlockBehaviour.Properties.of();
-        return switch (material) {
-            case STONE -> properties.mapColor(MapColor.STONE).instrument(NoteBlockInstrument.BASEDRUM)
-                    .requiresCorrectToolForDrops().strength(1.5F, 6.0F).sound(SoundType.STONE);
-            case METAL -> properties.mapColor(MapColor.METAL).instrument(NoteBlockInstrument.IRON_XYLOPHONE)
-                    .requiresCorrectToolForDrops().strength(5.0F, 6.0F).sound(SoundType.METAL);
-            case WOOD -> properties.mapColor(MapColor.WOOD).instrument(NoteBlockInstrument.BASS)
-                    .strength(2.0F, 3.0F).sound(SoundType.WOOD).ignitedByLava();
-            case SOIL -> properties.mapColor(MapColor.DIRT).strength(0.5F).sound(SoundType.GRAVEL);
-            case WOOL -> properties.mapColor(MapColor.SNOW).instrument(NoteBlockInstrument.GUITAR)
-                    .strength(0.8F).sound(SoundType.WOOL).ignitedByLava();
+        return switch (tool) {
+            case PICKAXE -> properties.mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(1.5F, 6.0F).sound(SoundType.STONE);
+            case AXE -> properties.mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD);
+            case SHOVEL -> properties.mapColor(MapColor.DIRT).strength(0.5F).sound(SoundType.GRAVEL);
+            case HOE -> properties.mapColor(MapColor.COLOR_YELLOW).strength(0.5F).sound(SoundType.GRASS);
+            case NONE -> properties.mapColor(MapColor.SNOW).strength(0.8F).sound(SoundType.WOOL);
         };
     }
 
@@ -88,22 +83,23 @@ public class AIBlock extends Block implements EntityBlock {
         return stack;
     }
 
-    /** The burn odds vanilla's FireBlock gives oak planks and wool. */
+    /** The burn odds vanilla's FireBlock gives oak planks, a hay bale and wool. */
     @Override
     public int getFlammability(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return switch (material) {
-            case WOOD -> 20;
-            case WOOL -> 60;
+        return switch (tool) {
+            case AXE, HOE -> 20;
+            case NONE -> 60;
             default -> 0;
         };
     }
 
-    /** The ignite odds vanilla's FireBlock gives oak planks and wool. */
+    /** The ignite odds vanilla's FireBlock gives oak planks, a hay bale and wool. */
     @Override
     public int getFireSpreadSpeed(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return switch (material) {
-            case WOOD -> 5;
-            case WOOL -> 30;
+        return switch (tool) {
+            case AXE -> 5;
+            case HOE -> 60;
+            case NONE -> 30;
             default -> 0;
         };
     }

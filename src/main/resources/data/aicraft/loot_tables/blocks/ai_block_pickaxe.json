@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aicraft:ai_block_stone",
+          "name": "aicraft:ai_block_pickaxe",
           "functions": [
             {
               "function": "minecraft:copy_nbt",

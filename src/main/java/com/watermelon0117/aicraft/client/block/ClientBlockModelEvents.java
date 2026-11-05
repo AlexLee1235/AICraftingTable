@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.client.block;
 
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.blocks.AIBlock;
-import com.watermelon0117.aicraft.blocks.AIBlockMaterial;
+import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.init.BlockInit;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -33,13 +33,13 @@ public final class ClientBlockModelEvents {
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> models = event.getModels();
         ItemTransforms furnaceTransforms = transformsOf(models.get(new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(Items.FURNACE), "inventory")));
-        for (AIBlockMaterial material : AIBlockMaterial.values()) {
-            Block block = BlockInit.aiBlock(material);
+        for (AIBlockTool tool : AIBlockTool.values()) {
+            Block block = BlockInit.aiBlock(tool);
             for (BlockState state : block.getStateDefinition().getPossibleStates()) {
                 ResourceLocation key = BlockModelShaper.stateToModelLocation(state);
                 models.put(key, AIBlockModel.forState(state.getValue(AIBlock.FACING), transformsOf(models.get(key))));
             }
-            ResourceLocation itemKey = new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(BlockInit.aiBlockItem(material)), "inventory");
+            ResourceLocation itemKey = new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(BlockInit.aiBlockItem(tool)), "inventory");
             models.put(itemKey, AIBlockModel.forItem(transformsOf(models.get(itemKey)), furnaceTransforms));
         }
     }

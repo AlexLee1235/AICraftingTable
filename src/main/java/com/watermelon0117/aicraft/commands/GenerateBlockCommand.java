@@ -91,13 +91,13 @@ public class GenerateBlockCommand {
             return;
         }
         PacketHandler.sendToAllClients(new CAddBlockTexturePacket(id, block.faces()));
-        ItemStack stack = BlockInit.aiBlockItem(block.material()).makeStack(id, name);
+        ItemStack stack = BlockInit.aiBlockItem(block.tool()).makeStack(id, name);
         SpecialItemManager.get(player.level()).put(stack);
         ItemStack given = stack.copyWithCount(GIVEN_COUNT);
         if (!player.getInventory().add(given)) {
             player.drop(given, false);
         }
-        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.material().serializedName() + ")"));
+        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.tool().blockName() + ")"));
     }
 
     private static void fail(ServerPlayer player, Throwable error) {

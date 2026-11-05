@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aicraft:ai_block_wood",
+          "name": "aicraft:ai_block_none",
           "functions": [
             {
               "function": "minecraft:copy_nbt",

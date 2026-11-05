@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.common;
 
-import com.watermelon0117.aicraft.blocks.AIBlockMaterial;
+import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import org.junit.jupiter.api.Test;
 
@@ -89,9 +89,9 @@ class BlockFacesTest {
     void aServerAnswerBecomesABlock() throws IOException {
         byte[] top = png(16, 0xFF111111), front = png(16, 0xFF222222), side = png(16, 0xFF333333);
 
-        GeneratedBlock block = GeneratedBlock.fromResponse("wood", "natural", base64(top), base64(front), base64(side));
+        GeneratedBlock block = GeneratedBlock.fromResponse("natural", base64(top), base64(front), base64(side));
 
-        assertEquals(AIBlockMaterial.WOOD, block.material());
+        assertEquals(AIBlockTool.PICKAXE, block.tool());
         assertArrayEquals(top, block.faces().top());
         assertArrayEquals(side, block.faces().front());
         assertArrayEquals(side, block.faces().side());
@@ -100,21 +100,18 @@ class BlockFacesTest {
     @Test
     void aBadServerAnswerIsRefusedWithAMessage() throws IOException {
         String face = base64(png(16, 0xFF111111));
-        IllegalArgumentException noMaterial = assertThrows(IllegalArgumentException.class,
-                () -> GeneratedBlock.fromResponse(null, "material", face, face, face));
-        assertTrue(noMaterial.getMessage().contains("material"), noMaterial.getMessage());
+        IllegalArgumentException noKind = assertThrows(IllegalArgumentException.class,
+                () -> GeneratedBlock.fromResponse(null, face, face, face));
+        assertTrue(noKind.getMessage().contains("kind"), noKind.getMessage());
 
         IllegalArgumentException noFaces = assertThrows(IllegalArgumentException.class,
-                () -> GeneratedBlock.fromResponse("stone", "material", null, face, face));
+                () -> GeneratedBlock.fromResponse("material", null, face, face));
         assertTrue(noFaces.getMessage().contains("faces"), noFaces.getMessage());
     }
 
     @Test
-    void materialsHaveTheNamesTheServerAndResourcesUse() {
-        for (AIBlockMaterial material : AIBlockMaterial.values()) {
-            assertSame(material, AIBlockMaterial.byName(material.serializedName()));
-        }
-        assertEquals("ai_block_soil", AIBlockMaterial.SOIL.blockName());
-        assertThrows(IllegalArgumentException.class, () -> AIBlockMaterial.byName("glass"));
+    void toolsHaveTheNamesTheResourcesUse() {
+        assertEquals("ai_block_pickaxe", AIBlockTool.PICKAXE.blockName());
+        assertEquals("ai_block_none", AIBlockTool.NONE.blockName());
     }
 }

@@ -4,9 +4,9 @@
 	"block.aicraft.ai_crafting_table": "AI Crafting Table",
 	"item.aicraft.meta_food_item": "Meta Food Item",
 	"block.aicraft.my_crafting_table": "Crafting Table",
-	"block.aicraft.ai_block_stone": "AI Stone Block",
-	"block.aicraft.ai_block_metal": "AI Metal Block",
-	"block.aicraft.ai_block_wood": "AI Wood Block",
-	"block.aicraft.ai_block_soil": "AI Soil Block",
-	"block.aicraft.ai_block_wool": "AI Wool Block"
+	"block.aicraft.ai_block_pickaxe": "AI Block (Pickaxe)",
+	"block.aicraft.ai_block_axe": "AI Block (Axe)",
+	"block.aicraft.ai_block_shovel": "AI Block (Shovel)",
+	"block.aicraft.ai_block_hoe": "AI Block (Hoe)",
+	"block.aicraft.ai_block_none": "AI Block"
 }

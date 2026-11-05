@@ -1,7 +1,6 @@
 {
   "replace": false,
   "values": [
-    "aicraft:ai_block_stone",
-    "aicraft:ai_block_metal"
+    "aicraft:ai_block_pickaxe"
   ]
 }
