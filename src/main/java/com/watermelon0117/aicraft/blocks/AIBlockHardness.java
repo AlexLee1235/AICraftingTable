@@ -4,8 +4,9 @@ import net.minecraft.util.StringRepresentable;
 
 import java.util.Locale;
 
-/** What the texture server can say about how hard a block is. The numbers are those of dirt, stone, an iron block and bedrock. */
+/** What the texture server can say about how hard a block is. The numbers are those of a sapling, dirt, stone, an iron block and bedrock. */
 public enum AIBlockHardness implements StringRepresentable {
+    INSTANT(0.0F, 0.0F),
     SOFT(0.5F, 0.5F),
     NORMAL(1.5F, 6.0F),
     HARD(5.0F, 6.0F),

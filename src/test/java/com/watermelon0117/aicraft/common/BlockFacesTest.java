@@ -116,7 +116,7 @@ class BlockFacesTest {
     void everyValueTheServerCanSendIsKnown() throws IOException {
         String face = base64(png(16, 0xFF111111));
         for (String tool : new String[]{"pickaxe", "axe", "shovel", "hoe", "none"}) {
-            for (String hardness : new String[]{"soft", "normal", "hard", "unbreakable"}) {
+            for (String hardness : new String[]{"instant", "soft", "normal", "hard", "unbreakable"}) {
                 for (String light : new String[]{"none", "dim", "bright"}) {
                     GeneratedBlock block = GeneratedBlock.fromResponse("material", tool, hardness, light, face, face, face);
                     assertEquals("ai_block_" + tool, block.tool().blockName());
@@ -145,6 +145,8 @@ class BlockFacesTest {
 
     @Test
     void theLevelsHaveVanillasNumbers() {
+        assertEquals(0.0F, AIBlockHardness.INSTANT.hardness());
+        assertEquals(0.0F, AIBlockHardness.INSTANT.blastResistance());
         assertEquals(0.5F, AIBlockHardness.SOFT.hardness());
         assertEquals(0.5F, AIBlockHardness.SOFT.blastResistance());
         assertEquals(1.5F, AIBlockHardness.NORMAL.hardness());
