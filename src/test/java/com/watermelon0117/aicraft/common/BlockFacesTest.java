@@ -1,5 +1,7 @@
 package com.watermelon0117.aicraft.common;
 
+import com.watermelon0117.aicraft.blocks.AIBlockHardness;
+import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import org.junit.jupiter.api.Test;
@@ -89,23 +91,83 @@ class BlockFacesTest {
     void aServerAnswerBecomesABlock() throws IOException {
         byte[] top = png(16, 0xFF111111), front = png(16, 0xFF222222), side = png(16, 0xFF333333);
 
-        GeneratedBlock block = GeneratedBlock.fromResponse("natural", base64(top), base64(front), base64(side));
+        GeneratedBlock block = GeneratedBlock.fromResponse("natural", "axe", "hard", "dim", base64(top), base64(front), base64(side));
 
-        assertEquals(AIBlockTool.PICKAXE, block.tool());
+        assertEquals(AIBlockTool.AXE, block.tool());
+        assertEquals(AIBlockHardness.HARD, block.hardness());
+        assertEquals(AIBlockLight.DIM, block.light());
         assertArrayEquals(top, block.faces().top());
         assertArrayEquals(side, block.faces().front());
         assertArrayEquals(side, block.faces().side());
     }
 
     @Test
+    void aServerThatSendsNoValuesGetsTheDefaults() throws IOException {
+        String face = base64(png(16, 0xFF111111));
+
+        GeneratedBlock block = GeneratedBlock.fromResponse("material", null, null, null, face, face, face);
+
+        assertEquals(AIBlockTool.PICKAXE, block.tool());
+        assertEquals(AIBlockHardness.NORMAL, block.hardness());
+        assertEquals(AIBlockLight.NONE, block.light());
+    }
+
+    @Test
+    void everyValueTheServerCanSendIsKnown() throws IOException {
+        String face = base64(png(16, 0xFF111111));
+        for (String tool : new String[]{"pickaxe", "axe", "shovel", "hoe", "none"}) {
+            for (String hardness : new String[]{"soft", "normal", "hard", "unbreakable"}) {
+                for (String light : new String[]{"none", "dim", "bright"}) {
+                    GeneratedBlock block = GeneratedBlock.fromResponse("material", tool, hardness, light, face, face, face);
+                    assertEquals("ai_block_" + tool, block.tool().blockName());
+                    assertEquals(hardness, block.hardness().getSerializedName());
+                    assertEquals(light, block.light().getSerializedName());
+                }
+            }
+        }
+    }
+
+    @Test
+    void anUnknownValueIsRefusedWithItsField() throws IOException {
+        String face = base64(png(16, 0xFF111111));
+        IllegalArgumentException tool = assertThrows(IllegalArgumentException.class,
+                () -> GeneratedBlock.fromResponse("material", "sword", "hard", "dim", face, face, face));
+        assertTrue(tool.getMessage().contains("tool: sword"), tool.getMessage());
+
+        IllegalArgumentException hardness = assertThrows(IllegalArgumentException.class,
+                () -> GeneratedBlock.fromResponse("material", "axe", "medium", "dim", face, face, face));
+        assertTrue(hardness.getMessage().contains("hardness: medium"), hardness.getMessage());
+
+        IllegalArgumentException light = assertThrows(IllegalArgumentException.class,
+                () -> GeneratedBlock.fromResponse("material", "axe", "hard", "7", face, face, face));
+        assertTrue(light.getMessage().contains("light: 7"), light.getMessage());
+    }
+
+    @Test
+    void theLevelsHaveVanillasNumbers() {
+        assertEquals(0.5F, AIBlockHardness.SOFT.hardness());
+        assertEquals(0.5F, AIBlockHardness.SOFT.blastResistance());
+        assertEquals(1.5F, AIBlockHardness.NORMAL.hardness());
+        assertEquals(6.0F, AIBlockHardness.NORMAL.blastResistance());
+        assertEquals(5.0F, AIBlockHardness.HARD.hardness());
+        assertEquals(6.0F, AIBlockHardness.HARD.blastResistance());
+        assertEquals(-1.0F, AIBlockHardness.UNBREAKABLE.hardness());
+        assertEquals(3600000.0F, AIBlockHardness.UNBREAKABLE.blastResistance());
+
+        assertEquals(0, AIBlockLight.NONE.level());
+        assertEquals(5, AIBlockLight.DIM.level());
+        assertEquals(15, AIBlockLight.BRIGHT.level());
+    }
+
+    @Test
     void aBadServerAnswerIsRefusedWithAMessage() throws IOException {
         String face = base64(png(16, 0xFF111111));
         IllegalArgumentException noKind = assertThrows(IllegalArgumentException.class,
-                () -> GeneratedBlock.fromResponse(null, face, face, face));
+                () -> GeneratedBlock.fromResponse(null, "axe", "hard", "dim", face, face, face));
         assertTrue(noKind.getMessage().contains("kind"), noKind.getMessage());
 
         IllegalArgumentException noFaces = assertThrows(IllegalArgumentException.class,
-                () -> GeneratedBlock.fromResponse("material", null, face, face));
+                () -> GeneratedBlock.fromResponse("material", "axe", "hard", "dim", null, face, face));
         assertTrue(noFaces.getMessage().contains("faces"), noFaces.getMessage());
     }
 

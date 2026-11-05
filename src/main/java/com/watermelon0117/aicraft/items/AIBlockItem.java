@@ -1,6 +1,9 @@
 package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
+import com.watermelon0117.aicraft.blocks.AIBlock;
+import com.watermelon0117.aicraft.blocks.AIBlockHardness;
+import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -22,10 +25,12 @@ public class AIBlockItem extends BlockItem {
         super(block, properties);
     }
 
-    public ItemStack makeStack(String id, String name) {
+    public ItemStack makeStack(String id, String name, AIBlockHardness hardness, AIBlockLight light) {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", id);
         tag.putString("name", name);
+        tag.putString(AIBlock.HARDNESS.getName(), hardness.getSerializedName());
+        tag.putString(AIBlock.LIGHT.getName(), light.getSerializedName());
         ItemStack stack = new ItemStack(this);
         stack.getOrCreateTag().put(AIBlockEntity.DATA_KEY, tag);
         return stack;

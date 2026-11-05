@@ -16,7 +16,7 @@ public class ProxyBlockGenerator {
 
     public CompletableFuture<GeneratedBlock> generate(String id, String[] craftingGrid, String user) {
         return client.send(new BlockRequest(id, craftingGrid), user).thenApply(response ->
-                GeneratedBlock.fromResponse(response.kind, response.top, response.front, response.side));
+                GeneratedBlock.fromResponse(response.kind, response.tool, response.hardness, response.light, response.top, response.front, response.side));
     }
 
     public record BlockRequest(String id, String[] craftingGrid) {
@@ -24,6 +24,9 @@ public class ProxyBlockGenerator {
 
     public static class BlockResponse {
         String kind;
+        String tool;
+        String hardness;
+        String light;
         String top;
         String front;
         String side;
