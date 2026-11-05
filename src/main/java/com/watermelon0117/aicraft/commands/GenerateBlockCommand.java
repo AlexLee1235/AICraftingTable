@@ -22,6 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -91,13 +92,13 @@ public class GenerateBlockCommand {
             return;
         }
         PacketHandler.sendToAllClients(new CAddBlockTexturePacket(id, block.faces()));
-        ItemStack stack = BlockInit.aiBlockItem(block.tool()).makeStack(id, name, block.hardness(), block.light());
+        ItemStack stack = BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), block.hardness(), block.light());
         SpecialItemManager.get(player.level()).put(stack);
         ItemStack given = stack.copyWithCount(GIVEN_COUNT);
         if (!player.getInventory().add(given)) {
             player.drop(given, false);
         }
-        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.tool().blockName() + ", " + block.hardness().getSerializedName() + ", " + block.light().getSerializedName() + ")"));
+        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.shape().name().toLowerCase(Locale.ROOT) + ", " + block.tool().getSerializedName() + ", " + block.hardness().getSerializedName() + ", " + block.light().getSerializedName() + ")"));
     }
 
     private static void fail(ServerPlayer player, Throwable error) {

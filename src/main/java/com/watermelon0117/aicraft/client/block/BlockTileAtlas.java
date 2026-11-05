@@ -6,9 +6,12 @@ import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.common.BlockFaces;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.BlockElement;
 import net.minecraft.client.renderer.block.model.BlockElementFace;
 import net.minecraft.client.renderer.block.model.BlockFaceUV;
+import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.block.model.FaceBakery;
+import net.minecraft.client.renderer.block.model.ItemModelGenerator;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -53,6 +56,8 @@ public final class BlockTileAtlas {
     private static final int SIDE_FACE = 2;
     private static final String NO_ID = "";
     private static final FaceBakery BAKERY = new FaceBakery();
+    private static final ItemModelGenerator ITEM_MODELS = new ItemModelGenerator();
+    private static final String ITEM_LAYER = "layer0";
 
     /** The PNGs of the current world: what gets written back after the atlas is rebuilt. */
     private static final Map<String, BlockFaces> FACES = new ConcurrentHashMap<>();
@@ -101,6 +106,18 @@ public final class BlockTileAtlas {
         return current == null ? List.of() : current.quads(id, facing).get(side.ordinal());
     }
 
+    /** Safe on chunk workers. @return the quads of a side, showing the id's first tile: every model but the cube has one picture. */
+    public static List<BakedQuad> shapeQuads(ShapeTemplate template, @Nullable String id, @Nullable Direction side) {
+        Generation current = generation;
+        return current == null ? List.of() : ShapeTemplate.quadsOf(current.shapeQuads(template, id), side);
+    }
+
+    /** Render thread only. @return the quads of a plant's flat item, whose edges follow its picture */
+    public static List<BakedQuad> crossItemQuads(@Nullable String id) {
+        Generation current = generation;
+        return current == null ? List.of() : current.crossItemQuads(id);
+    }
+
     /** The front, as on vanilla's furnace. Blocks without a front have their side there. */
     public static TextureAtlasSprite particleSprite(@Nullable String id) {
         Generation current = generation;
@@ -128,6 +145,8 @@ public final class BlockTileAtlas {
         final SpriteContents sharedContents;
         final AtomicReferenceArray<TextureAtlasSprite> sprites = new AtomicReferenceArray<>(TileAllocator.TILE_COUNT);
         final EnumMap<Direction, Map<String, List<List<BakedQuad>>>> quadsByFacing = new EnumMap<>(Direction.class);
+        final Map<ShapeTemplate, Map<String, List<List<BakedQuad>>>> quadsByShape = new ConcurrentHashMap<>();
+        final Map<String, CrossItem> crossItems = new ConcurrentHashMap<>();
         final AtomicBoolean warnedFull = new AtomicBoolean();
 
         Generation(TextureAtlas atlas, TextureAtlasSprite pool, TileAllocator allocator) {
@@ -157,6 +176,54 @@ public final class BlockTileAtlas {
 
         List<List<BakedQuad>> quads(@Nullable String id, Direction facing) {
             return quadsByFacing.get(facing).computeIfAbsent(id == null ? NO_ID : id, key -> bake(id, facing));
+        }
+
+        List<List<BakedQuad>> shapeQuads(ShapeTemplate template, @Nullable String id) {
+            return quadsByShape.computeIfAbsent(template, key -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(id == null ? NO_ID : id, key -> template.on(sprite(id, TOP_FACE)));
+        }
+
+        /** Asked every time, because an item can be on screen before its picture arrives. */
+        List<BakedQuad> crossItemQuads(@Nullable String id) {
+            String key = id == null ? NO_ID : id;
+            BlockFaces faces = FACES.get(key);
+            CrossItem item = crossItems.get(key);
+            if (item == null || item.faces() != faces) {
+                item = new CrossItem(faces, bakeCrossItem(id, faces));
+                crossItems.put(key, item);
+            }
+            return item.quads();
+        }
+
+        private List<BakedQuad> bakeCrossItem(@Nullable String id, @Nullable BlockFaces faces) {
+            TextureAtlasSprite sprite = sprite(id, TOP_FACE);
+            SpriteContents contents = new SpriteContents(TILE_ID, new FrameSize(TILE_SIZE, TILE_SIZE), crossItemImage(faces), AnimationMetadataSection.EMPTY, null);
+            try {
+                List<BakedQuad> quads = new ArrayList<>();
+                for (BlockElement element : ITEM_MODELS.processFrames(BlockElementFace.NO_TINT, ITEM_LAYER, contents)) {
+                    element.faces.forEach((direction, face) ->
+                            quads.add(BlockModel.bakeFace(element, face, sprite, direction, BlockModelRotation.X0_Y0, TILE_ID)));
+                }
+                return List.copyOf(quads);
+            } finally {
+                contents.close();
+            }
+        }
+
+        /** With nothing to read, a gray square, the same as the tile shows then. */
+        private static NativeImage crossItemImage(@Nullable BlockFaces faces) {
+            if (faces != null) {
+                try {
+                    NativeImage image = NativeImage.read(faces.top());
+                    if (image.getWidth() == TILE_SIZE && image.getHeight() == TILE_SIZE) {
+                        return image;
+                    }
+                    image.close();
+                } catch (IOException e) {
+                    LOGGER.warn("Unreadable AI plant picture", e);
+                }
+            }
+            return grayImage();
         }
 
         /** Laid out like vanilla's orientable model: the front is north, then the whole model turns to face its direction. */
@@ -246,9 +313,13 @@ public final class BlockTileAtlas {
         }
 
         void uploadGray(int tile) {
+            upload(tile, grayImage());
+        }
+
+        private static NativeImage grayImage() {
             NativeImage image = new NativeImage(TILE_SIZE, TILE_SIZE, false);
             image.fillRect(0, 0, TILE_SIZE, TILE_SIZE, POOL_GRAY);
-            upload(tile, image);
+            return image;
         }
 
         /** Closes the image. A new SpriteContents each time, because it would otherwise keep mip levels the atlas may no longer have. */
@@ -266,6 +337,9 @@ public final class BlockTileAtlas {
                 contents.close();
             }
         }
+    }
+
+    private record CrossItem(@Nullable BlockFaces faces, List<BakedQuad> quads) {
     }
 
     /** Vanilla's constructor is protected. This sprite is not registered in the atlas, which only ticks and closes its own. */

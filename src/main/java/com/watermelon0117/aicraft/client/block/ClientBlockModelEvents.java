@@ -2,8 +2,8 @@ package com.watermelon0117.aicraft.client.block;
 
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.blocks.AIBlock;
-import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.init.BlockInit;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.resources.model.BakedModel;
@@ -12,8 +12,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ChunkRenderTypeSet;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -21,10 +25,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ClientBlockModelEvents {
+    private static final ChunkRenderTypeSet SOLID = ChunkRenderTypeSet.of(RenderType.solid());
+    private static final ChunkRenderTypeSet CUTOUT = ChunkRenderTypeSet.of(RenderType.cutout());
+
     private ClientBlockModelEvents() {
     }
 
@@ -33,15 +41,50 @@ public final class ClientBlockModelEvents {
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> models = event.getModels();
         ItemTransforms furnaceTransforms = transformsOf(models.get(new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(Items.FURNACE), "inventory")));
-        for (AIBlockTool tool : AIBlockTool.values()) {
-            Block block = BlockInit.aiBlock(tool);
-            for (BlockState state : block.getStateDefinition().getPossibleStates()) {
-                ResourceLocation key = BlockModelShaper.stateToModelLocation(state);
-                models.put(key, AIBlockModel.forState(state.getValue(AIBlock.FACING), transformsOf(models.get(key))));
-            }
-            ResourceLocation itemKey = new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(BlockInit.aiBlockItem(tool)), "inventory");
-            models.put(itemKey, AIBlockModel.forItem(transformsOf(models.get(itemKey)), furnaceTransforms));
+        for (BlockState state : BlockInit.AI_BLOCK.get().getStateDefinition().getPossibleStates()) {
+            ResourceLocation key = BlockModelShaper.stateToModelLocation(state);
+            models.put(key, AIBlockModel.forState(state.getValue(AIBlock.FACING), transformsOf(models.get(key))));
         }
+        ResourceLocation itemKey = new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(BlockInit.AI_BLOCK_ITEM.get()), "inventory");
+        models.put(itemKey, AIBlockModel.forItem(transformsOf(models.get(itemKey)), furnaceTransforms));
+
+        shapeLike(models, BlockInit.AI_SLAB.get(), Blocks.OAK_SLAB, SOLID);
+        shapeLike(models, BlockInit.AI_STAIRS.get(), Blocks.OAK_STAIRS, SOLID);
+        shapeLike(models, BlockInit.AI_FENCE.get(), Blocks.OAK_FENCE, SOLID);
+        shapeLike(models, BlockInit.AI_WALL.get(), Blocks.COBBLESTONE_WALL, SOLID);
+        shapeLike(models, BlockInit.AI_CROSS.get(), Blocks.OAK_SAPLING, CUTOUT);
+        models.put(itemModelKey(BlockInit.AI_CROSS.get()), AICrossItemModel.forItem(models.get(itemModelKey(Blocks.OAK_SAPLING)), CUTOUT));
+    }
+
+    /** Gives an AI block the look of a vanilla one, state for state. The models read their quads now, and a sprite's numbers are already settled here. */
+    private static void shapeLike(Map<ResourceLocation, BakedModel> models, Block block, Block vanilla, ChunkRenderTypeSet renderTypes) {
+        Map<BlockState, ShapeTemplate> templates = new HashMap<>();
+        for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+            ResourceLocation key = BlockModelShaper.stateToModelLocation(state);
+            ShapeTemplate template = templates.computeIfAbsent(vanillaStateOf(state, vanilla),
+                    vanillaState -> ShapeTemplate.of(models.get(BlockModelShaper.stateToModelLocation(vanillaState)), vanillaState));
+            models.put(key, AIShapedBlockModel.forState(template, renderTypes, transformsOf(models.get(key))));
+        }
+        BakedModel vanillaItem = models.get(itemModelKey(vanilla));
+        models.put(itemModelKey(block), AIShapedBlockModel.forItem(ShapeTemplate.of(vanillaItem, null), renderTypes, transformsOf(vanillaItem)));
+    }
+
+    private static BlockState vanillaStateOf(BlockState state, Block vanilla) {
+        BlockState result = vanilla.defaultBlockState();
+        for (Property<?> property : state.getProperties()) {
+            if (result.hasProperty(property) && property != BlockStateProperties.WATERLOGGED) {
+                result = withValueOf(state, result, property);
+            }
+        }
+        return result;
+    }
+
+    private static <T extends Comparable<T>> BlockState withValueOf(BlockState from, BlockState to, Property<T> property) {
+        return to.setValue(property, from.getValue(property));
+    }
+
+    private static ResourceLocation itemModelKey(Block block) {
+        return new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(block.asItem()), "inventory");
     }
 
     private static ItemTransforms transformsOf(BakedModel model) {

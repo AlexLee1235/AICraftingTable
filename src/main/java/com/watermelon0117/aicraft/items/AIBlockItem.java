@@ -1,9 +1,10 @@
 package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
-import com.watermelon0117.aicraft.blocks.AIBlock;
 import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockLight;
+import com.watermelon0117.aicraft.blocks.AIBlockTool;
+import com.watermelon0117.aicraft.blocks.AIPlacedBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -25,12 +26,13 @@ public class AIBlockItem extends BlockItem {
         super(block, properties);
     }
 
-    public ItemStack makeStack(String id, String name, AIBlockHardness hardness, AIBlockLight light) {
+    public ItemStack makeStack(String id, String name, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light) {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", id);
         tag.putString("name", name);
-        tag.putString(AIBlock.HARDNESS.getName(), hardness.getSerializedName());
-        tag.putString(AIBlock.LIGHT.getName(), light.getSerializedName());
+        tag.putString(AIBlockEntity.TOOL_KEY, tool.getSerializedName());
+        tag.putString(AIBlockEntity.HARDNESS_KEY, hardness.getSerializedName());
+        tag.putString(AIPlacedBlock.LIGHT.getName(), light.getSerializedName());
         ItemStack stack = new ItemStack(this);
         stack.getOrCreateTag().put(AIBlockEntity.DATA_KEY, tag);
         return stack;

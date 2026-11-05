@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aicraft:ai_block_none",
+          "name": "aicraft:ai_stairs",
           "functions": [
             {
               "function": "minecraft:copy_nbt",

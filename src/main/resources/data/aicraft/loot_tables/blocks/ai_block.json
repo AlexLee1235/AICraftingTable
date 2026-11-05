@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aicraft:ai_block_shovel",
+          "name": "aicraft:ai_block",
           "functions": [
             {
               "function": "minecraft:copy_nbt",

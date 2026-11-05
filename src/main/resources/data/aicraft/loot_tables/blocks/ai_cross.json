@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aicraft:ai_block_pickaxe",
+          "name": "aicraft:ai_cross",
           "functions": [
             {
               "function": "minecraft:copy_nbt",

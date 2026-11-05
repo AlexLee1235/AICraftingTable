@@ -1,5 +1,7 @@
 package com.watermelon0117.aicraft.blockentities;
 
+import com.watermelon0117.aicraft.blocks.AIBlockHardness;
+import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.init.BlockEntityInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -21,9 +23,13 @@ import java.util.Objects;
 /** Holds the same aicraft tag as the item it was placed from, so the block keeps its identity and drops by itself. */
 public class AIBlockEntity extends BlockEntity {
     public static final String DATA_KEY = "aicraft";
+    public static final String TOOL_KEY = "tool";
+    public static final String HARDNESS_KEY = "hardness";
     public static final ModelProperty<String> ID_PROPERTY = new ModelProperty<>();
 
     private CompoundTag aicraft = new CompoundTag();
+    private AIBlockTool tool = AIBlockTool.byName("");
+    private AIBlockHardness hardness = AIBlockHardness.byName("");
 
     public AIBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityInit.AI_BLOCK_BE.get(), pos, state);
@@ -34,20 +40,35 @@ public class AIBlockEntity extends BlockEntity {
         return aicraft.contains("id", Tag.TAG_STRING) ? aicraft.getString("id") : null;
     }
 
+    public AIBlockTool tool() {
+        return tool;
+    }
+
+    public AIBlockHardness hardness() {
+        return hardness;
+    }
+
     public CompoundTag getAicraftTag() {
         return aicraft;
     }
 
     public void setAicraftTag(CompoundTag tag) {
-        aicraft = tag.copy();
+        readAicraftTag(tag);
         setChanged();
         requestModelDataUpdate();
+    }
+
+    /** Parsed once, because mining and explosions ask many times. */
+    private void readAicraftTag(CompoundTag tag) {
+        aicraft = tag.copy();
+        tool = AIBlockTool.byName(aicraft.getString(TOOL_KEY));
+        hardness = AIBlockHardness.byName(aicraft.getString(HARDNESS_KEY));
     }
 
     @Override
     public void load(CompoundTag nbt) {
         super.load(nbt);
-        aicraft = nbt.getCompound(DATA_KEY).copy();
+        readAicraftTag(nbt.getCompound(DATA_KEY));
     }
 
     @Override

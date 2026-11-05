@@ -23,6 +23,11 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         };
     }
 
+    /** A plant has one picture, which stands in for all three faces. */
+    public static BlockFaces ofCross(byte[] texture) {
+        return new BlockFaces(texture, texture, texture);
+    }
+
     /** Throws unless each face is an opaque 16x16 image: another size would read as an animation in the atlas. */
     public BlockFaces validated() {
         validate("top", top);
@@ -31,7 +36,31 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         return this;
     }
 
+    /** Throws unless the picture is 16x16 and shows something. It may be see-through, unlike a face. */
+    public BlockFaces validatedCross() {
+        BufferedImage image = readSized("plant", top);
+        for (int y = 0; y < FACE_SIZE; y++) {
+            for (int x = 0; x < FACE_SIZE; x++) {
+                if ((image.getRGB(x, y) >>> 24) != 0) {
+                    return this;
+                }
+            }
+        }
+        throw new IllegalArgumentException("The plant picture is empty");
+    }
+
     private static void validate(String name, byte[] png) {
+        BufferedImage image = readSized(name, png);
+        for (int y = 0; y < FACE_SIZE; y++) {
+            for (int x = 0; x < FACE_SIZE; x++) {
+                if ((image.getRGB(x, y) >>> 24) != 255) {
+                    throw new IllegalArgumentException("The " + name + " face is not opaque");
+                }
+            }
+        }
+    }
+
+    private static BufferedImage readSized(String name, byte[] png) {
         BufferedImage image;
         try {
             image = ImageIO.read(new ByteArrayInputStream(png));
@@ -44,13 +73,7 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         if (image.getWidth() != FACE_SIZE || image.getHeight() != FACE_SIZE) {
             throw new IllegalArgumentException("The " + name + " face is " + image.getWidth() + "x" + image.getHeight() + ", not 16x16");
         }
-        for (int y = 0; y < FACE_SIZE; y++) {
-            for (int x = 0; x < FACE_SIZE; x++) {
-                if ((image.getRGB(x, y) >>> 24) != 255) {
-                    throw new IllegalArgumentException("The " + name + " face is not opaque");
-                }
-            }
-        }
+        return image;
     }
 
     /** Whether one side of the block looks different, as on a furnace. */

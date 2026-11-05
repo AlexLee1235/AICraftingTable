@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aicraft:ai_block_axe",
+          "name": "aicraft:ai_wall",
           "functions": [
             {
               "function": "minecraft:copy_nbt",

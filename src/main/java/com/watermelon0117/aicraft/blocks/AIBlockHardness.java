@@ -1,11 +1,9 @@
 package com.watermelon0117.aicraft.blocks;
 
-import net.minecraft.util.StringRepresentable;
-
 import java.util.Locale;
 
 /** What the texture server can say about how hard a block is. The numbers are those of a sapling, dirt, stone, an iron block and bedrock. */
-public enum AIBlockHardness implements StringRepresentable {
+public enum AIBlockHardness {
     INSTANT(0.0F, 0.0F),
     SOFT(0.5F, 0.5F),
     NORMAL(1.5F, 6.0F),
@@ -28,8 +26,17 @@ public enum AIBlockHardness implements StringRepresentable {
         return blastResistance;
     }
 
-    @Override
     public String getSerializedName() {
         return name().toLowerCase(Locale.ROOT);
+    }
+
+    /** @return the level with this name, or normal when a tag has none or an unknown one */
+    public static AIBlockHardness byName(String name) {
+        for (AIBlockHardness hardness : values()) {
+            if (hardness.getSerializedName().equals(name)) {
+                return hardness;
+            }
+        }
+        return NORMAL;
     }
 }
