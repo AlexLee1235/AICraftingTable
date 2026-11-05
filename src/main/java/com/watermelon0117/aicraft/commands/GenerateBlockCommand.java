@@ -96,7 +96,8 @@ public class GenerateBlockCommand {
         if (!player.getInventory().add(given)) {
             player.drop(given, false);
         }
-        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.shape().name().toLowerCase(Locale.ROOT) + ", " + block.tool().getSerializedName() + ", " + block.hardness().getSerializedName() + ", " + block.light().getSerializedName() + ")"));
+        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.shape().name().toLowerCase(Locale.ROOT) + ", " + block.tool().getSerializedName() + ", " + block.hardness().getSerializedName() + ", " + block.light().getSerializedName()
+                + ", " + block.sound().getSerializedName() + (block.flammable() ? ", flammable" : "") + ")"));
     }
 
     private static void fail(ServerPlayer player, Throwable error) {

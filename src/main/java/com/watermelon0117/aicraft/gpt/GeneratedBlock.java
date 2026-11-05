@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.gpt;
 import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
+import com.watermelon0117.aicraft.blocks.AIBlockSound;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.common.BlockFaces;
 
@@ -10,7 +11,7 @@ import java.util.Base64;
 import java.util.Locale;
 
 public record GeneratedBlock(AIBlockShape shape, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light,
-                             int count, boolean shapeless, BlockFaces faces) implements GeneratedResult {
+                             AIBlockSound sound, boolean flammable, int count, boolean shapeless, BlockFaces faces) implements GeneratedResult {
     /** A stack holds 64, and the server never asks for more than 8. */
     private static final int MAX_COUNT = 64;
 
@@ -20,6 +21,10 @@ public record GeneratedBlock(AIBlockShape shape, AIBlockTool tool, AIBlockHardne
         AIBlockTool tool = parse("tool", response.tool(), AIBlockTool.class);
         AIBlockHardness hardness = parse("hardness", response.hardness(), AIBlockHardness.class);
         AIBlockLight light = parse("light", response.light(), AIBlockLight.class);
+        AIBlockSound sound = parse("sound", response.sound(), AIBlockSound.class);
+        if (response.flammable() == null) {
+            throw new IllegalArgumentException("The texture server's answer has no flammable");
+        }
         Integer count = response.count();
         if (count == null) {
             throw new IllegalArgumentException("The texture server's answer has no count");
@@ -27,7 +32,7 @@ public record GeneratedBlock(AIBlockShape shape, AIBlockTool tool, AIBlockHardne
         if (count < 1 || count > MAX_COUNT) {
             throw new IllegalArgumentException("The texture server's answer has a count out of range: " + count);
         }
-        return new GeneratedBlock(shape, tool, hardness, light, count, Boolean.TRUE.equals(response.shapeless()),
+        return new GeneratedBlock(shape, tool, hardness, light, sound, response.flammable(), count, Boolean.TRUE.equals(response.shapeless()),
                 shape == AIBlockShape.CROSS ? crossFaces(response) : faces(response));
     }
 

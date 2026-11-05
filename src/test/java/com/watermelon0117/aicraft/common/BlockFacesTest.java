@@ -39,15 +39,15 @@ class BlockFacesTest {
     }
 
     private static GeneratedBlock cube(String kind, String tool, String hardness, String light, String top, String front, String side) {
-        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, "cube_material", kind, tool, hardness, light, 1, false, null, top, front, side));
+        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, "cube_material", kind, tool, hardness, light, "stone", false, 1, false, null, top, front, side));
     }
 
     private static GeneratedBlock material(String model, String face) {
-        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, model, "material", "axe", "hard", "dim", 6, false, null, face, face, face));
+        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, model, "material", "axe", "hard", "dim", "wood", true, 6, false, null, face, face, face));
     }
 
     private static GeneratedBlock cross(String texture) {
-        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, "cross", null, "none", "instant", "none", 1, false, texture, null, null, null));
+        return GeneratedBlock.fromResponse(new GeneratedResult.Response("block", null, null, "cross", null, "none", "instant", "none", "grass", true, 1, false, texture, null, null, null));
     }
 
     @Test

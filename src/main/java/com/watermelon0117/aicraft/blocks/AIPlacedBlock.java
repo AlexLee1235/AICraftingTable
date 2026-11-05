@@ -11,6 +11,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -24,7 +25,7 @@ import net.minecraftforge.common.extensions.IForgeBlock;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What an AI block of any shape shares: its faces, tool and hardness come from its block entity.
+ * What an AI block of any shape shares: its faces, tool, hardness, sound and flammability come from its block entity.
  * Light alone is a block state, because the server's light engine runs on a thread that cannot read block entities.
  * Methods here replace IForgeBlock's, which Block only inherits. Those Block declares itself cannot be replaced from an interface, so each shape forwards {@link #destroyProgress}.
  */
@@ -35,6 +36,8 @@ public interface AIPlacedBlock extends EntityBlock, IForgeBlock {
         return BlockBehaviour.Properties.of()
                 // Only what vanilla sees where it asks a block for one number, which it only compares with 0 and -1: mining and explosions read the block entity below.
                 .strength(AIBlockHardness.NORMAL.hardness(), AIBlockHardness.NORMAL.blastResistance())
+                // Lava reads this flag alongside isFlammable, and nothing else reads it, so a block that is not flammable stays safe from lava.
+                .ignitedByLava()
                 .lightLevel(state -> state.getValue(LIGHT).level());
     }
 
@@ -50,6 +53,16 @@ public interface AIPlacedBlock extends EntityBlock, IForgeBlock {
 
     private static AIBlockHardness hardnessAt(BlockGetter level, BlockPos pos) {
         return level.getBlockEntity(pos) instanceof AIBlockEntity blockEntity ? blockEntity.hardness() : AIBlockHardness.NORMAL;
+    }
+
+    private static AIBlockSound soundAt(BlockGetter level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof AIBlockEntity blockEntity ? blockEntity.sound() : AIBlockSound.STONE;
+    }
+
+    /** A flammable block burns like oak planks. Fire must not remove an unbreakable one. */
+    private static boolean burnsAt(BlockGetter level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof AIBlockEntity blockEntity
+                && blockEntity.flammable() && blockEntity.hardness() != AIBlockHardness.UNBREAKABLE;
     }
 
     /** Vanilla's formula, asked of the tool's stand-in, with this block's hardness. */
@@ -88,7 +101,7 @@ public interface AIPlacedBlock extends EntityBlock, IForgeBlock {
 
     @Override
     default SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
-        return toolAt(level, pos).standIn().getSoundType();
+        return soundAt(level, pos).soundType();
     }
 
     @Override
@@ -107,14 +120,13 @@ public interface AIPlacedBlock extends EntityBlock, IForgeBlock {
         return hardnessAt(level, pos) != AIBlockHardness.UNBREAKABLE && IForgeBlock.super.canEntityDestroy(state, level, pos, entity);
     }
 
-    /** Fire must not remove an unbreakable block. */
     @Override
     default int getFlammability(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return hardnessAt(level, pos) == AIBlockHardness.UNBREAKABLE ? 0 : toolAt(level, pos).standIn().getFlammability(level, pos, direction);
+        return burnsAt(level, pos) ? Blocks.OAK_PLANKS.defaultBlockState().getFlammability(level, pos, direction) : 0;
     }
 
     @Override
     default int getFireSpreadSpeed(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return hardnessAt(level, pos) == AIBlockHardness.UNBREAKABLE ? 0 : toolAt(level, pos).standIn().getFireSpreadSpeed(level, pos, direction);
+        return burnsAt(level, pos) ? Blocks.OAK_PLANKS.defaultBlockState().getFireSpreadSpeed(level, pos, direction) : 0;
     }
 }

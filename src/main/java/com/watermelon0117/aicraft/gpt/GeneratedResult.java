@@ -12,7 +12,8 @@ public sealed interface GeneratedResult permits GeneratedItem, GeneratedBlock {
 
     /** What {@code /textures/auto} answers. An item fills {@code b64Image} and {@code json}; a block fills the rest. */
     record Response(String type, String b64Image, String json,
-                    String model, String kind, String tool, String hardness, String light, Integer count, Boolean shapeless,
+                    String model, String kind, String tool, String hardness, String light, String sound, Boolean flammable,
+                    Integer count, Boolean shapeless,
                     String texture, String top, String front, String side) {
     }
 

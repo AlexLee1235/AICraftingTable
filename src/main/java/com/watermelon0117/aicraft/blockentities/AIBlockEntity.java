@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.blockentities;
 
 import com.watermelon0117.aicraft.blocks.AIBlockHardness;
+import com.watermelon0117.aicraft.blocks.AIBlockSound;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.init.BlockEntityInit;
 import net.minecraft.core.BlockPos;
@@ -25,11 +26,15 @@ public class AIBlockEntity extends BlockEntity {
     public static final String DATA_KEY = "aicraft";
     public static final String TOOL_KEY = "tool";
     public static final String HARDNESS_KEY = "hardness";
+    public static final String SOUND_KEY = "sound";
+    public static final String FLAMMABLE_KEY = "flammable";
     public static final ModelProperty<String> ID_PROPERTY = new ModelProperty<>();
 
     private CompoundTag aicraft = new CompoundTag();
     private AIBlockTool tool = AIBlockTool.byName("");
     private AIBlockHardness hardness = AIBlockHardness.byName("");
+    private AIBlockSound sound = AIBlockSound.byName("");
+    private boolean flammable;
 
     public AIBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityInit.AI_BLOCK_BE.get(), pos, state);
@@ -48,6 +53,14 @@ public class AIBlockEntity extends BlockEntity {
         return hardness;
     }
 
+    public AIBlockSound sound() {
+        return sound;
+    }
+
+    public boolean flammable() {
+        return flammable;
+    }
+
     public CompoundTag getAicraftTag() {
         return aicraft;
     }
@@ -58,11 +71,13 @@ public class AIBlockEntity extends BlockEntity {
         requestModelDataUpdate();
     }
 
-    /** Parsed once, because mining and explosions ask many times. */
+    /** Parsed once, because mining, explosions, steps and fire ask many times. */
     private void readAicraftTag(CompoundTag tag) {
         aicraft = tag.copy();
         tool = AIBlockTool.byName(aicraft.getString(TOOL_KEY));
         hardness = AIBlockHardness.byName(aicraft.getString(HARDNESS_KEY));
+        sound = AIBlockSound.byName(aicraft.getString(SOUND_KEY));
+        flammable = aicraft.getBoolean(FLAMMABLE_KEY);
     }
 
     @Override
