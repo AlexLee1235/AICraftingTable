@@ -70,6 +70,12 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
         return renderTypes;
     }
 
+    /** An item has no state, so a partly clear one says so in its tag; the default sheet already cuts out clear pixels. */
+    @Override
+    public @NotNull List<RenderType> getRenderTypes(@NotNull ItemStack stack, boolean fabulous) {
+        return SeeThroughItems.renderTypes(stack, fabulous, () -> IDynamicBakedModel.super.getRenderTypes(stack, fabulous));
+    }
+
     @Override
     public TextureAtlasSprite getParticleIcon(@NotNull ModelData data) {
         return BlockTileAtlas.particleSprite(idFrom(data));

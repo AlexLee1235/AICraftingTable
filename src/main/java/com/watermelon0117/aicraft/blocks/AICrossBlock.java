@@ -29,7 +29,7 @@ public class AICrossBlock extends BushBlock implements AIPlacedBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return AIPlacedBlock.withLightOfItem(defaultBlockState(), context);
+        return AIPlacedBlock.withStateOfItem(defaultBlockState(), context);
     }
 
     @Override

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
@@ -20,6 +21,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.extensions.IForgeBlock;
 import org.jetbrains.annotations.Nullable;
@@ -31,19 +35,90 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface AIPlacedBlock extends EntityBlock, IForgeBlock {
     EnumProperty<AIBlockLight> LIGHT = EnumProperty.create("light", AIBlockLight.class);
+    /**
+     * A state, like light, because occlusion, skylight and shading are cached per state and read where block entities
+     * cannot be. Every shape but the plant has it; the plant is cut out already.
+     */
+    EnumProperty<AIBlockTransparency> TRANSPARENCY = EnumProperty.create("transparency", AIBlockTransparency.class);
 
+    /** The predicates are vanilla's defaults, except that a see-through state is none of them, as with glass. */
     static BlockBehaviour.Properties properties() {
         return BlockBehaviour.Properties.of()
                 // Only what vanilla sees where it asks a block for one number, which it only compares with 0 and -1: mining and explosions read the block entity below.
                 .strength(AIBlockHardness.NORMAL.hardness(), AIBlockHardness.NORMAL.blastResistance())
                 // Lava reads this flag alongside isFlammable, and nothing else reads it, so a block that is not flammable stays safe from lava.
                 .ignitedByLava()
-                .lightLevel(state -> state.getValue(LIGHT).level());
+                .lightLevel(state -> state.getValue(LIGHT).level())
+                .isRedstoneConductor((state, level, pos) -> !seeThrough(state) && state.isCollisionShapeFullBlock(level, pos))
+                .isSuffocating((state, level, pos) -> !seeThrough(state) && state.blocksMotion() && state.isCollisionShapeFullBlock(level, pos))
+                .isViewBlocking((state, level, pos) -> !seeThrough(state) && state.blocksMotion() && state.isCollisionShapeFullBlock(level, pos))
+                .isValidSpawn((state, level, pos, type) -> !seeThrough(state) && state.isFaceSturdy(level, pos, Direction.UP)
+                        && state.getLightEmission(level, pos) < 14);
     }
 
-    static BlockState withLightOfItem(BlockState state, BlockPlaceContext context) {
+    /** Copies the light and transparency in the item's tag into the state being placed. */
+    static BlockState withStateOfItem(BlockState state, BlockPlaceContext context) {
         CompoundTag data = context.getItemInHand().getTagElement(AIBlockEntity.DATA_KEY);
-        return data == null ? state : state.setValue(LIGHT, LIGHT.getValue(data.getString(LIGHT.getName())).orElse(AIBlockLight.NONE));
+        if (data == null) {
+            return state;
+        }
+        state = state.setValue(LIGHT, LIGHT.getValue(data.getString(LIGHT.getName())).orElse(AIBlockLight.NONE));
+        return state.hasProperty(TRANSPARENCY)
+                ? state.setValue(TRANSPARENCY, AIBlockTransparency.byName(data.getString(TRANSPARENCY.getName())))
+                : state;
+    }
+
+    static boolean seeThrough(BlockState state) {
+        return state.hasProperty(TRANSPARENCY) && state.getValue(TRANSPARENCY).seeThrough();
+    }
+
+    /** For the occlusion and visual shapes: neighbors draw their faces against a see-through block and light passes, as with glass. */
+    static VoxelShape emptyIfSeeThrough(BlockState state, VoxelShape solid) {
+        return seeThrough(state) ? Shapes.empty() : solid;
+    }
+
+    /** Water in a see-through block still dims the sky, as vanilla's own waterlogged blocks do. */
+    static boolean propagatesSkylightDown(BlockState state, boolean solid) {
+        return seeThrough(state) && state.getFluidState().isEmpty() || solid;
+    }
+
+    /**
+     * A see-through block has no occlusion shape, so unlike glass it would draw its face against stone, where nothing
+     * can see it. Glass hides that face with the full occlusion shape it keeps; this hides it against any solid block.
+     */
+    static boolean hiddenAgainst(BlockState state, BlockState adjacent) {
+        return seeThrough(state) && adjacent.isSolidRender(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+    }
+
+    /** Glass's own value: a see-through block does not darken the corners around it. */
+    static float shadeBrightness(BlockState state, float solid) {
+        return seeThrough(state) ? 1.0F : solid;
+    }
+
+    /**
+     * Two see-through blocks of one id hide the faces where they meet, as glass does. A see-through block has no
+     * occlusion shape, so this compares what vanilla's {@link net.minecraft.world.level.block.Block#shouldRenderFace}
+     * compares, with the blocks' own shapes in its place.
+     */
+    @Override
+    default boolean hidesNeighborFace(BlockGetter level, BlockPos pos, BlockState state, BlockState neighborState, Direction dir) {
+        if (!seeThrough(state) || !seeThrough(neighborState)) {
+            return false;
+        }
+        BlockPos neighborPos = pos.relative(dir);
+        String id = idAt(level, pos);
+        if (id == null || !id.equals(idAt(level, neighborPos))) {
+            return false;
+        }
+        VoxelShape neighborFace = Shapes.getFaceShape(neighborState.getShape(level, neighborPos), dir.getOpposite());
+        return !neighborFace.isEmpty()
+                && !Shapes.joinIsNotEmpty(neighborFace, Shapes.getFaceShape(state.getShape(level, pos), dir), BooleanOp.ONLY_FIRST);
+    }
+
+    /** Called on chunk workers, so it must not create a block entity. */
+    @Nullable
+    private static String idAt(BlockGetter level, BlockPos pos) {
+        return level.getExistingBlockEntity(pos) instanceof AIBlockEntity blockEntity ? blockEntity.getTextureId() : null;
     }
 
     /** With no block entity here, such as on a thread that may not read it, a block acts like the defaults of a tag with no values. */

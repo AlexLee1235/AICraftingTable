@@ -1,5 +1,7 @@
 package com.watermelon0117.aicraft.common;
 
+import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -28,12 +30,28 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         return new BlockFaces(texture, texture, texture);
     }
 
-    /** Throws unless each face is an opaque 16x16 image: another size would read as an animation in the atlas. */
+    /**
+     * Throws unless each face is a 16x16 image, another size reading as an animation in the atlas, that shows something.
+     * A face may be see-through: the texture server draws one so only when its judge says the block is.
+     */
     public BlockFaces validated() {
         validate("top", top);
         validate("front", front);
         validate("side", side);
         return this;
+    }
+
+    /** What the faces' pixels let through. Read when a block is made, as a block state must know it before any face arrives. */
+    public AIBlockTransparency transparency() {
+        int[] alphas = new int[3 * FACE_SIZE * FACE_SIZE];
+        int at = 0;
+        for (byte[] face : new byte[][]{top, front, side}) {
+            BufferedImage image = readSized("block", face);
+            for (int pixel : image.getRGB(0, 0, FACE_SIZE, FACE_SIZE, null, 0, FACE_SIZE)) {
+                alphas[at++] = pixel >>> 24;
+            }
+        }
+        return AIBlockTransparency.ofAlphas(alphas);
     }
 
     /** Throws unless the picture is 16x16 and shows something. It may be see-through, unlike a face. */
@@ -53,11 +71,12 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         BufferedImage image = readSized(name, png);
         for (int y = 0; y < FACE_SIZE; y++) {
             for (int x = 0; x < FACE_SIZE; x++) {
-                if ((image.getRGB(x, y) >>> 24) != 255) {
-                    throw new IllegalArgumentException("The " + name + " face is not opaque");
+                if ((image.getRGB(x, y) >>> 24) != 0) {
+                    return;
                 }
             }
         }
+        throw new IllegalArgumentException("The " + name + " face is empty");
     }
 
     private static BufferedImage readSized(String name, byte[] png) {

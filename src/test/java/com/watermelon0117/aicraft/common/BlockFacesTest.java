@@ -4,6 +4,7 @@ import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
+import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,19 @@ class BlockFacesTest {
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 image.setRGB(x, y, argb);
+            }
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", out);
+        return out.toByteArray();
+    }
+
+    /** Glass's layout: a solid frame around clear pixels. */
+    private static byte[] framed() throws IOException {
+        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 16; x++) {
+                image.setRGB(x, y, x == 0 || y == 0 || x == 15 || y == 15 ? 0xFFDDEEFF : 0);
             }
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -85,20 +99,61 @@ class BlockFacesTest {
     }
 
     @Test
-    void onlyOpaque16x16ImagesPass() throws IOException {
+    void only16x16ImagesThatShowSomethingPass() throws IOException {
         byte[] good = png(16, 0xFF336699);
         new BlockFaces(good, good, good).validated();
+        byte[] seeThrough = png(16, 0x80336699);
+        new BlockFaces(good, good, seeThrough).validated();
 
         byte[] tooBig = png(32, 0xFF336699);
         IllegalArgumentException size = assertThrows(IllegalArgumentException.class, () -> new BlockFaces(good, tooBig, good).validated());
         assertTrue(size.getMessage().contains("front"), size.getMessage());
         assertTrue(size.getMessage().contains("32x32"), size.getMessage());
 
-        byte[] seeThrough = png(16, 0x80336699);
-        assertThrows(IllegalArgumentException.class, () -> new BlockFaces(good, good, seeThrough).validated());
+        byte[] clear = png(16, 0x00336699);
+        IllegalArgumentException empty = assertThrows(IllegalArgumentException.class, () -> new BlockFaces(good, good, clear).validated());
+        assertTrue(empty.getMessage().contains("side face is empty"), empty.getMessage());
 
         byte[] notAnImage = {1, 2, 3};
         assertThrows(IllegalArgumentException.class, () -> new BlockFaces(notAnImage, good, good).validated());
+    }
+
+    @Test
+    void theFacesPixelsSayHowMuchCanBeSeenThrough() throws IOException {
+        byte[] solid = png(16, 0xFF336699), clear = png(16, 0x00000000), tinted = png(16, 0x66336699);
+        assertSame(AIBlockTransparency.OPAQUE, new BlockFaces(solid, solid, solid).transparency());
+        assertSame(AIBlockTransparency.CUTOUT, new BlockFaces(solid, clear, solid).transparency());
+        assertSame(AIBlockTransparency.TRANSLUCENT, new BlockFaces(solid, clear, tinted).transparency());
+        assertSame(AIBlockTransparency.TRANSLUCENT, new BlockFaces(solid, solid, png(16, 0xFE336699)).transparency());
+    }
+
+    @Test
+    void transparencyIsReadFromAlphasAndNames() {
+        assertSame(AIBlockTransparency.OPAQUE, AIBlockTransparency.ofAlphas(new int[]{255, 255}));
+        assertSame(AIBlockTransparency.CUTOUT, AIBlockTransparency.ofAlphas(new int[]{255, 0}));
+        assertSame(AIBlockTransparency.TRANSLUCENT, AIBlockTransparency.ofAlphas(new int[]{0, 1, 255}));
+        // A clear glass's few soft cells where pane meets frame, as in the paid round: 3 of 768.
+        int[] framed = new int[768];
+        java.util.Arrays.fill(framed, 0, 300, 0);
+        java.util.Arrays.fill(framed, 300, 765, 255);
+        framed[765] = 40;
+        framed[766] = 128;
+        framed[767] = 230;
+        assertSame(AIBlockTransparency.CUTOUT, AIBlockTransparency.ofAlphas(framed));
+        java.util.Arrays.fill(framed, 300, 339, 128);
+        assertSame(AIBlockTransparency.TRANSLUCENT, AIBlockTransparency.ofAlphas(framed));
+        java.util.Arrays.fill(framed, 0, 300, 255);
+        java.util.Arrays.fill(framed, 300, 768, 255);
+        framed[0] = 200;
+        assertSame(AIBlockTransparency.OPAQUE, AIBlockTransparency.ofAlphas(framed));
+        for (AIBlockTransparency transparency : AIBlockTransparency.values()) {
+            assertSame(transparency, AIBlockTransparency.byName(transparency.getSerializedName()));
+        }
+        assertSame(AIBlockTransparency.OPAQUE, AIBlockTransparency.byName(""));
+        assertSame(AIBlockTransparency.OPAQUE, AIBlockTransparency.byName("glassy"));
+        assertFalse(AIBlockTransparency.OPAQUE.seeThrough());
+        assertTrue(AIBlockTransparency.CUTOUT.seeThrough());
+        assertTrue(AIBlockTransparency.TRANSLUCENT.seeThrough());
     }
 
     @Test
@@ -228,11 +283,16 @@ class BlockFacesTest {
     }
 
     @Test
-    void onlyAPlantMayBeSeeThrough() throws IOException {
-        String seeThrough = base64(png(16, 0x80336699));
+    void everyShapeButThePlantTakesItsTransparencyFromItsFaces() throws IOException {
+        String seeThrough = base64(png(16, 0x80336699)), clear = base64(png(16, 0x00000000)), solid = base64(png(16, 0xFF336699));
         for (String model : new String[]{"cube_material", "slab", "stairs", "fence", "wall"}) {
-            assertThrows(IllegalArgumentException.class, () -> material(model, seeThrough), model);
+            assertSame(AIBlockTransparency.TRANSLUCENT, material(model, seeThrough).transparency(), model);
+            assertSame(AIBlockTransparency.OPAQUE, material(model, solid).transparency(), model);
         }
+        assertSame(AIBlockTransparency.CUTOUT, cube("machine", "none", "soft", "none", solid, base64(framed()), solid).transparency());
+        assertSame(AIBlockTransparency.OPAQUE, cross(seeThrough).transparency());
+        IllegalArgumentException empty = assertThrows(IllegalArgumentException.class, () -> material("slab", clear));
+        assertTrue(empty.getMessage().contains("empty"), empty.getMessage());
     }
 
     @Test

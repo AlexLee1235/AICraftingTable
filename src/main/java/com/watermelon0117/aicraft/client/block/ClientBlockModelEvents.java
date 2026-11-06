@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.client.block;
 
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.blocks.AIBlock;
+import com.watermelon0117.aicraft.blocks.AIPlacedBlock;
 import com.watermelon0117.aicraft.init.BlockInit;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
@@ -27,11 +28,13 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Mod.EventBusSubscriber(modid = AICraftingTable.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ClientBlockModelEvents {
     private static final ChunkRenderTypeSet SOLID = ChunkRenderTypeSet.of(RenderType.solid());
     private static final ChunkRenderTypeSet CUTOUT = ChunkRenderTypeSet.of(RenderType.cutout());
+    private static final ChunkRenderTypeSet TRANSLUCENT = ChunkRenderTypeSet.of(RenderType.translucent());
 
     private ClientBlockModelEvents() {
     }
@@ -43,30 +46,43 @@ public final class ClientBlockModelEvents {
         ItemTransforms furnaceTransforms = transformsOf(models.get(new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(Items.FURNACE), "inventory")));
         for (BlockState state : BlockInit.AI_BLOCK.get().getStateDefinition().getPossibleStates()) {
             ResourceLocation key = BlockModelShaper.stateToModelLocation(state);
-            models.put(key, AIBlockModel.forState(state.getValue(AIBlock.FACING), transformsOf(models.get(key))));
+            models.put(key, AIBlockModel.forState(state.getValue(AIBlock.FACING), layerOf(state), transformsOf(models.get(key))));
         }
         ResourceLocation itemKey = new ModelResourceLocation(ForgeRegistries.ITEMS.getKey(BlockInit.AI_BLOCK_ITEM.get()), "inventory");
         models.put(itemKey, AIBlockModel.forItem(transformsOf(models.get(itemKey)), furnaceTransforms));
 
-        shapeLike(models, BlockInit.AI_SLAB.get(), Blocks.OAK_SLAB, SOLID);
-        shapeLike(models, BlockInit.AI_STAIRS.get(), Blocks.OAK_STAIRS, SOLID);
-        shapeLike(models, BlockInit.AI_FENCE.get(), Blocks.OAK_FENCE, SOLID);
-        shapeLike(models, BlockInit.AI_WALL.get(), Blocks.COBBLESTONE_WALL, SOLID);
-        shapeLike(models, BlockInit.AI_CROSS.get(), Blocks.OAK_SAPLING, CUTOUT);
+        shapeLike(models, BlockInit.AI_SLAB.get(), Blocks.OAK_SLAB, ClientBlockModelEvents::layerOf);
+        shapeLike(models, BlockInit.AI_STAIRS.get(), Blocks.OAK_STAIRS, ClientBlockModelEvents::layerOf);
+        shapeLike(models, BlockInit.AI_FENCE.get(), Blocks.OAK_FENCE, ClientBlockModelEvents::layerOf);
+        shapeLike(models, BlockInit.AI_WALL.get(), Blocks.COBBLESTONE_WALL, ClientBlockModelEvents::layerOf);
+        shapeLike(models, BlockInit.AI_CROSS.get(), Blocks.OAK_SAPLING, state -> CUTOUT);
         models.put(itemModelKey(BlockInit.AI_CROSS.get()), AICrossItemModel.forItem(models.get(itemModelKey(Blocks.OAK_SAPLING)), CUTOUT));
     }
 
-    /** Gives an AI block the look of a vanilla one, state for state. The models read their quads now, and a sprite's numbers are already settled here. */
-    private static void shapeLike(Map<ResourceLocation, BakedModel> models, Block block, Block vanilla, ChunkRenderTypeSet renderTypes) {
+    /** Glass is cut out and stained glass translucent; a translucent block would hide rain and particles behind its clear pixels. */
+    private static ChunkRenderTypeSet layerOf(BlockState state) {
+        return switch (state.getValue(AIPlacedBlock.TRANSPARENCY)) {
+            case OPAQUE -> SOLID;
+            case CUTOUT -> CUTOUT;
+            case TRANSLUCENT -> TRANSLUCENT;
+        };
+    }
+
+    /**
+     * Gives an AI block the look of a vanilla one, state for state. The models read their quads now, and a sprite's numbers are already settled here.
+     * The item is solid: it has no state, and {@link SeeThroughItems} picks its sheet from its tag.
+     */
+    private static void shapeLike(Map<ResourceLocation, BakedModel> models, Block block, Block vanilla, Function<BlockState, ChunkRenderTypeSet> layers) {
         Map<BlockState, ShapeTemplate> templates = new HashMap<>();
         for (BlockState state : block.getStateDefinition().getPossibleStates()) {
             ResourceLocation key = BlockModelShaper.stateToModelLocation(state);
             ShapeTemplate template = templates.computeIfAbsent(vanillaStateOf(state, vanilla),
                     vanillaState -> ShapeTemplate.of(models.get(BlockModelShaper.stateToModelLocation(vanillaState)), vanillaState));
-            models.put(key, AIShapedBlockModel.forState(template, renderTypes, transformsOf(models.get(key))));
+            models.put(key, AIShapedBlockModel.forState(template, layers.apply(state), transformsOf(models.get(key))));
         }
         BakedModel vanillaItem = models.get(itemModelKey(vanilla));
-        models.put(itemModelKey(block), AIShapedBlockModel.forItem(ShapeTemplate.of(vanillaItem, null), renderTypes, transformsOf(vanillaItem)));
+        models.put(itemModelKey(block), AIShapedBlockModel.forItem(ShapeTemplate.of(vanillaItem, null), layers.apply(block.defaultBlockState()),
+                transformsOf(vanillaItem)));
     }
 
     private static BlockState vanillaStateOf(BlockState state, Block vanilla) {

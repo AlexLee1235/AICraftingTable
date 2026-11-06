@@ -35,21 +35,23 @@ public final class AIBlockModel implements IDynamicBakedModel {
     private static final ChunkRenderTypeSet SOLID = ChunkRenderTypeSet.of(RenderType.solid());
 
     private final Direction facing;
+    private final ChunkRenderTypeSet renderTypes;
     private final ItemTransforms transforms;
     @Nullable
     private final String id;
     private final ItemOverrides overrides;
 
-    private AIBlockModel(Direction facing, ItemTransforms transforms, @Nullable String id, ItemOverrides overrides) {
+    private AIBlockModel(Direction facing, ChunkRenderTypeSet renderTypes, ItemTransforms transforms, @Nullable String id, ItemOverrides overrides) {
         this.facing = facing;
+        this.renderTypes = renderTypes;
         this.transforms = transforms;
         this.id = id;
         this.overrides = overrides;
     }
 
-    /** One block state: the id comes from the block entity, through model data. */
-    public static AIBlockModel forState(Direction facing, ItemTransforms transforms) {
-        return new AIBlockModel(facing, transforms, null, ItemOverrides.EMPTY);
+    /** One block state: the id comes from the block entity, through model data, and the layer from the state's transparency. */
+    public static AIBlockModel forState(Direction facing, ChunkRenderTypeSet renderTypes, ItemTransforms transforms) {
+        return new AIBlockModel(facing, renderTypes, transforms, null, ItemOverrides.EMPTY);
     }
 
     /**
@@ -57,7 +59,7 @@ public final class AIBlockModel implements IDynamicBakedModel {
      * Vanilla turns a furnace in first person so that its front shows, which the other transforms are for.
      */
     public static AIBlockModel forItem(ItemTransforms cubeTransforms, ItemTransforms frontTransforms) {
-        return new AIBlockModel(Direction.NORTH, cubeTransforms, null, new ByIdOverrides(cubeTransforms, frontTransforms));
+        return new AIBlockModel(Direction.NORTH, SOLID, cubeTransforms, null, new ByIdOverrides(cubeTransforms, frontTransforms));
     }
 
     @Override
@@ -76,7 +78,13 @@ public final class AIBlockModel implements IDynamicBakedModel {
 
     @Override
     public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
-        return SOLID;
+        return renderTypes;
+    }
+
+    /** An item has no state, so a partly clear one says so in its tag; the default sheet already cuts out clear pixels. */
+    @Override
+    public @NotNull List<RenderType> getRenderTypes(@NotNull ItemStack stack, boolean fabulous) {
+        return SeeThroughItems.renderTypes(stack, fabulous, () -> IDynamicBakedModel.super.getRenderTypes(stack, fabulous));
     }
 
     @Override
@@ -139,8 +147,8 @@ public final class AIBlockModel implements IDynamicBakedModel {
             }
             // Asked every time, because an item can be on screen before its faces arrive.
             return BlockTileAtlas.hasFront(stackId)
-                    ? fronted.computeIfAbsent(stackId, key -> new AIBlockModel(Direction.NORTH, frontTransforms, key, ItemOverrides.EMPTY))
-                    : cubes.computeIfAbsent(stackId, key -> new AIBlockModel(Direction.NORTH, cubeTransforms, key, ItemOverrides.EMPTY));
+                    ? fronted.computeIfAbsent(stackId, key -> new AIBlockModel(Direction.NORTH, SOLID, frontTransforms, key, ItemOverrides.EMPTY))
+                    : cubes.computeIfAbsent(stackId, key -> new AIBlockModel(Direction.NORTH, SOLID, cubeTransforms, key, ItemOverrides.EMPTY));
         }
     }
 }
