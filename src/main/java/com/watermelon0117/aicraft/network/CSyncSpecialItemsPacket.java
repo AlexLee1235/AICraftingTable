@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.network;
 
+import com.google.common.collect.Maps;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,7 +20,8 @@ public class CSyncSpecialItemsPacket {
         this.payload=payload;
     }
     CSyncSpecialItemsPacket(FriendlyByteBuf buf) {
-        payload=buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readNbt);
+        // The items come oldest first, which a plain readMap would lose to a HashMap.
+        payload=buf.readMap(Maps::newLinkedHashMapWithExpectedSize, FriendlyByteBuf::readUtf, FriendlyByteBuf::readNbt);
     }
 
     void encode(FriendlyByteBuf buf) {

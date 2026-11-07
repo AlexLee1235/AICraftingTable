@@ -4,23 +4,29 @@ import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.util.thread.EffectiveSide;
+import net.minecraft.world.level.storage.LevelResource;
 
-import javax.annotation.Nullable;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Side-agnostic read/write API.  Mod code should depend on this only.
  *
  * Use SpecialItemManager.get(level) to obtain the correct impl for the current side.
+ *
+ * Both sides hold the items oldest first, in the order they were made, and list them newest first.
  */
 public final class SpecialItemManager {
     private final boolean isServer;
@@ -48,10 +54,12 @@ public final class SpecialItemManager {
         return backing().containsKey(id);
     }
 
+    /** @return every AI item, the one made most recently first */
     public List<ItemStack> list() {
-        return backing().values().stream().map(ItemStack::of).toList();
+        return newestFirst(backing());
     }
 
+    /** A new id goes last, as the newest. A regenerated id keeps its place, as putting an existing key leaves it where it is. */
     public void put(ItemStack stack) {
         checkServer();
         String id = MainItem.getID(stack);
@@ -72,8 +80,15 @@ public final class SpecialItemManager {
 
     private Map<String, CompoundTag> backing() {
         return !isServer
-                ? ClientSide.CACHE
+                ? ClientSide.cache
                 : ServerSide.data().data;
+    }
+
+    private static List<ItemStack> newestFirst(Map<String, CompoundTag> oldestFirst) {
+        List<ItemStack> stacks = new ArrayList<>(oldestFirst.size());
+        oldestFirst.values().forEach(tag -> stacks.add(ItemStack.of(tag)));
+        Collections.reverse(stacks);
+        return Collections.unmodifiableList(stacks);
     }
 
     private void dirtyAndSync() {
@@ -90,16 +105,16 @@ public final class SpecialItemManager {
 
     public static final class ClientSide {
         private static final SpecialItemManager INSTANCE = new SpecialItemManager(false);
-        private static final Map<String, CompoundTag> CACHE = new ConcurrentHashMap<>();
+        /** Oldest first, as the server sent it. Replaced whole, so a reader sees one sync or the next and never a mix. */
+        private static volatile Map<String, CompoundTag> cache = Map.of();
 
         /* Packet handler fills the cache */
         public static void refill(Map<String, CompoundTag> fresh) {
-            CACHE.clear();
-            CACHE.putAll(fresh);
+            cache = Collections.unmodifiableMap(new LinkedHashMap<>(fresh));
         }
 
         public static List<ItemStack> list() {
-            return CACHE.values().stream().map(ItemStack::of).toList();
+            return newestFirst(cache);
         }
     }
 
@@ -121,12 +136,19 @@ public final class SpecialItemManager {
     public static final class GlobalData extends SavedData {
         private static final String FILE_ID = "aicraft_special_items";
         private static final String TAG_KEY = "items";
+        /** The ids oldest first. A CompoundTag keeps no order, and {@code items} stays one so older copies of the mod still read it. */
+        private static final String ORDER_KEY = "order";
 
-        public final Map<String, CompoundTag> data = new ConcurrentHashMap<>();
+        /**
+         * Oldest first. Only the server thread touches it: every packet is handled there, and generation finishes through
+         * {@code server.execute}.
+         */
+        public final Map<String, CompoundTag> data = new LinkedHashMap<>();
 
         static GlobalData get(MinecraftServer srv) {
             ServerLevel overworld = srv.overworld();
-            return overworld.getDataStorage().computeIfAbsent(GlobalData::load,
+            Path aicraftFolder = srv.getWorldPath(LevelResource.ROOT).resolve("aicraft");
+            return overworld.getDataStorage().computeIfAbsent(nbt -> load(nbt, aicraftFolder),
                     GlobalData::new,
                     FILE_ID);
         }
@@ -135,15 +157,31 @@ public final class SpecialItemManager {
         @Override
         public CompoundTag save(CompoundTag nbt) {
             CompoundTag all = new CompoundTag();
-            data.forEach((k, v) -> all.put(k, v));
+            ListTag order = new ListTag();
+            data.forEach((k, v) -> {
+                all.put(k, v);
+                order.add(StringTag.valueOf(k));
+            });
             nbt.put(TAG_KEY, all);
+            nbt.put(ORDER_KEY, order);
             return nbt;
         }
 
-        static GlobalData load(CompoundTag nbt) {
+        static GlobalData load(CompoundTag nbt, Path aicraftFolder) {
             GlobalData d = new GlobalData();
             CompoundTag all = nbt.getCompound(TAG_KEY);
-            all.getAllKeys().forEach(k -> d.data.put(k, all.getCompound(k)));
+            ListTag order = nbt.getList(ORDER_KEY, Tag.TAG_STRING);
+            List<String> saved = new ArrayList<>(order.size());
+            for (int i = 0; i < order.size(); i++) {
+                saved.add(order.getString(i));
+            }
+            for (String id : CreationOrder.oldestFirst(all.getAllKeys(), saved, id -> CreationOrder.firstFileTime(aicraftFolder, id))) {
+                d.data.put(id, all.getCompound(id));
+            }
+            // Saves a guessed place at once, as the files it came from change when the world is copied.
+            if (!saved.containsAll(all.getAllKeys())) {
+                d.setDirty();
+            }
             return d;
         }
     }
