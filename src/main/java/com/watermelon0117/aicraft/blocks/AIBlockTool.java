@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.blocks;
 
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -25,6 +26,20 @@ public enum AIBlockTool {
 
     public String getSerializedName() {
         return name().toLowerCase(Locale.ROOT);
+    }
+
+    /** @return the tool whose mining tag a vanilla block is in, the pickaxe first, or none */
+    public static AIBlockTool of(BlockState state) {
+        if (state.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
+            return PICKAXE;
+        }
+        if (state.is(BlockTags.MINEABLE_WITH_AXE)) {
+            return AXE;
+        }
+        if (state.is(BlockTags.MINEABLE_WITH_SHOVEL)) {
+            return SHOVEL;
+        }
+        return state.is(BlockTags.MINEABLE_WITH_HOE) ? HOE : NONE;
     }
 
     /** @return the tool with this name, or the pickaxe when a tag has none or an unknown one */

@@ -29,7 +29,7 @@ public class AIBlockItem extends BlockItem {
     }
 
     public ItemStack makeStack(String id, String name, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light,
-                               AIBlockSound sound, boolean flammable, AIBlockTransparency transparency) {
+                               AIBlockSound sound, @Nullable String soundOf, boolean flammable, AIBlockTransparency transparency) {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", id);
         tag.putString("name", name);
@@ -37,6 +37,9 @@ public class AIBlockItem extends BlockItem {
         tag.putString(AIBlockEntity.HARDNESS_KEY, hardness.getSerializedName());
         tag.putString(AIPlacedBlock.LIGHT.getName(), light.getSerializedName());
         tag.putString(AIBlockEntity.SOUND_KEY, sound.getSerializedName());
+        if (soundOf != null) {
+            tag.putString(AIBlockEntity.SOUND_OF_KEY, soundOf);
+        }
         tag.putBoolean(AIBlockEntity.FLAMMABLE_KEY, flammable);
         tag.putString(AIPlacedBlock.TRANSPARENCY.getName(), transparency.getSerializedName());
         ItemStack stack = new ItemStack(this);

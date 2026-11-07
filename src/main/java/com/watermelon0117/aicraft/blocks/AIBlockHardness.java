@@ -30,6 +30,26 @@ public enum AIBlockHardness {
         return name().toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * @return the level nearest a vanilla block's destroy time. Times multiply rather than add, so the line between two
+     * levels is their geometric mean: below 0.87 is soft and below 2.74 normal.
+     */
+    public static AIBlockHardness nearest(float destroyTime) {
+        if (destroyTime < 0) {
+            return UNBREAKABLE;
+        }
+        if (destroyTime == 0) {
+            return INSTANT;
+        }
+        AIBlockHardness[] breakable = {SOFT, NORMAL, HARD};
+        for (int i = 0; i < breakable.length - 1; i++) {
+            if (destroyTime < Math.sqrt(breakable[i].hardness * breakable[i + 1].hardness)) {
+                return breakable[i];
+            }
+        }
+        return HARD;
+    }
+
     /** @return the level with this name, or normal when a tag has none or an unknown one */
     public static AIBlockHardness byName(String name) {
         for (AIBlockHardness hardness : values()) {

@@ -11,11 +11,15 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +32,8 @@ public class AIBlockEntity extends BlockEntity {
     public static final String HARDNESS_KEY = "hardness";
     public static final String SOUND_KEY = "sound";
     public static final String FLAMMABLE_KEY = "flammable";
+    /** The vanilla block a block was made from, whose own sound it keeps, as most vanilla sounds are not among the server's. */
+    public static final String SOUND_OF_KEY = "sound_of";
     public static final ModelProperty<String> ID_PROPERTY = new ModelProperty<>();
 
     private CompoundTag aicraft = new CompoundTag();
@@ -35,6 +41,8 @@ public class AIBlockEntity extends BlockEntity {
     private AIBlockHardness hardness = AIBlockHardness.byName("");
     private AIBlockSound sound = AIBlockSound.byName("");
     private boolean flammable;
+    @Nullable
+    private SoundType soundOf;
 
     public AIBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityInit.AI_BLOCK_BE.get(), pos, state);
@@ -61,6 +69,11 @@ public class AIBlockEntity extends BlockEntity {
         return flammable;
     }
 
+    /** The vanilla block's own sound when the block was made from one, otherwise the server's choice. */
+    public SoundType soundType() {
+        return soundOf != null ? soundOf : sound.soundType();
+    }
+
     public CompoundTag getAicraftTag() {
         return aicraft;
     }
@@ -78,6 +91,15 @@ public class AIBlockEntity extends BlockEntity {
         hardness = AIBlockHardness.byName(aicraft.getString(HARDNESS_KEY));
         sound = AIBlockSound.byName(aicraft.getString(SOUND_KEY));
         flammable = aicraft.getBoolean(FLAMMABLE_KEY);
+        soundOf = soundOfBlock(aicraft.getString(SOUND_OF_KEY));
+    }
+
+    /** @return the sound of the block with this id, or null when there is no such block */
+    @Nullable
+    private static SoundType soundOfBlock(String id) {
+        ResourceLocation key = id.isEmpty() ? null : ResourceLocation.tryParse(id);
+        Block block = key == null ? null : ForgeRegistries.BLOCKS.getValue(key);
+        return block == null || block == Blocks.AIR ? null : block.defaultBlockState().getSoundType();
     }
 
     @Override

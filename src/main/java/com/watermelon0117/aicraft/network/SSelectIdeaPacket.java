@@ -2,6 +2,8 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
 import com.watermelon0117.aicraft.common.AIBlockInstaller;
+import com.watermelon0117.aicraft.common.FileUtil;
+import com.watermelon0117.aicraft.common.ShapedBlockRecipe;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedItem;
 import com.watermelon0117.aicraft.common.TextureManager;
@@ -25,6 +27,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class SSelectIdeaPacket {
@@ -33,14 +36,18 @@ public class SSelectIdeaPacket {
     private final String name;
     private final ItemStack[] recipe;
     private final boolean override;
+    /** A vanilla material's side as the crafting client read it, or empty. A 16x16 PNG is far smaller. */
+    private final byte[] vanillaSide;
+    private static final int MAX_SIDE_BYTES = 16384;
     private static int incrementID = 0;
 
-    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean override) {
+    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean override, byte[] vanillaSide) {
         this.pos = pos;
         this.id = id;
         this.name = name;
         this.recipe = recipe;
         this.override = override;
+        this.vanillaSide = vanillaSide;
     }
 
     public SSelectIdeaPacket(FriendlyByteBuf buf) {
@@ -52,6 +59,7 @@ public class SSelectIdeaPacket {
             recipe[i] = buf.readItem();
         this.recipe = recipe;
         this.override = buf.readBoolean();
+        this.vanillaSide = buf.readByteArray(MAX_SIDE_BYTES);
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -61,6 +69,7 @@ public class SSelectIdeaPacket {
         for (int i = 0; i < 9; i++)
             buf.writeItemStack(recipe[i], true);
         buf.writeBoolean(override);
+        buf.writeByteArray(vanillaSide);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
@@ -88,6 +97,14 @@ public class SSelectIdeaPacket {
                     ItemStack[] recipeSnapshot = Arrays.copyOf(recipe, recipe.length);
                     be.taskID = tId;
                     player.level().sendBlockUpdated(pos, player.level().getBlockState(pos), player.level().getBlockState(pos), Block.UPDATE_ALL);
+                    Optional<ShapedBlockRecipe> shaped = ShapedBlockRecipe.match(recipeSnapshot, id)
+                            // Only clients have vanilla's pictures, so without one the texture server draws the block.
+                            .filter(found -> found.vanillaBlock() == null || vanillaSide.length > 0);
+                    if (shaped.isPresent()) {
+                        // Vanilla's recipe for this shape out of a full block looks like that block, so the texture server is not asked.
+                        makeShapedBlock(player, pos, id, name, recipeSnapshot, tId, shaped.get(), vanillaSide);
+                        return;
+                    }
                     generator.generate(id, name, new ItemStackArray(recipeSnapshot), player.getStringUUID()).thenAccept(generated -> {
                         if (player.getServer() == null) {
                             return;
@@ -104,6 +121,18 @@ public class SSelectIdeaPacket {
                 }
             }
         }
+    }
+
+    private static void makeShapedBlock(ServerPlayer player, BlockPos pos, String id, String name, ItemStack[] recipe, int taskId,
+                                        ShapedBlockRecipe shaped, byte[] vanillaSide) {
+        GeneratedBlock block;
+        try {
+            block = shaped.block(FileUtil.getBlockTextureFolder(), vanillaSide);
+        } catch (IOException | IllegalArgumentException e) {
+            applyGeneratedFailure(player, pos, e);
+            return;
+        }
+        applyGeneratedResult(player, pos, id, name, recipe, taskId, block);
     }
 
     private static void applyGeneratedResult(ServerPlayer player, BlockPos pos, String id, String name, ItemStack[] recipe, int taskId, GeneratedResult generated) {

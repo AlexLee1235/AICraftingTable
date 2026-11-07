@@ -41,6 +41,16 @@ public enum AIBlockSound {
         return name().toLowerCase(Locale.ROOT);
     }
 
+    /** @return the one of these that is this vanilla sound, or stone when none is */
+    public static AIBlockSound of(SoundType type) {
+        for (AIBlockSound sound : values()) {
+            if (sound.soundType() == type) {
+                return sound;
+            }
+        }
+        return STONE;
+    }
+
     /** @return the sound with this name, or stone when a tag has none or an unknown one */
     public static AIBlockSound byName(String name) {
         for (AIBlockSound sound : values()) {

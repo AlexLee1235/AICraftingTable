@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BlockTextureStoreTest {
@@ -58,6 +60,28 @@ class BlockTextureStoreTest {
         BlockTextureStore.save(folder, "Again", newer);
 
         assertArrayEquals(newer.top(), BlockTextureStore.loadAll(folder).get("Again").top());
+    }
+
+    @Test
+    void oneIdComesBackWithItsOwnFaces() throws IOException {
+        BlockFaces saved = faces(6, 3);
+        BlockTextureStore.save(folder, "Mr. Stone+ 2-A", saved);
+        BlockTextureStore.save(folder, "Other", faces(6, 9));
+
+        BlockFaces loaded = BlockTextureStore.load(folder, "Mr. Stone+ 2-A");
+
+        assertArrayEquals(saved.top(), loaded.top());
+        assertArrayEquals(saved.front(), loaded.front());
+        assertArrayEquals(saved.side(), loaded.side());
+    }
+
+    @Test
+    void loadingAnIdMissingAFaceThrows() throws IOException {
+        Files.write(folder.resolve("Partial#top.png"), new byte[]{1});
+        Files.write(folder.resolve("Partial#front.png"), new byte[]{1});
+
+        assertThrows(NoSuchFileException.class, () -> BlockTextureStore.load(folder, "Partial"));
+        assertThrows(NoSuchFileException.class, () -> BlockTextureStore.load(folder, "Nothing"));
     }
 
     @Test

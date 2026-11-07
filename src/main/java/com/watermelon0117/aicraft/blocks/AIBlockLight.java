@@ -20,6 +20,14 @@ public enum AIBlockLight implements StringRepresentable {
         return level;
     }
 
+    /** @return the level for a vanilla block's light: any light at all is at least dim, and from 10 up it is nearer bright's 15 */
+    public static AIBlockLight nearest(int emission) {
+        if (emission <= 0) {
+            return NONE;
+        }
+        return emission < 10 ? DIM : BRIGHT;
+    }
+
     @Override
     public String getSerializedName() {
         return name().toLowerCase(Locale.ROOT);

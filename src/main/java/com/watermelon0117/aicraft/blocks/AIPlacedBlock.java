@@ -130,8 +130,8 @@ public interface AIPlacedBlock extends EntityBlock, IForgeBlock {
         return level.getBlockEntity(pos) instanceof AIBlockEntity blockEntity ? blockEntity.hardness() : AIBlockHardness.NORMAL;
     }
 
-    private static AIBlockSound soundAt(BlockGetter level, BlockPos pos) {
-        return level.getBlockEntity(pos) instanceof AIBlockEntity blockEntity ? blockEntity.sound() : AIBlockSound.STONE;
+    private static SoundType soundAt(BlockGetter level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof AIBlockEntity blockEntity ? blockEntity.soundType() : AIBlockSound.STONE.soundType();
     }
 
     /** A flammable block burns like oak planks. Fire must not remove an unbreakable one. */
@@ -176,7 +176,7 @@ public interface AIPlacedBlock extends EntityBlock, IForgeBlock {
 
     @Override
     default SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
-        return soundAt(level, pos).soundType();
+        return soundAt(level, pos);
     }
 
     @Override

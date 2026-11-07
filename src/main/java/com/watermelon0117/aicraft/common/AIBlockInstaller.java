@@ -21,7 +21,7 @@ public final class AIBlockInstaller {
     public static ItemStack install(String id, String name, GeneratedBlock block) throws IOException {
         BlockTextureStore.save(FileUtil.getBlockTextureFolder(), id, block.faces());
         PacketHandler.sendToAllClients(new CAddBlockTexturePacket(id, block.faces()));
-        return BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), block.hardness(), block.light(), block.sound(), block.flammable(),
-                block.transparency());
+        return BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), block.hardness(), block.light(), block.sound(), block.soundOf(),
+                block.flammable(), block.transparency());
     }
 }

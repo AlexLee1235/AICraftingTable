@@ -33,6 +33,13 @@ public final class BlockTextureStore {
         Files.write(folder.resolve(fileName(id, SIDE)), faces.side());
     }
 
+    /** @throws java.nio.file.NoSuchFileException if any of the id's three faces is missing */
+    public static BlockFaces load(Path folder, String id) throws IOException {
+        return new BlockFaces(Files.readAllBytes(folder.resolve(fileName(id, TOP))),
+                Files.readAllBytes(folder.resolve(fileName(id, FRONT))),
+                Files.readAllBytes(folder.resolve(fileName(id, SIDE))));
+    }
+
     static String fileName(String id, String face) {
         return id + "#" + face + ".png";
     }
