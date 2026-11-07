@@ -5,6 +5,7 @@ import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
+import com.watermelon0117.aicraft.blocks.PlantBounds;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import java.util.Base64;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -266,6 +268,22 @@ class BlockFacesTest {
         assertArrayEquals(seeThrough, plant.faces().front());
         assertArrayEquals(seeThrough, plant.faces().side());
         assertFalse(plant.faces().hasFront());
+    }
+
+    @Test
+    void aPlantsFacesGiveWhereItsPictureIsDrawn() throws IOException {
+        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 6; y < 16; y++) {
+            for (int x = 4; x < 11; x++) {
+                image.setRGB(x, y, 0xFF2E8B57);
+            }
+        }
+        image.setRGB(0, 0, 0x19FFFFFF);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", out);
+
+        assertEquals(new PlantBounds(4, 6, 11, 16), cross(base64(out.toByteArray())).faces().plantBounds());
+        assertNull(cross(base64(png(16, 0x19FFFFFF))).faces().plantBounds());
     }
 
     @Test

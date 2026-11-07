@@ -1,6 +1,8 @@
 package com.watermelon0117.aicraft.common;
 
 import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
+import com.watermelon0117.aicraft.blocks.PlantBounds;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -65,6 +67,12 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
             }
         }
         throw new IllegalArgumentException("The plant picture is empty");
+    }
+
+    /** Where a plant's picture is drawn, which sets its outline; null when it shows no pixel. */
+    @Nullable
+    public PlantBounds plantBounds() {
+        return PlantBounds.of(readSized("plant", top));
     }
 
     private static void validate(String name, byte[] png) {

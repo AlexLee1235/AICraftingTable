@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.blockentities;
 import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockSound;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
+import com.watermelon0117.aicraft.blocks.PlantBounds;
 import com.watermelon0117.aicraft.init.BlockEntityInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -34,6 +36,8 @@ public class AIBlockEntity extends BlockEntity {
     public static final String FLAMMABLE_KEY = "flammable";
     /** The vanilla block a block was made from, whose own sound it keeps, as most vanilla sounds are not among the server's. */
     public static final String SOUND_OF_KEY = "sound_of";
+    /** Where a plant's picture is drawn, as {@link PlantBounds} keeps it. */
+    public static final String PLANT_BOUNDS_KEY = "plant_bounds";
     public static final ModelProperty<String> ID_PROPERTY = new ModelProperty<>();
 
     private CompoundTag aicraft = new CompoundTag();
@@ -43,6 +47,8 @@ public class AIBlockEntity extends BlockEntity {
     private boolean flammable;
     @Nullable
     private SoundType soundOf;
+    @Nullable
+    private VoxelShape outline;
 
     public AIBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityInit.AI_BLOCK_BE.get(), pos, state);
@@ -74,6 +80,12 @@ public class AIBlockEntity extends BlockEntity {
         return soundOf != null ? soundOf : sound.soundType();
     }
 
+    /** A plant's outline from where its picture is drawn, or null when the tag holds no usable bounds. */
+    @Nullable
+    public VoxelShape outline() {
+        return outline;
+    }
+
     public CompoundTag getAicraftTag() {
         return aicraft;
     }
@@ -92,6 +104,16 @@ public class AIBlockEntity extends BlockEntity {
         sound = AIBlockSound.byName(aicraft.getString(SOUND_KEY));
         flammable = aicraft.getBoolean(FLAMMABLE_KEY);
         soundOf = soundOfBlock(aicraft.getString(SOUND_OF_KEY));
+        outline = outlineOf(PlantBounds.fromTag(aicraft.getIntArray(PLANT_BOUNDS_KEY)));
+    }
+
+    @Nullable
+    private static VoxelShape outlineOf(@Nullable PlantBounds bounds) {
+        if (bounds == null) {
+            return null;
+        }
+        int[] box = bounds.box();
+        return Block.box(box[0], box[1], box[2], box[3], box[4], box[5]);
     }
 
     /** @return the sound of the block with this id, or null when there is no such block */

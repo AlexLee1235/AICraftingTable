@@ -1,5 +1,7 @@
 package com.watermelon0117.aicraft.common;
 
+import com.watermelon0117.aicraft.blocks.AIBlockShape;
+import com.watermelon0117.aicraft.blocks.PlantBounds;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.init.BlockInit;
 import com.watermelon0117.aicraft.network.CAddBlockTexturePacket;
@@ -21,7 +23,8 @@ public final class AIBlockInstaller {
     public static ItemStack install(String id, String name, GeneratedBlock block) throws IOException {
         BlockTextureStore.save(FileUtil.getBlockTextureFolder(), id, block.faces());
         PacketHandler.sendToAllClients(new CAddBlockTexturePacket(id, block.faces()));
+        PlantBounds plantBounds = block.shape() == AIBlockShape.CROSS ? block.faces().plantBounds() : null;
         return BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), block.hardness(), block.light(), block.sound(), block.soundOf(),
-                block.flammable(), block.transparency());
+                block.flammable(), block.transparency(), plantBounds);
     }
 }

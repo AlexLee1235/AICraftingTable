@@ -7,6 +7,7 @@ import com.watermelon0117.aicraft.blocks.AIBlockSound;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
 import com.watermelon0117.aicraft.blocks.AIPlacedBlock;
+import com.watermelon0117.aicraft.blocks.PlantBounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -29,7 +30,8 @@ public class AIBlockItem extends BlockItem {
     }
 
     public ItemStack makeStack(String id, String name, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light,
-                               AIBlockSound sound, @Nullable String soundOf, boolean flammable, AIBlockTransparency transparency) {
+                               AIBlockSound sound, @Nullable String soundOf, boolean flammable, AIBlockTransparency transparency,
+                               @Nullable PlantBounds plantBounds) {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", id);
         tag.putString("name", name);
@@ -42,6 +44,9 @@ public class AIBlockItem extends BlockItem {
         }
         tag.putBoolean(AIBlockEntity.FLAMMABLE_KEY, flammable);
         tag.putString(AIPlacedBlock.TRANSPARENCY.getName(), transparency.getSerializedName());
+        if (plantBounds != null) {
+            tag.putIntArray(AIBlockEntity.PLANT_BOUNDS_KEY, plantBounds.toTag());
+        }
         ItemStack stack = new ItemStack(this);
         stack.getOrCreateTag().put(AIBlockEntity.DATA_KEY, tag);
         return stack;
