@@ -54,7 +54,10 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
             tag.putBoolean(json.food_is_solid_or_liquid != null && json.food_is_solid_or_liquid.equals("liquid") ? "isDrink" : "isFood", true);
         }
 
-        itemStack.getOrCreateTag().put("aicraft", tag);
+        CompoundTag root = new CompoundTag();
+        root.put("aicraft", tag);
+        // setTag marks a tool undamaged, as saving and sending it do. Ingredients match by tags, so a new tool must not differ from the same tool sent or saved.
+        itemStack.setTag(root);
         return itemStack;
     }
 

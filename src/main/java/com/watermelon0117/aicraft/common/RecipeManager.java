@@ -87,6 +87,16 @@ public final class RecipeManager {
                 return true;
             }
         }
+
+        /** This recipe with every stack of the id, made or used, swapped for the item as it is now. */
+        private Recipe withItem(String id, ItemStack item) {
+            ItemStack[] swapped = new ItemStack[9];
+            for (int i = 0; i < 9; i++)
+                swapped[i] = id.equals(MainItem.getID(grid[i])) ? item.copyWithCount(1) : grid[i];
+            // A shapeless grid is kept sorted by item and tags, and the swap can change both.
+            return new Recipe(id.equals(MainItem.getID(result)) ? item.copy() : result,
+                    shapeless ? sortShapeless(swapped) : swapped, shapeless);
+        }
     }
 
     /* ── public API (identical names / params) ── */
@@ -128,15 +138,15 @@ public final class RecipeManager {
     }
 
     /**
-     * Makes this grid give the result, with the result's count, and every other recipe of the result's id give it too.
+     * Makes this grid give the result, with the result's count, and every other recipe that makes or uses the result's id follow it.
      * Matching takes the first recipe that fits, so a regenerated result appended after the old one would never come out.
+     * Ingredients match by item and tags, and regenerating can turn an item into a block or back, so a recipe left holding the old stack would stop fitting.
      */
     public void putRecipe(ItemStack result, ItemStack[] g, boolean shapeless) {
         checkServer();
         String id = MainItem.getID(result);
         List<Recipe> recipes = backing();
         recipes.removeIf(r -> Objects.equals(id, MainItem.getID(r.result)) && r.match(g));
-        recipes.replaceAll(r -> Objects.equals(id, MainItem.getID(r.result)) ? new Recipe(result.copy(), r.grid, r.shapeless) : r);
         ItemStack[] stored = shapeless ? sortShapeless(g) : Arrays.copyOf(g, 9);
         for (int i = 0; i < stored.length; i++) {
             if (!stored[i].isEmpty()) {
@@ -145,6 +155,7 @@ public final class RecipeManager {
             }
         }
         recipes.add(new Recipe(result.copy(), stored, shapeless));
+        recipes.replaceAll(r -> r.withItem(id, result));
         dirtyAndSync();
     }
 
