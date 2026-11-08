@@ -74,15 +74,20 @@ public final class ClientBlockModelEvents {
      */
     private static void shapeLike(Map<ResourceLocation, BakedModel> models, Block block, Block vanilla, Function<BlockState, ChunkRenderTypeSet> layers) {
         Map<BlockState, ShapeTemplate> templates = new HashMap<>();
+        Map<BlockState, ShapeTemplate> seeThroughTemplates = new HashMap<>();
         for (BlockState state : block.getStateDefinition().getPossibleStates()) {
             ResourceLocation key = BlockModelShaper.stateToModelLocation(state);
-            ShapeTemplate template = templates.computeIfAbsent(vanillaStateOf(state, vanilla),
+            ShapeTemplate opaque = templates.computeIfAbsent(vanillaStateOf(state, vanilla),
                     vanillaState -> ShapeTemplate.of(models.get(BlockModelShaper.stateToModelLocation(vanillaState)), vanillaState));
+            ShapeTemplate template = AIPlacedBlock.seeThrough(state)
+                    ? seeThroughTemplates.computeIfAbsent(vanillaStateOf(state, vanilla), vanillaState -> opaque.withoutInnerFaces())
+                    : opaque;
             models.put(key, AIShapedBlockModel.forState(template, layers.apply(state), transformsOf(models.get(key))));
         }
         BakedModel vanillaItem = models.get(itemModelKey(vanilla));
-        models.put(itemModelKey(block), AIShapedBlockModel.forItem(ShapeTemplate.of(vanillaItem, null), layers.apply(block.defaultBlockState()),
-                transformsOf(vanillaItem)));
+        ShapeTemplate item = ShapeTemplate.of(vanillaItem, null);
+        ShapeTemplate seeThroughItem = block.defaultBlockState().hasProperty(AIPlacedBlock.TRANSPARENCY) ? item.withoutInnerFaces() : item;
+        models.put(itemModelKey(block), AIShapedBlockModel.forItem(item, seeThroughItem, layers.apply(block.defaultBlockState()), transformsOf(vanillaItem)));
     }
 
     private static BlockState vanillaStateOf(BlockState state, Block vanilla) {

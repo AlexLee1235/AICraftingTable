@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.client.block;
 
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
+import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
 import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderType;
@@ -50,8 +51,8 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
     }
 
     /** One item: swaps itself for a model of the id in the stack. */
-    public static AIShapedBlockModel forItem(ShapeTemplate template, ChunkRenderTypeSet renderTypes, ItemTransforms transforms) {
-        return new AIShapedBlockModel(template, renderTypes, transforms, null, new ByIdOverrides(template, renderTypes, transforms));
+    public static AIShapedBlockModel forItem(ShapeTemplate template, ShapeTemplate seeThroughTemplate, ChunkRenderTypeSet renderTypes, ItemTransforms transforms) {
+        return new AIShapedBlockModel(template, renderTypes, transforms, null, new ByIdOverrides(template, seeThroughTemplate, renderTypes, transforms));
     }
 
     @Override
@@ -118,12 +119,15 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
 
     private static final class ByIdOverrides extends ItemOverrides {
         private final ShapeTemplate template;
+        private final ShapeTemplate seeThroughTemplate;
         private final ChunkRenderTypeSet renderTypes;
         private final ItemTransforms transforms;
         private final Map<String, AIShapedBlockModel> models = new ConcurrentHashMap<>();
+        private final Map<String, AIShapedBlockModel> seeThroughModels = new ConcurrentHashMap<>();
 
-        ByIdOverrides(ShapeTemplate template, ChunkRenderTypeSet renderTypes, ItemTransforms transforms) {
+        ByIdOverrides(ShapeTemplate template, ShapeTemplate seeThroughTemplate, ChunkRenderTypeSet renderTypes, ItemTransforms transforms) {
             this.template = template;
+            this.seeThroughTemplate = seeThroughTemplate;
             this.renderTypes = renderTypes;
             this.transforms = transforms;
         }
@@ -135,7 +139,9 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
             if (stackId == null) {
                 return model;
             }
-            return models.computeIfAbsent(stackId, key -> new AIShapedBlockModel(template, renderTypes, transforms, key, ItemOverrides.EMPTY));
+            boolean seeThrough = AIBlockTransparency.ofStack(stack).seeThrough();
+            ShapeTemplate shape = seeThrough ? seeThroughTemplate : template;
+            return (seeThrough ? seeThroughModels : models).computeIfAbsent(stackId, key -> new AIShapedBlockModel(shape, renderTypes, transforms, key, ItemOverrides.EMPTY));
         }
     }
 }
