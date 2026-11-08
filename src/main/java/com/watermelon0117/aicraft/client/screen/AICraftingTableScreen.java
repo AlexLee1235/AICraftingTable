@@ -40,6 +40,9 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private ItemIdeas itemIdeas;
     private boolean error = false;
     private boolean first = true;
+    /** True while the state only says whether the grid has a result, and false while it shows a generation the player started. */
+    private boolean followsResult;
+    private int lastStateId;
 
     private Button mainBtn, reBtn;
     private ImageButton bookBtn;
@@ -74,6 +77,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0) setProgress();
             else setInitial();
             currentRecipe = new ItemStackArray(menu);
+            followsResult = menu.blockEntity.getProgress() == 0;
             first = false;
         }
     }
@@ -102,6 +106,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             throw new IllegalStateException();
         options.visible = false;
         error = false;
+        followsResult = false;
         state = State.GENERATING;
     }
 
@@ -119,6 +124,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             String id = MainItem.getID(itemStack);
             String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
             PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true, vanillaSide(id)));
+            followsResult = false;
             setProgress();
             // send feedback
         } else
@@ -167,10 +173,17 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     public void containerTick() {
         super.containerTick();
         recipeBookComponent.tick();
-        if (!currentRecipe.equals(new ItemStackArray(menu))) {
+        boolean gridChanged = !currentRecipe.equals(new ItemStackArray(menu));
+        if (gridChanged) {
+            currentRecipe = new ItemStackArray(menu);
+            followsResult = true;
+        }
+        // A click changes the grid here at once but only the server works out the result, so look again each time the server has sent something.
+        boolean serverSpoke = menu.getStateId() != lastStateId;
+        lastStateId = menu.getStateId();
+        if (followsResult && (gridChanged || serverSpoke)) {
             if (menu.hasCraftResult) setProgress();
             else setInitial();
-            currentRecipe = new ItemStackArray(menu);
         }
     }
 
