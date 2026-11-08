@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.common;
 
+import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
 import com.watermelon0117.aicraft.blocks.PlantBounds;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
@@ -24,7 +25,9 @@ public final class AIBlockInstaller {
         BlockTextureStore.save(FileUtil.getBlockTextureFolder(), id, block.faces());
         PacketHandler.sendToAllClients(new CAddBlockTexturePacket(id, block.faces()));
         PlantBounds plantBounds = block.shape() == AIBlockShape.CROSS ? block.faces().plantBounds() : null;
-        return BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), block.hardness(), block.light(), block.sound(), block.soundOf(),
+        // Every new block comes through here, also one shaped from bedrock or from an unbreakable AI block.
+        AIBlockHardness hardness = AICraftingTableCommonConfigs.FORBID_UNBREAKABLE_BLOCKS.get() ? block.hardness().breakable() : block.hardness();
+        return BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), hardness, block.light(), block.sound(), block.soundOf(),
                 block.flammable(), block.transparency(), plantBounds);
     }
 }

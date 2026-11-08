@@ -30,6 +30,11 @@ public enum AIBlockHardness {
         return name().toLowerCase(Locale.ROOT);
     }
 
+    /** @return this level, or the hardest one a player can still break in place of unbreakable */
+    public AIBlockHardness breakable() {
+        return this == UNBREAKABLE ? HARD : this;
+    }
+
     /**
      * @return the level nearest a vanilla block's destroy time. Times multiply rather than add, so the line between two
      * levels is their geometric mean: below 0.87 is soft and below 2.74 normal.

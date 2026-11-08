@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
 import com.watermelon0117.aicraft.common.AIBlockInstaller;
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 import com.watermelon0117.aicraft.common.ItemStackArray;
@@ -96,7 +97,9 @@ public class GenerateBlockCommand {
         if (!player.getInventory().add(given)) {
             player.drop(given, false);
         }
-        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.shape().name().toLowerCase(Locale.ROOT) + ", " + block.tool().getSerializedName() + ", " + block.hardness().getSerializedName() + ", " + block.light().getSerializedName()
+        // The stack's own hardness, as the config can forbid the one the block asked for.
+        String hardness = stack.getTagElement(AIBlockEntity.DATA_KEY).getString(AIBlockEntity.HARDNESS_KEY);
+        player.sendSystemMessage(Component.literal("Generated " + id + " (" + block.shape().name().toLowerCase(Locale.ROOT) + ", " + block.tool().getSerializedName() + ", " + hardness + ", " + block.light().getSerializedName()
                 + ", " + block.sound().getSerializedName() + (block.flammable() ? ", flammable" : "") + ")"));
     }
 

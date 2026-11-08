@@ -31,6 +31,15 @@ class VanillaPropertyTest {
     }
 
     @Test
+    void onlyUnbreakableChangesWhenMadeBreakable() {
+        assertEquals(AIBlockHardness.HARD, AIBlockHardness.UNBREAKABLE.breakable());
+        assertEquals(AIBlockHardness.HARD, AIBlockHardness.HARD.breakable());
+        assertEquals(AIBlockHardness.NORMAL, AIBlockHardness.NORMAL.breakable());
+        assertEquals(AIBlockHardness.SOFT, AIBlockHardness.SOFT.breakable());
+        assertEquals(AIBlockHardness.INSTANT, AIBlockHardness.INSTANT.breakable());
+    }
+
+    @Test
     void anyLightIsAtLeastDimAndTenUpIsBright() {
         assertEquals(AIBlockLight.NONE, AIBlockLight.nearest(0));
         assertEquals(AIBlockLight.DIM, AIBlockLight.nearest(1));
