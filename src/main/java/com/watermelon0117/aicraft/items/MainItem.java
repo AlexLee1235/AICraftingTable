@@ -109,7 +109,7 @@ public class MainItem extends Item {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return !tag.getBoolean("invincible") && isToolMelee(stack);
     }
-    private static boolean isToolMelee(ItemStack stack) {
+    public static boolean isToolMelee(ItemStack stack) {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return tag.getBoolean("isPickaxe") ||
                 tag.getBoolean("isAxe") ||

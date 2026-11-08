@@ -2,7 +2,6 @@ package com.watermelon0117.aicraft.client.screen;
 
 import com.google.common.collect.Lists;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
-import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.StateSwitchingButton;
@@ -25,6 +24,7 @@ public class CustomRecipeBookPage {
     private int totalPages;
     private int currentPage;
     private AICraftingTableMenu menu;
+    private List<ItemStack> items = List.of();
     @Nullable
     private ItemStack lastClickedRecipe;
 
@@ -32,7 +32,6 @@ public class CustomRecipeBookPage {
         for(int i = 0; i < 20; ++i) {
             this.buttons.add(new CustomRecipeButton());
         }
-        this.totalPages = (int)Math.ceil((double)(SpecialItemManager.get(Minecraft.getInstance().player.level()).list().size()) / 20.0D);
     }
 
     public void init(Minecraft p_100429_, int p_100430_, int p_100431_, AICraftingTableMenu menu) {
@@ -47,17 +46,24 @@ public class CustomRecipeBookPage {
         this.forwardButton.initTextureValues(1, 208, 13, 18, RECIPE_BOOK_LOCATION);
         this.backButton = new StateSwitchingButton(p_100430_ + 38, p_100431_ + 137, 12, 17, true);
         this.backButton.initTextureValues(1, 208, 13, 18, RECIPE_BOOK_LOCATION);
+    }
+
+    public void updateItems(List<ItemStack> items, boolean resetPage) {
+        this.items = items;
+        this.totalPages = (int)Math.ceil((double)items.size() / 20.0D);
+        if (this.totalPages <= this.currentPage || resetPage) {
+            this.currentPage = 0;
+        }
+
         this.updateButtonsForPage();
     }
 
     private void updateButtonsForPage() {
         int i = 20 * this.currentPage;
-        List<ItemStack> allItems= SpecialItemManager.get(Minecraft.getInstance().player.level()).list();
-        this.totalPages = (int)Math.ceil((double)allItems.size() / 20.0D);
         for(int j = 0; j < this.buttons.size(); ++j) {
             CustomRecipeButton recipebutton = this.buttons.get(j);
-            if (i + j < allItems.size()) {
-                ItemStack itemStack = allItems.get(i + j);
+            if (i + j < this.items.size()) {
+                ItemStack itemStack = this.items.get(i + j);
                 recipebutton.init(itemStack, this.menu);
                 recipebutton.visible = true;
             } else {

@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.client;
 
+import com.watermelon0117.aicraft.client.screen.AICraftingTableScreen;
 import com.watermelon0117.aicraft.init.CreativeModeTabInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -16,7 +17,7 @@ public final class ClientCreativeTabRefresher {
     private ClientCreativeTabRefresher() {
     }
 
-    /** Puts the AI items as last synced into the creative tabs, and into the creative screen if it is open. */
+    /** Puts the AI items as last synced into the creative tabs, and into the creative screen or the AI table's recipe book if open. */
     public static void refresh() {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
@@ -40,6 +41,10 @@ public final class ClientCreativeTabRefresher {
 
         if (minecraft.screen instanceof CreativeModeInventoryScreen) {
             minecraft.setScreen(new CreativeModeInventoryScreen(player, features, operatorItemsTab));
+        }
+
+        if (minecraft.screen instanceof AICraftingTableScreen screen) {
+            screen.recipeBookComponent.itemsUpdated();
         }
     }
 }

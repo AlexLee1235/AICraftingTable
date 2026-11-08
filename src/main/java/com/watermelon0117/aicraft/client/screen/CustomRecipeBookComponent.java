@@ -1,26 +1,35 @@
 package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.watermelon0117.aicraft.common.SpecialItemManager;
+import com.watermelon0117.aicraft.items.AIBlockItem;
+import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import com.watermelon0117.aicraft.network.PacketHandler;
 import com.watermelon0117.aicraft.network.SPlaceRecipePacket;
 import com.watermelon0117.aicraft.common.RecipeManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.RecipeBookCategories;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookTabButton;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 public class CustomRecipeBookComponent implements Renderable, GuiEventListener, NarratableEntry {
     protected static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation("textures/gui/recipe_book.png");
@@ -37,9 +46,20 @@ public class CustomRecipeBookComponent implements Renderable, GuiEventListener, 
     private AICraftingTableMenu menu;
     protected final CustomGhostRecipe ghostRecipe = new CustomGhostRecipe();
     private final CustomRecipeBookPage recipeBookPage = new CustomRecipeBookPage();
+    private final List<RecipeBookTabButton> tabButtons = RecipeBookCategories.CRAFTING_CATEGORIES.stream().map(RecipeBookTabButton::new).toList();
+    private RecipeBookTabButton selectedTab = this.tabButtons.get(0);
+    private EditBox searchBox;
+    private String lastSearch = "";
+    /** Every AI item as last synced, newest first. */
+    private List<ItemStack> items = List.of();
+    private boolean ignoreTextInput;
     public boolean visible;
     private boolean focused;
     int times=0;
+
+    public CustomRecipeBookComponent() {
+        this.selectedTab.setStateTriggered(true);
+    }
 
     public void init(int p_100310_, int p_100311_, Minecraft p_100312_, AICraftingTableMenu menu) {
         this.xOffset = 86;
@@ -49,9 +69,68 @@ public class CustomRecipeBookComponent implements Renderable, GuiEventListener, 
         this.height = p_100311_;
         int i = (this.width - 147) / 2 - this.xOffset;
         int j = (this.height - 166) / 2;
+        String search = this.searchBox != null ? this.searchBox.getValue() : "";
+        this.searchBox = new EditBox(this.minecraft.font, i + 26, j + 14, 79, this.minecraft.font.lineHeight + 3, Component.translatable("itemGroup.search"));
+        this.searchBox.setMaxLength(50);
+        this.searchBox.setVisible(true);
+        this.searchBox.setTextColor(16777215);
+        this.searchBox.setValue(search);
+        this.searchBox.setHint(SEARCH_HINT);
         this.recipeBookPage.init(this.minecraft, i, j, menu);
-
+        this.itemsUpdated();
     }
+
+    /** Takes the AI items as last synced, which can fill an empty tab or empty the one that is open. */
+    public void itemsUpdated() {
+        this.items = SpecialItemManager.ClientSide.list();
+        this.updateTabs();
+        this.updateShownItems(false);
+    }
+
+    private static RecipeBookCategories categoryOf(ItemStack stack) {
+        if (stack.getItem() instanceof AIBlockItem) {
+            return RecipeBookCategories.CRAFTING_BUILDING_BLOCKS;
+        }
+        return MainItem.isToolMelee(stack) ? RecipeBookCategories.CRAFTING_EQUIPMENT : RecipeBookCategories.CRAFTING_MISC;
+    }
+
+    private void updateTabs() {
+        int i = (this.width - 147) / 2 - this.xOffset - 30;
+        int j = (this.height - 166) / 2 + 3;
+        int shown = 0;
+        for (RecipeBookTabButton tab : this.tabButtons) {
+            RecipeBookCategories category = tab.getCategory();
+            tab.visible = category == RecipeBookCategories.CRAFTING_SEARCH || this.items.stream().anyMatch(stack -> categoryOf(stack) == category);
+            if (tab.visible) {
+                tab.setPosition(i, j + 27 * shown++);
+            }
+        }
+        if (!this.selectedTab.visible) {
+            this.selectTab(this.tabButtons.get(0));
+        }
+    }
+
+    private void selectTab(RecipeBookTabButton tab) {
+        this.selectedTab.setStateTriggered(false);
+        this.selectedTab = tab;
+        this.selectedTab.setStateTriggered(true);
+    }
+
+    private void updateShownItems(boolean resetPage) {
+        RecipeBookCategories category = this.selectedTab.getCategory();
+        String search = this.searchBox.getValue().toLowerCase(Locale.ROOT);
+        this.recipeBookPage.updateItems(this.items.stream()
+                .filter(stack -> category == RecipeBookCategories.CRAFTING_SEARCH || categoryOf(stack) == category)
+                .filter(stack -> stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains(search))
+                .toList(), resetPage);
+    }
+
+    public void tick() {
+        if (this.visible) {
+            this.searchBox.tick();
+        }
+    }
+
     public void slotClicked(@Nullable Slot p_100315_) {
         if (p_100315_ != null && p_100315_.index < 10) {
             this.ghostRecipe.clear();
@@ -67,6 +146,11 @@ public class CustomRecipeBookComponent implements Renderable, GuiEventListener, 
             int i = (this.width - 147) / 2 - this.xOffset;
             int j = (this.height - 166) / 2;
             p_100319_.blit(RECIPE_BOOK_LOCATION, i, j, 1, 1, 147, 166);
+            this.searchBox.render(p_100319_, p_100320_, p_100321_, p_100322_);
+
+            for (RecipeBookTabButton tab : this.tabButtons) {
+                tab.render(p_100319_, p_100320_, p_100321_, p_100322_);
+            }
 
             this.recipeBookPage.render(p_100319_, i, j, p_100320_, p_100321_, p_100322_);
             p_100319_.pose().popPose();
@@ -110,8 +194,69 @@ public class CustomRecipeBookComponent implements Renderable, GuiEventListener, 
                 }
                 return true;
             }
+            if (this.searchBox.mouseClicked(p_100294_, p_100295_, p_100296_)) {
+                this.searchBox.setFocused(true);
+                return true;
+            }
+            this.searchBox.setFocused(false);
+            for (RecipeBookTabButton tab : this.tabButtons) {
+                if (tab.mouseClicked(p_100294_, p_100295_, p_100296_)) {
+                    if (this.selectedTab != tab) {
+                        this.selectTab(tab);
+                        this.updateShownItems(true);
+                    }
+                    return true;
+                }
+            }
         }
         return false;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        this.ignoreTextInput = false;
+        if (this.visible && !this.minecraft.player.isSpectator()) {
+            if (this.searchBox.keyPressed(keyCode, scanCode, modifiers)) {
+                this.checkSearchStringUpdate();
+                return true;
+            }
+            // Keeps the inventory, hotbar and drop keys from acting while they are being typed.
+            if (this.searchBox.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+                return true;
+            }
+            if (this.minecraft.options.keyChat.matches(keyCode, scanCode) && !this.searchBox.isFocused()) {
+                this.ignoreTextInput = true;
+                this.searchBox.setFocused(true);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        this.ignoreTextInput = false;
+        return GuiEventListener.super.keyReleased(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char character, int modifiers) {
+        if (this.ignoreTextInput || !this.visible || this.minecraft.player.isSpectator()) {
+            return false;
+        }
+        if (this.searchBox.charTyped(character, modifiers)) {
+            this.checkSearchStringUpdate();
+            return true;
+        }
+        return false;
+    }
+
+    private void checkSearchStringUpdate() {
+        String search = this.searchBox.getValue().toLowerCase(Locale.ROOT);
+        if (!search.equals(this.lastSearch)) {
+            this.updateShownItems(false);
+            this.lastSearch = search;
+        }
     }
 
 
@@ -121,7 +266,7 @@ public class CustomRecipeBookComponent implements Renderable, GuiEventListener, 
         } else {
             boolean flag = p_100298_ < (double)p_100300_ || p_100299_ < (double)p_100301_ || p_100298_ >= (double)(p_100300_ + p_100302_) || p_100299_ >= (double)(p_100301_ + p_100303_);
             boolean flag1 = (double)(p_100300_ - 147) < p_100298_ && p_100298_ < (double)p_100300_ && (double)p_100301_ < p_100299_ && p_100299_ < (double)(p_100301_ + p_100303_);
-            return flag && !flag1;
+            return flag && !flag1 && !this.selectedTab.isHoveredOrFocused();
         }
     }
     public void setupGhostRecipe(ItemStack[] recipe) {

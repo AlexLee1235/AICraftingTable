@@ -166,6 +166,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     @Override
     public void containerTick() {
         super.containerTick();
+        recipeBookComponent.tick();
         if (!currentRecipe.equals(new ItemStackArray(menu))) {
             if (menu.hasCraftResult) setProgress();
             else setInitial();
