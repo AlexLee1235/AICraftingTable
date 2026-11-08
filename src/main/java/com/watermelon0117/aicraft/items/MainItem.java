@@ -66,6 +66,15 @@ public class MainItem extends Item {
     public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
         return getID(stack).contains("Sword") || toolAction != ToolActions.SWORD_SWEEP;
     }
+    /** Vanilla only asks this of the item in the main hand, on the client and on the server. */
+    @Override
+    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        return !(player.isCreative() && isOnlyMelee(player.getMainHandItem()));
+    }
+    private static boolean isOnlyMelee(ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
+        return tag.getBoolean("isMelee") && !tag.getBoolean("isPickaxe") && !tag.getBoolean("isAxe") && !tag.getBoolean("isShovel") && !tag.getBoolean("isHoe");
+    }
     private static boolean isCorrectTool(ItemStack stack, BlockState state){
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         boolean ret = false;
