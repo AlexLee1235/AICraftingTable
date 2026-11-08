@@ -121,15 +121,19 @@ public final class RecipeManager {
                             stack1.getDamageValue() + stack2.getDamageValue() - stack1.getMaxDamage()));
                     return ret;
                 }
-                return ItemStack.EMPTY;
+                // All AI items are meta_item, so vanilla takes a tool and any other AI item for a repair. They may still be an AI recipe.
+                return matchGrid(container);
             }
         } else {
-            ItemStack[] itemStacks = new ItemStack[9];
-            for (int i = 0; i < 9; i++)
-                itemStacks[i] = container.getItem(i);
-            result = RecipeManager.get().match(itemStacks);
+            result = matchGrid(container);
         }
         return result;
+    }
+    private static ItemStack matchGrid(CraftingContainer container) {
+        ItemStack[] itemStacks = new ItemStack[9];
+        for (int i = 0; i < 9; i++)
+            itemStacks[i] = container.getItem(i);
+        return RecipeManager.get().match(itemStacks);
     }
     public ItemStack match(ItemStack[] g) {
         return backing().stream()
