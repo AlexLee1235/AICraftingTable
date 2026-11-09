@@ -25,16 +25,12 @@ public class BaseGPTIdeaGeneratorwParser {
             "If there are no items in the text, set \"error\" to true and leave both arrays as empty.\n" +
             "\n" +
             "Example input:\n" +
-            "\"This pattern forms a U-shape. Here are three item ideas:\n" +
-            "1. Iron Crucible – Used for smelting alloys.\n" +
-            "2. Ore Hopper – Collects ores.\n" +
-            "3. Molten Basin – Stores molten metal.\"\n" +
+            "This pattern forms a U-shape. Here are three item ideas: Iron Crucible, Ore Hopper, Molten Basin.\n" +
             "\n" +
-            "Example output (translated to Chinese):\n" +
-            "\n" +
+            "Example output (translated):\n" +
             "{\n" +
             "  \"items\": [\"Iron Crucible\", \"Ore Hopper\", \"Molten Basin\"],\n" +
-            "  \"translated\": [\"鐵坩堝\", \"礦石漏斗\", \"熔融盆\"],\n" +
+            "  \"translated\": [\"translated1\", \"translated2\", \"translated3\"],\n" +
             "  \"error\": false\n" +
             "}\n" +
             "\n" +
@@ -57,6 +53,8 @@ public class BaseGPTIdeaGeneratorwParser {
             ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
             if (result.error)
                 throw new IllegalStateException("Json extractor says input has error");
+            if (result.items == null || result.items.size() < 3 || result.translated == null || result.translated.size() < 3)
+                throw new IllegalStateException("Json extractor returned fewer than 3 items");
             return new ItemIdeas(result);
         });
     }

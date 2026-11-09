@@ -5,8 +5,17 @@ import java.util.concurrent.CompletableFuture;
 public class GPTImageGenerator {
     OpenAIImageClient imgClient = new OpenAIImageClient();
     public CompletableFuture<String> generateItem(String name, String desc) {
-        // Transparent PNG, same request as the texture server; TextureManager pixelates it with SpritePixelizer.
-        return imgClient.generateAsync(buildPrompt(name, desc), "1024x1024", "transparent", "low", "medium", "png");
+        return generateDrawing(buildPrompt(name, desc));
+    }
+
+    /** A transparent PNG, the same request as the texture server's for an item or a plant. */
+    CompletableFuture<String> generateDrawing(String prompt) {
+        return imgClient.generateAsync(prompt, "1024x1024", "transparent", "low", "medium", "png");
+    }
+
+    /** One image of three squares. Transparent only for a see-through block: in that mode the model leaves every block faintly see-through. */
+    CompletableFuture<String> generateSheet(String prompt, boolean seeThrough) {
+        return imgClient.generateAsync(prompt, "1536x512", seeThrough ? "transparent" : "opaque", "low", "medium", seeThrough ? "png" : "jpeg");
     }
 
     /**

@@ -5,7 +5,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
-import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 import com.watermelon0117.aicraft.common.GeneratedInstaller;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.common.RecipeManager;
@@ -33,8 +32,6 @@ import static net.minecraft.commands.Commands.literal;
 
 /** Gives a full stack of an item or a block from its name alone, with no recipe, regenerating the id if it exists: it is for checking how they look and behave in game. */
 public class GenerateCommand {
-    private static final SimpleCommandExceptionType NEEDS_TEXTURE_SERVER = new SimpleCommandExceptionType(
-            Component.literal("AI blocks need the texture server, so they do not work with your own OpenAI key yet."));
     private static final SimpleCommandExceptionType BAD_NAME = new SimpleCommandExceptionType(
             Component.literal("The name needs at least one English letter or digit."));
     private static final SimpleCommandExceptionType IN_PROGRESS = new SimpleCommandExceptionType(
@@ -62,9 +59,6 @@ public class GenerateCommand {
     }
 
     private static int generateBlock(CommandSourceStack source, String name) throws CommandSyntaxException {
-        if (AICraftingTableCommonConfigs.useOpenAI) {
-            throw NEEDS_TEXTURE_SERVER.create();
-        }
         return generate(source, name, (id, blockName, user) ->
                 GENERATOR.generate(id, blockName, new ItemStackArray(), user).thenApply(GenerateCommand::requireBlock));
     }
@@ -77,7 +71,7 @@ public class GenerateCommand {
         if (result instanceof GeneratedBlock) {
             return result;
         }
-        // The server has already paid for the item's image by now.
+        // The item's image has already been paid for by now.
         throw new IllegalArgumentException("The judge says this is not a block");
     }
 

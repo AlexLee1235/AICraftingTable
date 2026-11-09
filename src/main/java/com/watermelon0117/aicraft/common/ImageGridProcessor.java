@@ -16,7 +16,15 @@ import java.util.stream.IntStream;
 public class ImageGridProcessor {
     private static final int WHITE_RGB = Color.WHITE.getRGB();
     private static final int BLACK_RGB = Color.BLACK.getRGB();
-    private static final CannyEdgeDetector cannyEdgeDetector = new CannyEdgeDetector(100, 200);
+
+    /** @return what {@link #process} makes of the image, or null where it would throw */
+    static BufferedImage tryProcess(BufferedImage image) {
+        try {
+            return process(image, false);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
 
     public static BufferedImage process(BufferedImage image, boolean save) {
         try {
@@ -25,8 +33,8 @@ public class ImageGridProcessor {
                 saveImage(image, FileUtil.getTempFolder("source.png"));
                 saveImage(CannyEdgeDetector.overlayCannyEdges(image, 100, 200), FileUtil.getTempFolder("edges_image.png"));
             }
-            // 2. Edge Detection
-            BufferedImage edges = cannyEdgeDetector.process(image);
+            // 2. Edge Detection. One each: it keeps per-image state, and an own OpenAI key runs this off the server thread too.
+            BufferedImage edges = new CannyEdgeDetector(100, 200).process(image);
 
             // Remove Background
             image = removeBackgroundAuto(image, edges);

@@ -20,6 +20,15 @@ public final class RecipeShapeMatcher {
             Map.entry("Leggings",  "IIII II I"),
             Map.entry("Boots",     "I II I   ")
     );
+    private static final List<Map.Entry<String, String>> BLOCK_PATTERNS = List.of(
+            Map.entry("Slab", "III      "),
+            Map.entry("Stairs", "I  II III"),
+            Map.entry("Stairs", "  I IIIII"),
+            Map.entry("Wall", "IIIIII   "),
+            Map.entry("Fence", "ISIISI   ")
+    );
+    /** Four of one ingredient in a square, which is no vanilla shape with a model and a count of its own. */
+    private static final List<Map.Entry<String, String>> SQUARE_PATTERNS = List.of(Map.entry("2x2", "II II    "));
 
     public record Match(String shapeName, String material) {
     }
@@ -27,11 +36,23 @@ public final class RecipeShapeMatcher {
     /*───────────────────────────── Public API ─────────────────────────────*/
 
     /**
-     * Returns the first matching (shape, material) pair, or {@code null} if none.
+     * Returns the first matching (shape, material) pair among the tools and armor, or {@code null} if none.
      */
     public static Match match(String[] grid) {
-        System.out.println(Arrays.toString(grid));
-        for (Map.Entry<String, String> entry : PATTERNS) {
+        return match(grid, PATTERNS);
+    }
+
+    /** @return the slab, stairs, wall or fence layout of the grid, as the texture server's {@code matchBlockShape}, or null */
+    public static Match matchBlockShape(String[] grid) {
+        return match(grid, BLOCK_PATTERNS);
+    }
+
+    public static boolean isSquare(String[] grid) {
+        return match(grid, SQUARE_PATTERNS) != null;
+    }
+
+    private static Match match(String[] grid, List<Map.Entry<String, String>> patterns) {
+        for (Map.Entry<String, String> entry : patterns) {
             for (String shifted : shiftPattern(entry.getValue())) {
                 String mat = tryMatch(grid, shifted);
                 if (!mat.isEmpty()) {
@@ -50,7 +71,6 @@ public final class RecipeShapeMatcher {
         for (int i = 0; i < 9; i++) {
             char expected = pattern.charAt(i);
             String actual = grid[i];
-            System.out.println(actual);
             switch (expected) {
                 case ' ' -> {
                     if (!actual.contentEquals("empty")) return "";

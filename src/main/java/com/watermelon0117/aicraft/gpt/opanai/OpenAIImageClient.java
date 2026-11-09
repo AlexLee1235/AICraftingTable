@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public final class OpenAIImageClient {
-    private static final URI ENDPOINT = URI.create("https://api.openai.com/v1/images/generations");
+    private static final URI ENDPOINT = URI.create(OpenAIChatClient.apiBase() + "/v1/images/generations");
     /** gpt-image-1 shuts down on 2026-10-23; the texture server uses the same model. */
     private static final String MODEL = "gpt-image-2.5-sunburst";
     public static String apiKey;
@@ -55,6 +55,9 @@ public final class OpenAIImageClient {
 
                     Response parsed = gson.fromJson(resp.body(), Response.class);
                     Data     d      = parsed.data.get(0);          // n == 1
+                    if (d.b64_json == null) {
+                        return CompletableFuture.failedFuture(new RuntimeException("OpenAI returned no image"));
+                    }
                     return CompletableFuture.completedFuture(d.b64_json);
                 });
     }

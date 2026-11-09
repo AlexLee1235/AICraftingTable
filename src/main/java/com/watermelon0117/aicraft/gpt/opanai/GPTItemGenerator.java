@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.gpt.opanai;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.common.SpritePipeline;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -50,7 +51,7 @@ public class GPTItemGenerator {
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
             if (json.visual_description == null) json.visual_description = "";
             return imgClient.generateItem(id, json.visual_description).thenApply(textureB64 ->
-                    new GPTItemGeneratorResult(rawJson, textureB64, json));
+                    new GPTItemGeneratorResult(rawJson, SpritePipeline.process(textureB64).modImageB64(), json));
         });
     }
 

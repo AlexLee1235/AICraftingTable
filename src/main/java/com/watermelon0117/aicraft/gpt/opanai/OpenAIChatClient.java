@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class OpenAIChatClient {
-    private static final URI CHAT_URI = URI.create("https://api.openai.com/v1/chat/completions");
+    private static final URI CHAT_URI = URI.create(apiBase() + "/v1/chat/completions");
+    private static final Duration CHAT_TIMEOUT = Duration.ofSeconds(30);
     public static String apiKey;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
@@ -31,20 +32,58 @@ public class OpenAIChatClient {
         this.response_format = response_format;
     }
 
+    /** AICRAFT_OPENAI_BASE points a development client at a local stand-in. */
+    static String apiBase() {
+        String base = System.getenv("AICRAFT_OPENAI_BASE");
+        return base == null || base.isBlank() ? "https://api.openai.com" : base;
+    }
+
     public CompletableFuture<String> chat(String message, String type, String user) {
         ArrayList<Message> list=new ArrayList<>();
         list.add(new Message("system", systemMessage));
         list.add(new Message("user", message));
         return chat(list);
     }
+
+    /**
+     * For a model that reasons first and answers in a strict schema, so it takes no temperature or system message and counts its
+     * reasoning toward {@link #maxTokens}.
+     *
+     * @return the answer as a JSON string
+     */
+    public CompletableFuture<String> chatStructured(String schemaName, JsonObject schema, String message, Duration timeout) {
+        JsonObject jsonSchema = new JsonObject();
+        jsonSchema.addProperty("name", schemaName);
+        jsonSchema.addProperty("strict", true);
+        jsonSchema.add("schema", schema);
+        JsonObject format = new JsonObject();
+        format.addProperty("type", "json_schema");
+        format.add("json_schema", jsonSchema);
+        JsonObject body = new JsonObject();
+        body.addProperty("model", model);
+        body.addProperty("max_completion_tokens", maxTokens);
+        body.add("messages", gson.toJsonTree(List.of(new Message("user", message))));
+        body.add("response_format", format);
+        return post(gson.toJson(body), timeout).thenApply(chat -> {
+            ChatResponse.ChatMessage answer = chat.choices.get(0).message;
+            if (answer.content == null) {
+                throw new IllegalStateException("OpenAI returned no content: " + answer.refusal);
+            }
+            return answer.content;
+        });
+    }
+
     private CompletableFuture<String> chat(List<Message> messages) {
         ChatRequest requestBody = new ChatRequest(model, temperature, maxTokens, messages, response_format);
-        String json = gson.toJson(requestBody);
+        return post(gson.toJson(requestBody), CHAT_TIMEOUT).thenApply(chat -> chat.choices.get(0).message.content);
+    }
+
+    private CompletableFuture<ChatResponse> post(String json, Duration timeout) {
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(CHAT_URI)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
-                .timeout(Duration.ofSeconds(30))
+                .timeout(timeout)
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
@@ -55,8 +94,7 @@ public class OpenAIChatClient {
                                         resp.statusCode() + ": " +
                                         resp.body()));
                     }
-                    ChatResponse chat = gson.fromJson(resp.body(), ChatResponse.class);
-                    return CompletableFuture.completedFuture(chat.choices.get(0).message.content);
+                    return CompletableFuture.completedFuture(gson.fromJson(resp.body(), ChatResponse.class));
                 });
     }
 
@@ -102,6 +140,7 @@ public class OpenAIChatClient {
         static final class ChatMessage {
             String role;
             String content;
+            String refusal;
         }
     }
 }
