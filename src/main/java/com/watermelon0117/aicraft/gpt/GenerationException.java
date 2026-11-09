@@ -71,6 +71,9 @@ public class GenerationException extends RuntimeException {
         String text = body.trim();
         if (text.startsWith("{") || text.startsWith("OpenAI error ")) {
             String said = openAISaid(text);
+            if (text.contains("moderation_blocked") || (said != null && said.contains("safety system"))) {
+                return new GenerationException(Component.translatable("error.aicraft.openai_moderated"));
+            }
             return new GenerationException(said == null ? Component.translatable(SERVER_PROBLEM) : quoteOpenAI(said));
         }
         if (text.isEmpty() || text.startsWith("<") || text.startsWith("INTERNAL_SERVER_ERROR")) {

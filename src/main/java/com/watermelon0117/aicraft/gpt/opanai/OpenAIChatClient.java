@@ -69,7 +69,7 @@ public class OpenAIChatClient {
         return post(gson.toJson(body), timeout).thenApply(chat -> {
             ChatResponse.ChatMessage answer = chat.choices.get(0).message;
             if (answer.content == null) {
-                throw new GenerationException(answer.refusal == null ? Component.translatable("error.aicraft.openai_no_answer") : Component.translatable("error.aicraft.openai_refused", answer.refusal));
+                throw new GenerationException(answer.refusal == null ? Component.translatable("error.aicraft.openai_no_answer") : Component.translatable("error.aicraft.openai_error", answer.refusal));
             }
             return answer.content;
         });

@@ -17,6 +17,9 @@ class GenerationExceptionTest {
     private static final Component BAD_ANSWER = Component.translatable("error.aicraft.bad_answer");
     private static final String NO_ACCESS_JSON = "{\n  \"error\": {\n    \"message\": \"The model `gpt-6.1-terra` does not exist or you do not have access to it.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"model_not_found\"\n  }\n}";
     private static final Component NO_ACCESS = Component.literal("OpenAI: The model `gpt-6.1-terra` does not exist or you do not have access to it.");
+    private static final String REJECTED = "Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID req_123.";
+    private static final String REJECTED_JSON = "{\"error\":{\"message\":\"" + REJECTED + "\",\"type\":\"image_generation_user_error\",\"param\":null,\"code\":\"moderation_blocked\",\"moderation_details\":{\"moderation_stage\":\"output\",\"categories\":[\"other\"]}}}";
+    private static final Component MODERATED = Component.translatable("error.aicraft.openai_moderated");
 
     private static Component shown(GenerationException error) {
         return GenerationException.describe(error);
@@ -42,8 +45,8 @@ class GenerationExceptionTest {
 
     @Test
     void theLogKeepsTheKeyAndWhatFilledIt() {
-        assertEquals(Component.translatable("error.aicraft.openai_refused", "no").toString(),
-                new GenerationException(Component.translatable("error.aicraft.openai_refused", "no")).getMessage());
+        assertEquals(Component.translatable("error.aicraft.openai_error", "no").toString(),
+                new GenerationException(Component.translatable("error.aicraft.openai_error", "no")).getMessage());
     }
 
     @Test
@@ -82,6 +85,23 @@ class GenerationExceptionTest {
     void whatOpenAISaidToTheServerIsCutToItsSentence() {
         assertEquals(NO_ACCESS, shown(GenerationException.fromServer(NO_ACCESS_JSON)));
         assertEquals(NO_ACCESS, shown(GenerationException.fromServer("OpenAI error 403: " + NO_ACCESS_JSON)));
+    }
+
+    @Test
+    void aSafetyRejectionThroughTheServerIsInThePlayersLanguage() {
+        assertEquals(MODERATED, shown(GenerationException.fromServer(REJECTED_JSON)));
+        assertEquals(MODERATED, shown(GenerationException.fromServer("OpenAI error 400: " + REJECTED_JSON)));
+    }
+
+    @Test
+    void eitherTheCodeOrTheSentenceMarksASafetyRejection() {
+        assertEquals(MODERATED, shown(GenerationException.fromServer("{\"error\":{\"message\":\"Your request was rejected by the safety system.\",\"code\":null}}")));
+        assertEquals(MODERATED, shown(GenerationException.fromServer("{\"error\":{\"message\":\"Blocked.\",\"code\":\"moderation_blocked\"}}")));
+    }
+
+    @Test
+    void aSafetyRejectionWithAnOwnKeyStaysInOpenAIsWords() {
+        assertEquals(Component.literal("OpenAI: " + REJECTED), shown(GenerationException.fromOpenAI(400, REJECTED_JSON)));
     }
 
     @Test
