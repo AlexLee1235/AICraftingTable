@@ -1,11 +1,13 @@
 package com.watermelon0117.aicraft.items;
 
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
+import com.watermelon0117.aicraft.blocks.AIBlockAttach;
 import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockSound;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
+import com.watermelon0117.aicraft.blocks.AICrossBlock;
 import com.watermelon0117.aicraft.blocks.AIPlacedBlock;
 import com.watermelon0117.aicraft.blocks.PlantBounds;
 import net.minecraft.ChatFormatting;
@@ -31,7 +33,7 @@ public class AIBlockItem extends BlockItem {
 
     public ItemStack makeStack(String id, String name, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light,
                                AIBlockSound sound, @Nullable String soundOf, boolean flammable, AIBlockTransparency transparency,
-                               @Nullable PlantBounds plantBounds) {
+                               @Nullable PlantBounds plantBounds, @Nullable AIBlockAttach attach) {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", id);
         tag.putString("name", name);
@@ -46,6 +48,9 @@ public class AIBlockItem extends BlockItem {
         tag.putString(AIPlacedBlock.TRANSPARENCY.getName(), transparency.getSerializedName());
         if (plantBounds != null) {
             tag.putIntArray(AIBlockEntity.PLANT_BOUNDS_KEY, plantBounds.toTag());
+        }
+        if (attach != null) {
+            tag.putString(AICrossBlock.ATTACH.getName(), attach.getSerializedName());
         }
         ItemStack stack = new ItemStack(this);
         stack.getOrCreateTag().put(AIBlockEntity.DATA_KEY, tag);

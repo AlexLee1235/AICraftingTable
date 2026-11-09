@@ -16,10 +16,16 @@ public class ItemGenerator {
 
     /** Only the texture server can judge a name to be a block, so an own OpenAI key always makes an item. */
     public CompletableFuture<GeneratedResult> generate(String id, String name, ItemStackArray recipe, String user) {
-        if (AICraftingTableCommonConfigs.useOpenAI) {
-            return gptItemGenerator.generate(id, recipe.getDisplayNames(), user).thenApply(res ->
-                    GeneratedItem.fromJson(res.json(), id, name, Base64.getDecoder().decode(res.b64Tex())));
-        } else
-            return proxyItemGenerator.generate(id, name, recipe, user);
+        return AICraftingTableCommonConfigs.useOpenAI ? generateWithOwnKey(id, name, recipe, user) : proxyItemGenerator.generate(id, name, recipe, user);
+    }
+
+    /** An item whatever the name sounds like. */
+    public CompletableFuture<GeneratedResult> generateItem(String id, String name, ItemStackArray recipe, String user) {
+        return AICraftingTableCommonConfigs.useOpenAI ? generateWithOwnKey(id, name, recipe, user) : proxyItemGenerator.generateItem(id, name, recipe, user);
+    }
+
+    private CompletableFuture<GeneratedResult> generateWithOwnKey(String id, String name, ItemStackArray recipe, String user) {
+        return gptItemGenerator.generate(id, recipe.getDisplayNames(), user).thenApply(res ->
+                GeneratedItem.fromJson(res.json(), id, name, Base64.getDecoder().decode(res.b64Tex())));
     }
 }

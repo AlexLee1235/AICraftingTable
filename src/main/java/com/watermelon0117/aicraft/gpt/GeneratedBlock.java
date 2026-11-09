@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
+import com.watermelon0117.aicraft.blocks.AIBlockAttach;
 import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
@@ -15,10 +16,11 @@ import java.util.Locale;
 /**
  * @param soundOf      the id of a vanilla block whose own sound this block keeps, or null; the texture server never names one
  * @param transparency read from the faces; a plant is opaque here, as it has no such state and is cut out anyway
+ * @param attach       what holds a cross in place; every other shape says {@code BELOW}, and nothing reads it
  */
 public record GeneratedBlock(AIBlockShape shape, AIBlockTool tool, AIBlockHardness hardness, AIBlockLight light,
                              AIBlockSound sound, @Nullable String soundOf, boolean flammable, AIBlockTransparency transparency,
-                             int count, boolean shapeless, BlockFaces faces) implements GeneratedResult {
+                             int count, boolean shapeless, AIBlockAttach attach, BlockFaces faces) implements GeneratedResult {
     /** A stack holds 64, and the server never asks for more than 8. */
     private static final int MAX_COUNT = 64;
 
@@ -41,8 +43,9 @@ public record GeneratedBlock(AIBlockShape shape, AIBlockTool tool, AIBlockHardne
         }
         BlockFaces faces = shape == AIBlockShape.CROSS ? crossFaces(response) : faces(response);
         AIBlockTransparency transparency = shape == AIBlockShape.CROSS ? AIBlockTransparency.OPAQUE : faces.transparency();
+        AIBlockAttach attach = shape == AIBlockShape.CROSS ? parse("attach", response.attach(), AIBlockAttach.class) : AIBlockAttach.BELOW;
         return new GeneratedBlock(shape, tool, hardness, light, sound, null, response.flammable(), transparency, count,
-                Boolean.TRUE.equals(response.shapeless()), faces);
+                Boolean.TRUE.equals(response.shapeless()), attach, faces);
     }
 
     private static BlockFaces crossFaces(GeneratedResult.Response response) {

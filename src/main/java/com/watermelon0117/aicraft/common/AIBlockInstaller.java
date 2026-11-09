@@ -28,6 +28,6 @@ public final class AIBlockInstaller {
         // Every new block comes through here, also one shaped from bedrock or from an unbreakable AI block.
         AIBlockHardness hardness = AICraftingTableCommonConfigs.FORBID_UNBREAKABLE_BLOCKS.get() ? block.hardness().breakable() : block.hardness();
         return BlockInit.itemFor(block.shape()).makeStack(id, name, block.tool(), hardness, block.light(), block.sound(), block.soundOf(),
-                block.flammable(), block.transparency(), plantBounds);
+                block.flammable(), block.transparency(), plantBounds, block.shape() == AIBlockShape.CROSS ? block.attach() : null);
     }
 }

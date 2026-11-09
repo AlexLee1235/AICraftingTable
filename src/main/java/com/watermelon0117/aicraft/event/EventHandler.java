@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.event;
 
 import com.mojang.logging.LogUtils;
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.commands.GenerateBlockCommand;
+import com.watermelon0117.aicraft.commands.GenerateCommand;
 import com.watermelon0117.aicraft.commands.RemoveItemCommand;
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 import com.watermelon0117.aicraft.common.BlockTextureStore;
@@ -54,7 +54,7 @@ public class EventHandler {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event){
         RemoveItemCommand.register(event.getDispatcher(), event.getBuildContext());
-        GenerateBlockCommand.register(event.getDispatcher());
+        GenerateCommand.register(event.getDispatcher());
     }
 
     @SubscribeEvent

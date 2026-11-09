@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.common;
 
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
+import com.watermelon0117.aicraft.blocks.AIBlockAttach;
 import com.watermelon0117.aicraft.blocks.AIBlockHardness;
 import com.watermelon0117.aicraft.blocks.AIBlockLight;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
@@ -170,7 +171,7 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
                 AIBlockSound.of(state.getSoundType()),
                 ForgeRegistries.BLOCKS.getKey(block).toString(),
                 state.getFlammability(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP) > 0,
-                faces.transparency(), count(), false, faces);
+                faces.transparency(), count(), false, AIBlockAttach.BELOW, faces);
     }
 
     private GeneratedBlock fromAIBlock(Path textureFolder) throws IOException {
@@ -190,6 +191,6 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
                 AIBlockSound.byName(data.getString(AIBlockEntity.SOUND_KEY)),
                 data.contains(AIBlockEntity.SOUND_OF_KEY) ? data.getString(AIBlockEntity.SOUND_OF_KEY) : null,
                 data.getBoolean(AIBlockEntity.FLAMMABLE_KEY),
-                faces.transparency(), count(), false, faces);
+                faces.transparency(), count(), false, AIBlockAttach.BELOW, faces);
     }
 }

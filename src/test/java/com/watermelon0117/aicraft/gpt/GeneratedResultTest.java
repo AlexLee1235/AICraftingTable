@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.gpt;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.blocks.AIBlockAttach;
 import com.watermelon0117.aicraft.blocks.AIBlockShape;
 import com.watermelon0117.aicraft.blocks.AIBlockSound;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,11 @@ class GeneratedResultTest {
 
     private static GeneratedResult.Response slab(String sound, Boolean flammable, Integer count, Boolean shapeless) throws IOException {
         String face = face();
-        return new GeneratedResult.Response("block", null, null, "slab", "material", "pickaxe", "normal", "none", sound, flammable, count, shapeless, null, face, face, face);
+        return new GeneratedResult.Response("block", null, null, "slab", "material", "pickaxe", "normal", "none", sound, flammable, count, shapeless, null, face, face, face, null);
+    }
+
+    private static GeneratedResult.Response cross(String attach) throws IOException {
+        return new GeneratedResult.Response("block", null, null, "cross", null, "pickaxe", "normal", "none", "metal", false, 1, false, face(), null, null, null, attach);
     }
 
     private static GeneratedResult parse(GeneratedResult.Response response) {
@@ -137,11 +142,11 @@ class GeneratedResultTest {
     @Test
     void anItemWithNoPictureIsRefused() {
         IllegalArgumentException noImage = assertThrows(IllegalArgumentException.class,
-                () -> parse(new GeneratedResult.Response("item", null, "{}", null, null, null, null, null, null, null, null, null, null, null, null, null)));
+                () -> parse(new GeneratedResult.Response("item", null, "{}", null, null, null, null, null, null, null, null, null, null, null, null, null, null)));
         assertTrue(noImage.getMessage().contains("no item"), noImage.getMessage());
 
         IllegalArgumentException noJson = assertThrows(IllegalArgumentException.class,
-                () -> parse(new GeneratedResult.Response("item", "AAAA", null, null, null, null, null, null, null, null, null, null, null, null, null, null)));
+                () -> parse(new GeneratedResult.Response("item", "AAAA", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)));
         assertTrue(noJson.getMessage().contains("no item"), noJson.getMessage());
     }
 
@@ -150,8 +155,29 @@ class GeneratedResultTest {
         String face = face();
         for (String type : new String[]{"mob", null}) {
             IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
-                    () -> parse(new GeneratedResult.Response(type, null, null, "slab", "material", "pickaxe", "normal", "none", "stone", false, 6, false, null, face, face, face)));
+                    () -> parse(new GeneratedResult.Response(type, null, null, "slab", "material", "pickaxe", "normal", "none", "stone", false, 6, false, null, face, face, face, null)));
             assertTrue(refused.getMessage().contains("unknown type: " + type), refused.getMessage());
         }
+    }
+
+    @Test
+    void aCrossKeepsWhatTheServerSaysHoldsIt() throws IOException {
+        assertArrayEquals(new String[]{"below", "above", "any"}, Arrays.stream(AIBlockAttach.values()).map(AIBlockAttach::getSerializedName).toArray());
+        for (AIBlockAttach attach : AIBlockAttach.values()) {
+            assertEquals(attach, assertInstanceOf(GeneratedBlock.class, parse(cross(attach.getSerializedName()))).attach());
+        }
+    }
+
+    @Test
+    void aCrossWithNoOrAnUnknownAttachIsRefused() {
+        IllegalArgumentException none = assertThrows(IllegalArgumentException.class, () -> parse(cross(null)));
+        assertTrue(none.getMessage().contains("no attach"), none.getMessage());
+        IllegalArgumentException unknown = assertThrows(IllegalArgumentException.class, () -> parse(cross("wall")));
+        assertTrue(unknown.getMessage().contains("unknown attach: wall"), unknown.getMessage());
+    }
+
+    @Test
+    void anotherShapeNeedsNoAttach() throws IOException {
+        assertEquals(AIBlockAttach.BELOW, assertInstanceOf(GeneratedBlock.class, parse(slab(6, false))).attach());
     }
 }

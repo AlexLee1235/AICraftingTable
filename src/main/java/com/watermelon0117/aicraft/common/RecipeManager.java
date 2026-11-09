@@ -163,6 +163,14 @@ public final class RecipeManager {
         dirtyAndSync();
     }
 
+    /** Every recipe that makes or uses the item's id follows it, as in {@link #putRecipe}, for a regeneration with no grid. Each still makes as many as before. */
+    public void updateItem(ItemStack item) {
+        checkServer();
+        String id = MainItem.getID(item);
+        backing().replaceAll(r -> r.withItem(id, item.copyWithCount(r.result.getCount())));
+        dirtyAndSync();
+    }
+
     /** @return how many the first recipe of this id makes, or 1 if it has none */
     public int craftedCount(String id) {
         return backing().stream()

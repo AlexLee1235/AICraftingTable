@@ -1,12 +1,10 @@
 package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
-import com.watermelon0117.aicraft.common.AIBlockInstaller;
 import com.watermelon0117.aicraft.common.FileUtil;
+import com.watermelon0117.aicraft.common.GeneratedInstaller;
 import com.watermelon0117.aicraft.common.ShapedBlockRecipe;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
-import com.watermelon0117.aicraft.gpt.GeneratedItem;
-import com.watermelon0117.aicraft.common.TextureManager;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
 import com.watermelon0117.aicraft.gpt.ItemIdSanitizer;
 import com.watermelon0117.aicraft.gpt.delegate.ItemGenerator;
@@ -149,18 +147,11 @@ public class SSelectIdeaPacket {
         }
 
         ItemStack itemStack;
-        if (generated instanceof GeneratedBlock block) {
-            try {
-                itemStack = AIBlockInstaller.install(id, name, block);
-            } catch (IOException e) {
-                applyGeneratedFailure(player, pos, e);
-                return;
-            }
-        } else {
-            GeneratedItem generatedItem = (GeneratedItem) generated;
-            itemStack = generatedItem.itemStack();
-            byte[] processedTexture = TextureManager.applyTexture(generatedItem.rawTexture(), id);
-            PacketHandler.sendToAllClients(new CAddTexturePacket(id, processedTexture));
+        try {
+            itemStack = GeneratedInstaller.install(id, name, generated);
+        } catch (IOException e) {
+            applyGeneratedFailure(player, pos, e);
+            return;
         }
         // The list of AI items holds one of each, as the creative tab refuses any other count; the recipe holds what one craft makes.
         SpecialItemManager.get(player.level()).put(itemStack);

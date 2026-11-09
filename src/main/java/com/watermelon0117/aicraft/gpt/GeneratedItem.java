@@ -9,8 +9,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
+import java.util.Base64;
+
 public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shapeless) implements GeneratedResult {
     private static final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+    /** @throws IllegalArgumentException if the answer has no item */
+    public static GeneratedItem fromResponse(GeneratedResult.Response response, String id, String name) {
+        if (response.b64Image() == null || response.json() == null) {
+            throw new IllegalArgumentException("The texture server's answer has no item");
+        }
+        return fromJson(response.json(), id, name, Base64.getDecoder().decode(response.b64Image()));
+    }
     public static GeneratedItem fromJson(ItemResult json, String id, String name, byte[] rawTexture){
         ItemStack itemStack1=makeItem(json, id, name);
         return new GeneratedItem(itemStack1, rawTexture, json.is_shapeless_crafting);
