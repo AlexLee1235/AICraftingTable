@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.gpt.opanai;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import com.watermelon0117.aicraft.gpt.GenerationException;
+import net.minecraft.network.chat.Component;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -47,7 +48,7 @@ public final class OpenAIImageClient {
 
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .exceptionally(error -> {
-                    throw GenerationException.noAnswer("OpenAI", error);
+                    throw GenerationException.openAINoAnswer(error);
                 })
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {
@@ -57,7 +58,7 @@ public final class OpenAIImageClient {
                     Response parsed = gson.fromJson(resp.body(), Response.class);
                     Data     d      = parsed.data.get(0);          // n == 1
                     if (d.b64_json == null) {
-                        return CompletableFuture.failedFuture(new GenerationException("OpenAI returned no image. Please try again."));
+                        return CompletableFuture.failedFuture(new GenerationException(Component.translatable("error.aicraft.openai_no_image")));
                     }
                     return CompletableFuture.completedFuture(d.b64_json);
                 });

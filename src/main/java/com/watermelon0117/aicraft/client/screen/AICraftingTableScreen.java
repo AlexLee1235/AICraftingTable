@@ -158,11 +158,11 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }
     }
 
-    public void handleIdeaPacket(ItemStack[] recipe, ItemIdeas idea, boolean err, String errMsg) {
+    public void handleIdeaPacket(ItemStack[] recipe, ItemIdeas idea, boolean err, Component errMsg) {
         if (state == State.GENERATING) {
             if (err) {
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(errMsg).withStyle(ChatFormatting.RED));
+                Minecraft.getInstance().player.sendSystemMessage(Component.translatable("error.aicraft.table_failed").withStyle(ChatFormatting.RED));
+                Minecraft.getInstance().player.sendSystemMessage(errMsg.copy().withStyle(ChatFormatting.RED));
                 error = true;
                 setInitial();
             } else if (new ItemStackArray(menu).equals(new ItemStackArray(recipe))) {
@@ -227,7 +227,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (state == State.GENERATING)
             guiGraphics.drawString(this.font, Component.literal("Generating"), leftPos + 102, topPos + 20, 4210752, false);
         if (error)
-            guiGraphics.drawString(this.font, Component.literal("Error"), leftPos + 102, topPos + 20, 4210752, false);
+            guiGraphics.drawString(this.font, Component.translatable("error.aicraft.label"), leftPos + 102, topPos + 20, 4210752, false);
     }
 
     @Override

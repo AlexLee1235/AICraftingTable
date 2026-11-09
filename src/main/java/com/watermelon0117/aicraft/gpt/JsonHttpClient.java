@@ -54,7 +54,7 @@ public class JsonHttpClient<T, U> {
                 .build();
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .exceptionally(error -> {
-                    throw GenerationException.noAnswer("the server", error);
+                    throw GenerationException.serverNoAnswer(error);
                 })
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {

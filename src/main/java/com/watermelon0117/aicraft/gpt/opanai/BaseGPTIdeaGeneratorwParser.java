@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.watermelon0117.aicraft.gpt.GenerationException;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -53,7 +54,7 @@ public class BaseGPTIdeaGeneratorwParser {
             System.out.println(jsonResult);
             ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
             if (result.error || result.items == null || result.items.size() < 3 || result.translated == null || result.translated.size() < 3)
-                throw new GenerationException("The AI could not come up with ideas for this recipe. Please try again.");
+                throw new GenerationException(Component.translatable("error.aicraft.no_ideas"));
             return new ItemIdeas(result);
         });
     }

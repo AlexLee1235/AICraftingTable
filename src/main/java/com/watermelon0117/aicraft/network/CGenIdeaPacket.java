@@ -5,6 +5,7 @@ import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -15,9 +16,9 @@ public class CGenIdeaPacket {
     private final ItemStack[] recipe;
     private final ItemIdeas ideas;
     private final boolean err;
-    private final String errMsg;
+    private final Component errMsg;
 
-    public CGenIdeaPacket(BlockPos pos, ItemStack[] recipe, ItemIdeas ideas, boolean err, String errMsg) {
+    public CGenIdeaPacket(BlockPos pos, ItemStack[] recipe, ItemIdeas ideas, boolean err, Component errMsg) {
         this.pos = pos;
         this.recipe = recipe;
         this.ideas = ideas;
@@ -34,7 +35,7 @@ public class CGenIdeaPacket {
         this.recipe = recipe;
         this.ideas = new ItemIdeas(buf);
         this.err = buf.readBoolean();
-        this.errMsg = buf.readUtf();
+        this.errMsg = buf.readComponent();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -44,7 +45,7 @@ public class CGenIdeaPacket {
         }
         ideas.write(buf);
         buf.writeBoolean(err);
-        buf.writeUtf(errMsg);
+        buf.writeComponent(errMsg);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {

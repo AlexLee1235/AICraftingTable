@@ -33,9 +33,9 @@ import static net.minecraft.commands.Commands.literal;
 /** Gives a full stack of an item or a block from its name alone, with no recipe, regenerating the id if it exists: it is for checking how they look and behave in game. */
 public class GenerateCommand {
     private static final SimpleCommandExceptionType BAD_NAME = new SimpleCommandExceptionType(
-            Component.literal("The name needs at least one English letter or digit."));
+            Component.translatable("error.aicraft.bad_name"));
     private static final SimpleCommandExceptionType IN_PROGRESS = new SimpleCommandExceptionType(
-            Component.literal("That name is already being generated."));
+            Component.translatable("error.aicraft.in_progress"));
 
     private static final ItemGenerator GENERATOR = new ItemGenerator();
     private static final Set<String> IN_FLIGHT = ConcurrentHashMap.newKeySet();
@@ -72,7 +72,7 @@ public class GenerateCommand {
             return result;
         }
         // The item's image has already been paid for by now.
-        throw new GenerationException("It came out as an item, not a block. Try a more block-like name, or use /aicraft generateItem.");
+        throw new GenerationException(Component.translatable("error.aicraft.came_out_item"));
     }
 
     private static int generate(CommandSourceStack source, String name, Request request) throws CommandSyntaxException {
@@ -133,6 +133,6 @@ public class GenerateCommand {
 
     private static void fail(ServerPlayer player, String id, Throwable error) {
         error.printStackTrace();
-        player.sendSystemMessage(Component.literal("Could not generate " + id + ": " + GenerationException.describe(error)).withStyle(ChatFormatting.RED));
+        player.sendSystemMessage(Component.translatable("error.aicraft.could_not_generate", id, GenerationException.describe(error)).withStyle(ChatFormatting.RED));
     }
 }

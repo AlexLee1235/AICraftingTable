@@ -15,6 +15,7 @@ import com.watermelon0117.aicraft.init.BlockInit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -181,7 +182,7 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
         try {
             material = BlockTextureStore.load(textureFolder, materialId);
         } catch (NoSuchFileException e) {
-            throw new GenerationException("This world has lost the pictures of " + materialId + ". Regenerate it, then try again.", e);
+            throw new GenerationException(Component.translatable("error.aicraft.lost_pictures", materialId), e);
         }
         BlockFaces faces = material.shaped().validated();
         return new GeneratedBlock(shape,

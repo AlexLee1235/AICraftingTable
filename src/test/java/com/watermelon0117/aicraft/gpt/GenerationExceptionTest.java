@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
+import net.minecraft.network.chat.Component;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -10,14 +11,20 @@ import java.util.concurrent.CompletionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GenerationExceptionTest {
-    private static final String UNEXPECTED = "Something went wrong. Please try again. The game log has the details.";
-    private static final String SERVER_PROBLEM = "The server had a problem. Please try again later.";
+    private static final Component UNEXPECTED = Component.translatable("error.aicraft.unexpected");
+    private static final Component SERVER_PROBLEM = Component.translatable("error.aicraft.server_problem");
+    private static final Component OUT_OF_IMAGES = Component.literal("Out of images today.");
+    private static final Component BAD_ANSWER = Component.translatable("error.aicraft.bad_answer");
     private static final String NO_ACCESS_JSON = "{\n  \"error\": {\n    \"message\": \"The model `gpt-6.1-terra` does not exist or you do not have access to it.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"model_not_found\"\n  }\n}";
-    private static final String NO_ACCESS = "OpenAI: The model `gpt-6.1-terra` does not exist or you do not have access to it.";
+    private static final Component NO_ACCESS = Component.literal("OpenAI: The model `gpt-6.1-terra` does not exist or you do not have access to it.");
+
+    private static Component shown(GenerationException error) {
+        return GenerationException.describe(error);
+    }
 
     @Test
     void aMessageForThePlayerIsFoundThroughWhatWrapsIt() {
-        assertEquals("Out of images today.", GenerationException.describe(new CompletionException(new CompletionException(new GenerationException("Out of images today.")))));
+        assertEquals(OUT_OF_IMAGES, GenerationException.describe(new CompletionException(new CompletionException(new GenerationException(OUT_OF_IMAGES)))));
     }
 
     @Test
@@ -29,44 +36,58 @@ class GenerationExceptionTest {
 
     @Test
     void aCallerCanSayWhatNoMessageMeans() {
-        assertEquals("Its answer could not be used.", GenerationException.describe(new IllegalArgumentException("Block judge answered an unknown tool"), "Its answer could not be used."));
-        assertEquals("Out of images today.", GenerationException.describe(new GenerationException("Out of images today."), "Its answer could not be used."));
+        assertEquals(BAD_ANSWER, GenerationException.describe(new IllegalArgumentException("Block judge answered an unknown tool"), BAD_ANSWER));
+        assertEquals(OUT_OF_IMAGES, GenerationException.describe(new GenerationException(OUT_OF_IMAGES), BAD_ANSWER));
     }
 
     @Test
-    void noAnswerSaysWhetherItTimedOut() {
-        assertEquals("Unable to connect to the server. Please check your internet connection or try again later.",
-                GenerationException.noAnswer("the server", new CompletionException(new ConnectException())).getMessage());
-        assertEquals("Unable to connect to OpenAI. Please check your internet connection or try again later.",
-                GenerationException.noAnswer("OpenAI", new IOException("HTTP/1.1 header parser received no bytes")).getMessage());
-        assertEquals("Timed out waiting for the server. Please try again.",
-                GenerationException.noAnswer("the server", new CompletionException(new HttpTimeoutException("request timed out"))).getMessage());
+    void theLogKeepsTheKeyAndWhatFilledIt() {
+        assertEquals(Component.translatable("error.aicraft.openai_refused", "no").toString(),
+                new GenerationException(Component.translatable("error.aicraft.openai_refused", "no")).getMessage());
     }
 
     @Test
-    void theServersOwnSentencesReachThePlayer() {
-        assertEquals("The AI could not decide whether this is a block. Please try again.",
-                GenerationException.fromServer("The AI could not decide whether this is a block. Please try again.").getMessage());
-        assertEquals("Line one\nline two", GenerationException.fromServer("Line one\\nline two").getMessage());
+    void noAnswerSaysWhoAndWhetherItTimedOut() {
+        assertEquals(Component.translatable("error.aicraft.connect_server"), shown(GenerationException.serverNoAnswer(new CompletionException(new ConnectException()))));
+        assertEquals(Component.translatable("error.aicraft.timeout_server"), shown(GenerationException.serverNoAnswer(new CompletionException(new HttpTimeoutException("request timed out")))));
+        assertEquals(Component.translatable("error.aicraft.connect_openai"), shown(GenerationException.openAINoAnswer(new IOException("HTTP/1.1 header parser received no bytes"))));
+        assertEquals(Component.translatable("error.aicraft.timeout_openai"), shown(GenerationException.openAINoAnswer(new HttpTimeoutException("request timed out"))));
+    }
+
+    @Test
+    void theServersFixedSentencesBecomeOurOwn() {
+        assertEquals(Component.translatable("error.aicraft.limit_global"),
+                shown(GenerationException.fromServer("The system-wide usage limit has been reached. Please try again tomorrow or use your own OpenAI account")));
+        assertEquals(Component.translatable("error.aicraft.limit_user"),
+                shown(GenerationException.fromServer("Your daily usage quota exceeded. Please try again tomorrow or use your own OpenAI account")));
+        assertEquals(Component.translatable("error.aicraft.limit_ip"),
+                shown(GenerationException.fromServer("Too many request from your IP. Please try again tomorrow or use your own OpenAI account")));
+        assertEquals(BAD_ANSWER, shown(GenerationException.fromServer("The AI could not decide whether this is a block. Please try again.")));
+    }
+
+    @Test
+    void otherServerSentencesReachThePlayerAsTheyAre() {
+        assertEquals(Component.literal("A new notice."), shown(GenerationException.fromServer("A new notice.")));
+        assertEquals(Component.literal("Line one\nline two"), shown(GenerationException.fromServer("Line one\\nline two")));
     }
 
     @Test
     void whatOnlyTheServersLogsShouldSayDoesNot() {
         for (String body : new String[]{"", "   ", "INTERNAL_SERVER_ERRORPixelizer is unavailable: fetch failed", "<!DOCTYPE html><html><body>Bad Gateway</body></html>", "{\"error\":\"bad\"}", "{not json", "OpenAI error 500: upstream"}) {
-            assertEquals(SERVER_PROBLEM, GenerationException.fromServer(body).getMessage(), body);
+            assertEquals(SERVER_PROBLEM, shown(GenerationException.fromServer(body)), body);
         }
     }
 
     @Test
     void whatOpenAISaidToTheServerIsCutToItsSentence() {
-        assertEquals(NO_ACCESS, GenerationException.fromServer(NO_ACCESS_JSON).getMessage());
-        assertEquals(NO_ACCESS, GenerationException.fromServer("OpenAI error 403: " + NO_ACCESS_JSON).getMessage());
+        assertEquals(NO_ACCESS, shown(GenerationException.fromServer(NO_ACCESS_JSON)));
+        assertEquals(NO_ACCESS, shown(GenerationException.fromServer("OpenAI error 403: " + NO_ACCESS_JSON)));
     }
 
     @Test
     void anOwnKeysErrorIsCutToOpenAIsSentence() {
-        assertEquals(NO_ACCESS, GenerationException.fromOpenAI(404, NO_ACCESS_JSON).getMessage());
-        assertEquals("OpenAI had a problem (HTTP 502). Please try again later.", GenerationException.fromOpenAI(502, "<html>Bad Gateway</html>").getMessage());
-        assertEquals("OpenAI had a problem (HTTP 500). Please try again later.", GenerationException.fromOpenAI(500, "{\"error\":{\"message\":\"\"}}").getMessage());
+        assertEquals(NO_ACCESS, shown(GenerationException.fromOpenAI(404, NO_ACCESS_JSON)));
+        assertEquals(Component.translatable("error.aicraft.openai_status", "502"), shown(GenerationException.fromOpenAI(502, "<html>Bad Gateway</html>")));
+        assertEquals(Component.translatable("error.aicraft.openai_status", "500"), shown(GenerationException.fromOpenAI(500, "{\"error\":{\"message\":\"\"}}")));
     }
 }

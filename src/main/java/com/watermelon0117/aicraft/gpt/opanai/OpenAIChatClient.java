@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 import com.watermelon0117.aicraft.gpt.GenerationException;
+import net.minecraft.network.chat.Component;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -68,7 +69,7 @@ public class OpenAIChatClient {
         return post(gson.toJson(body), timeout).thenApply(chat -> {
             ChatResponse.ChatMessage answer = chat.choices.get(0).message;
             if (answer.content == null) {
-                throw new GenerationException(answer.refusal == null ? "OpenAI returned no answer. Please try again." : "OpenAI refused to answer: " + answer.refusal);
+                throw new GenerationException(answer.refusal == null ? Component.translatable("error.aicraft.openai_no_answer") : Component.translatable("error.aicraft.openai_refused", answer.refusal));
             }
             return answer.content;
         });
@@ -89,7 +90,7 @@ public class OpenAIChatClient {
                 .build();
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .exceptionally(error -> {
-                    throw GenerationException.noAnswer("OpenAI", error);
+                    throw GenerationException.openAINoAnswer(error);
                 })
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {

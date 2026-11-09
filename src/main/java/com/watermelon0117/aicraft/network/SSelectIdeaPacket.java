@@ -88,7 +88,7 @@ public class SSelectIdeaPacket {
                 // Ids from before that rule were already written once, so only a new id has to pass it.
                 if (!exists && !ItemIdSanitizer.isClean(id)) {
                     // A new id becomes a file name. The idea step cleans every id, so only a changed client gets here.
-                    player.sendSystemMessage(Component.literal("The AI crafting table refused the id " + id).withStyle(ChatFormatting.RED));
+                    player.sendSystemMessage(Component.translatable("error.aicraft.table_refused_id", id).withStyle(ChatFormatting.RED));
                     return;
                 }
                 if (exists && !override) {  //use exist item
@@ -182,10 +182,10 @@ public class SSelectIdeaPacket {
         sendErrToAll(player.level(), pos, GenerationException.describe(error));
     }
 
-    private static void sendErrToAll(Level level, BlockPos pos, String msg) {
+    private static void sendErrToAll(Level level, BlockPos pos, Component msg) {
         for (ServerPlayer player : ((ServerLevel) level).getPlayers(p -> true)) {
-            player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
-            player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.translatable("error.aicraft.table_failed").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(msg.copy().withStyle(ChatFormatting.RED));
             PacketHandler.sendToPlayer(new CGenerationFailedPacket(pos), player);
         }
     }

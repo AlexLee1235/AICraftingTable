@@ -7,6 +7,7 @@ import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
@@ -48,7 +49,7 @@ public class SGenIdeaPacket {
         if (player != null && !player.level().isClientSide) {
             generator.generate(new ItemStackArray(recipe), lang, player.getStringUUID()).thenAccept(results -> {
                 PacketHandler.sendToPlayer(
-                        new CGenIdeaPacket(pos, recipe, results, false, ""), player);
+                        new CGenIdeaPacket(pos, recipe, results, false, Component.empty()), player);
             }).exceptionally(e -> {
                 e.printStackTrace();
                 PacketHandler.sendToPlayer(new CGenIdeaPacket(pos, recipe, new ItemIdeas(), true, GenerationException.describe(e)), player);

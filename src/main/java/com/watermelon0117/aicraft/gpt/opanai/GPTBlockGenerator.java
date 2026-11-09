@@ -6,6 +6,7 @@ import com.watermelon0117.aicraft.common.CrossTexture;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
 import com.watermelon0117.aicraft.gpt.GenerationException;
+import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
 
 import java.util.Base64;
@@ -35,7 +36,7 @@ public class GPTBlockGenerator {
                     return BlockJudge.parse(rawJson, id, grid);
                 })
                 .exceptionally(error -> {
-                    throw new GenerationException("The AI could not decide whether this is a block. " + GenerationException.describe(error, "Its answer could not be used. Please try again."), error);
+                    throw new GenerationException(GenerationException.describe(error, Component.translatable("error.aicraft.bad_answer")), error);
                 })
                 .thenCompose(plan -> plan.isEmpty()
                         ? CompletableFuture.completedFuture(Optional.empty())
