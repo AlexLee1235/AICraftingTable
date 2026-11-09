@@ -54,6 +54,8 @@ public final class BlockTileAtlas {
     private static final int TOP_FACE = 0;
     private static final int FRONT_FACE = 1;
     private static final int SIDE_FACE = 2;
+    /** Every shape but the cube has no front, and keeps its underside there. */
+    private static final int UNDERSIDE_FACE = FRONT_FACE;
     private static final String NO_ID = "";
     private static final FaceBakery BAKERY = new FaceBakery();
     private static final ItemModelGenerator ITEM_MODELS = new ItemModelGenerator();
@@ -106,7 +108,7 @@ public final class BlockTileAtlas {
         return current == null ? List.of() : current.quads(id, facing).get(side.ordinal());
     }
 
-    /** Safe on chunk workers. @return the quads of a side, showing the id's first tile: every model but the cube has one picture. */
+    /** Safe on chunk workers. @return the quads of a side, each showing the id's tile for the way it faces */
     public static List<BakedQuad> shapeQuads(ShapeTemplate template, @Nullable String id, @Nullable Direction side) {
         Generation current = generation;
         return current == null ? List.of() : ShapeTemplate.quadsOf(current.shapeQuads(template, id), side);
@@ -120,11 +122,20 @@ public final class BlockTileAtlas {
 
     /** The front, as on vanilla's furnace. Blocks without a front have their side there. */
     public static TextureAtlasSprite particleSprite(@Nullable String id) {
+        return spriteOf(id, FRONT_FACE);
+    }
+
+    /** The side, as on vanilla's slabs and stairs. */
+    public static TextureAtlasSprite shapeParticleSprite(@Nullable String id) {
+        return spriteOf(id, SIDE_FACE);
+    }
+
+    private static TextureAtlasSprite spriteOf(@Nullable String id, int face) {
         Generation current = generation;
         if (current == null) {
             return Minecraft.getInstance().getModelManager().getMissingModel().getParticleIcon();
         }
-        return current.sprite(id, FRONT_FACE);
+        return current.sprite(id, face);
     }
 
     public static boolean hasFront(String id) {
@@ -180,7 +191,15 @@ public final class BlockTileAtlas {
 
         List<List<BakedQuad>> shapeQuads(ShapeTemplate template, @Nullable String id) {
             return quadsByShape.computeIfAbsent(template, key -> new ConcurrentHashMap<>())
-                    .computeIfAbsent(id == null ? NO_ID : id, key -> template.on(sprite(id, TOP_FACE)));
+                    .computeIfAbsent(id == null ? NO_ID : id, key -> template.on(facing -> sprite(id, shapeFaceOf(facing))));
+        }
+
+        private static int shapeFaceOf(Direction facing) {
+            return switch (facing) {
+                case UP -> TOP_FACE;
+                case DOWN -> UNDERSIDE_FACE;
+                default -> SIDE_FACE;
+            };
         }
 
         /** Asked every time, because an item can be on screen before its picture arrives. */

@@ -16,10 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
- * The quads of one baked vanilla model, ready to be pointed at another sprite. Copying them keeps vanilla's shape,
- * UV lock, shading and culling without restating any of it, and needs only the sprite the quads will show.
+ * The quads of one baked vanilla model, ready to be pointed at other sprites. Copying them keeps vanilla's shape,
+ * UV lock, shading and culling without restating any of it, and needs only the sprites the quads will show.
  */
 @OnlyIn(Dist.CLIENT)
 public final class ShapeTemplate {
@@ -234,13 +235,16 @@ public final class ShapeTemplate {
         return new ShapeTemplate(List.copyOf(moved), ambientOcclusion, gui3d, blockLight);
     }
 
-    /** @return the quads of each side, for {@link #quadsOf} */
-    List<List<BakedQuad>> on(TextureAtlasSprite sprite) {
+    /**
+     * @param spriteFacing the sprite for a quad that faces the given way in the world, so a turned model still shows its top upward
+     * @return the quads of each side, for {@link #quadsOf}
+     */
+    List<List<BakedQuad>> on(Function<Direction, TextureAtlasSprite> spriteFacing) {
         List<List<BakedQuad>> baked = new ArrayList<>(quadsBySide.size());
         for (List<Quad> quads : quadsBySide) {
             List<BakedQuad> side = new ArrayList<>(quads.size());
             for (Quad quad : quads) {
-                side.add(quad.on(sprite));
+                side.add(quad.on(spriteFacing.apply(quad.direction())));
             }
             baked.add(List.copyOf(side));
         }

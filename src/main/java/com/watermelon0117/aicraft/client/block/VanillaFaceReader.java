@@ -1,5 +1,6 @@
 package com.watermelon0117.aicraft.client.block;
 
+import com.watermelon0117.aicraft.common.BlockFaces;
 import com.watermelon0117.aicraft.common.FaceImages;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -20,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reads a vanilla block's side as the base game draws it, for the blocks the mod copies. Only clients have vanilla's pictures.
+ * Reads a vanilla block's faces as the base game draws them, for the blocks the mod copies. Only clients have vanilla's pictures.
  * Resource packs are left out, so a block copied by any player looks the same.
  */
 public final class VanillaFaceReader {
@@ -30,20 +32,32 @@ public final class VanillaFaceReader {
     }
 
     /**
-     * The east face of the default state, which is a side whichever way the block faces by default: a log's bark, a furnace's side.
+     * The faces of the default state, for a slab, stairs, a fence or a wall. East is a side whichever way the block faces by default: a log's bark, a furnace's side.
+     *
+     * @return the faces, or null when a layer of one is not a plain vanilla picture
+     */
+    @Nullable
+    public static BlockFaces faces(Block block) {
+        byte[] top = face(block, Direction.UP);
+        byte[] underside = face(block, Direction.DOWN);
+        byte[] side = face(block, Direction.EAST);
+        return top.length == 0 || underside.length == 0 || side.length == 0 ? null : BlockFaces.ofShaped(top, underside, side);
+    }
+
+    /**
      * A tinted layer, as on grass or leaves, takes the color the game gives where there is no world, as in the inventory.
      *
      * @return the face as a PNG, or an empty array when some layer is not a plain vanilla picture
      */
-    public static byte[] side(Block block) {
+    private static byte[] face(Block block, Direction direction) {
         Minecraft minecraft = Minecraft.getInstance();
         BlockState state = block.defaultBlockState();
         var model = minecraft.getBlockRenderer().getBlockModel(state);
-        List<BakedQuad> quads = model.getQuads(state, Direction.EAST, RandomSource.create(42L), ModelData.EMPTY, null);
+        List<BakedQuad> quads = model.getQuads(state, direction, RandomSource.create(42L), ModelData.EMPTY, null);
         if (quads.isEmpty()) {
             // A face that is never culled sits with the unculled quads instead.
             quads = model.getQuads(state, null, RandomSource.create(42L), ModelData.EMPTY, null).stream()
-                    .filter(quad -> quad.getDirection() == Direction.EAST).toList();
+                    .filter(quad -> quad.getDirection() == direction).toList();
         }
         if (quads.isEmpty()) {
             return NONE;

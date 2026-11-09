@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.watermelon0117.aicraft.AICraftingTable;
 import com.watermelon0117.aicraft.client.block.VanillaFaceReader;
+import com.watermelon0117.aicraft.common.BlockFaces;
 import com.watermelon0117.aicraft.common.ShapedBlockRecipe;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.init.ItemInit;
@@ -27,6 +28,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import org.jetbrains.annotations.Nullable;
 
 public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTableMenu> {
     private static final ResourceLocation CRAFTING_TABLE_LOCATION_1 = new ResourceLocation(AICraftingTable.MODID, "textures/gui/ai_crafting_table_1.png");
@@ -123,7 +125,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (MainItem.isMainItem(itemStack)) {
             String id = MainItem.getID(itemStack);
             String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true, vanillaSide(id)));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true, vanillaFaces(id)));
             followsResult = false;
             setProgress();
             // send feedback
@@ -135,15 +137,16 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (state == State.GENERATED) {
             String id = itemIdeas.id[i];
             String name = itemIdeas.names[i];
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, false, vanillaSide(id)));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, false, vanillaFaces(id)));
             setProgress();
         }
     }
 
-    /** The side of a vanilla material for the server to copy, since the server has no vanilla pictures; empty when nothing is copied. */
-    private byte[] vanillaSide(String id) {
+    /** The faces of a vanilla material for the server to copy, since the server has no vanilla pictures; null when nothing is copied. */
+    @Nullable
+    private BlockFaces vanillaFaces(String id) {
         Block vanilla = ShapedBlockRecipe.match(currentRecipe.items, id).map(ShapedBlockRecipe::vanillaBlock).orElse(null);
-        return vanilla == null ? new byte[0] : VanillaFaceReader.side(vanilla);
+        return vanilla == null ? null : VanillaFaceReader.faces(vanilla);
     }
 
     private void btnPress(Button button) {

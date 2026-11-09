@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.blockentities.AICraftingTableBlockEntity;
+import com.watermelon0117.aicraft.common.BlockFaces;
 import com.watermelon0117.aicraft.common.FileUtil;
 import com.watermelon0117.aicraft.common.GeneratedInstaller;
 import com.watermelon0117.aicraft.common.ShapedBlockRecipe;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -34,18 +36,19 @@ public class SSelectIdeaPacket {
     private final String name;
     private final ItemStack[] recipe;
     private final boolean override;
-    /** A vanilla material's side as the crafting client read it, or empty. A 16x16 PNG is far smaller. */
-    private final byte[] vanillaSide;
-    private static final int MAX_SIDE_BYTES = 16384;
+    /** A vanilla material's faces as the crafting client read them, or null. A 16x16 PNG is far smaller than the limit on each. */
+    @Nullable
+    private final BlockFaces vanillaFaces;
+    private static final int MAX_FACE_BYTES = 16384;
     private static int incrementID = 0;
 
-    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean override, byte[] vanillaSide) {
+    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean override, @Nullable BlockFaces vanillaFaces) {
         this.pos = pos;
         this.id = id;
         this.name = name;
         this.recipe = recipe;
         this.override = override;
-        this.vanillaSide = vanillaSide;
+        this.vanillaFaces = vanillaFaces;
     }
 
     public SSelectIdeaPacket(FriendlyByteBuf buf) {
@@ -57,7 +60,11 @@ public class SSelectIdeaPacket {
             recipe[i] = buf.readItem();
         this.recipe = recipe;
         this.override = buf.readBoolean();
-        this.vanillaSide = buf.readByteArray(MAX_SIDE_BYTES);
+        this.vanillaFaces = buf.readNullable(SSelectIdeaPacket::readFaces);
+    }
+
+    private static BlockFaces readFaces(FriendlyByteBuf buf) {
+        return new BlockFaces(buf.readByteArray(MAX_FACE_BYTES), buf.readByteArray(MAX_FACE_BYTES), buf.readByteArray(MAX_FACE_BYTES));
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -67,7 +74,7 @@ public class SSelectIdeaPacket {
         for (int i = 0; i < 9; i++)
             buf.writeItemStack(recipe[i], true);
         buf.writeBoolean(override);
-        buf.writeByteArray(vanillaSide);
+        buf.writeNullable(vanillaFaces, CAddBlockTexturePacket::writeFaces);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
@@ -97,10 +104,10 @@ public class SSelectIdeaPacket {
                     player.level().sendBlockUpdated(pos, player.level().getBlockState(pos), player.level().getBlockState(pos), Block.UPDATE_ALL);
                     Optional<ShapedBlockRecipe> shaped = ShapedBlockRecipe.match(recipeSnapshot, id)
                             // Only clients have vanilla's pictures, so without one the texture server draws the block.
-                            .filter(found -> found.vanillaBlock() == null || vanillaSide.length > 0);
+                            .filter(found -> found.vanillaBlock() == null || vanillaFaces != null);
                     if (shaped.isPresent()) {
                         // Vanilla's recipe for this shape out of a full block looks like that block, so the texture server is not asked.
-                        makeShapedBlock(player, pos, id, name, recipeSnapshot, tId, shaped.get(), vanillaSide);
+                        makeShapedBlock(player, pos, id, name, recipeSnapshot, tId, shaped.get(), vanillaFaces);
                         return;
                     }
                     generator.generate(id, name, new ItemStackArray(recipeSnapshot), player.getStringUUID()).thenAccept(generated -> {
@@ -122,10 +129,10 @@ public class SSelectIdeaPacket {
     }
 
     private static void makeShapedBlock(ServerPlayer player, BlockPos pos, String id, String name, ItemStack[] recipe, int taskId,
-                                        ShapedBlockRecipe shaped, byte[] vanillaSide) {
+                                        ShapedBlockRecipe shaped, @Nullable BlockFaces vanillaFaces) {
         GeneratedBlock block;
         try {
-            block = shaped.block(FileUtil.getBlockTextureFolder(), vanillaSide);
+            block = shaped.block(FileUtil.getBlockTextureFolder(), vanillaFaces);
         } catch (IOException | IllegalArgumentException e) {
             applyGeneratedFailure(player, pos, e);
             return;

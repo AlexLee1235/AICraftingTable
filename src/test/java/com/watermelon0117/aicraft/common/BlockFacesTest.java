@@ -94,6 +94,35 @@ class BlockFacesTest {
     }
 
     @Test
+    void aShapeShowsItsMaterialsTopAndSideButNoFront() {
+        byte[] top = {1}, front = {2}, side = {3};
+
+        BlockFaces fromMaterial = BlockFaces.of("material", top, front, side).shaped();
+        assertSame(top, fromMaterial.top());
+        assertSame(top, fromMaterial.front());
+        assertSame(top, fromMaterial.side());
+
+        BlockFaces fromNatural = BlockFaces.of("natural", top, front, side).shaped();
+        assertSame(top, fromNatural.top());
+        assertSame(top, fromNatural.front());
+        assertSame(side, fromNatural.side());
+
+        BlockFaces fromMachine = BlockFaces.of("machine", top, front, side).shaped();
+        assertSame(top, fromMachine.top());
+        assertSame(top, fromMachine.front());
+        assertSame(side, fromMachine.side());
+    }
+
+    @Test
+    void aShapeKeepsItsUndersideWhereACubeKeepsItsFront() {
+        byte[] top = {1}, underside = {2}, side = {3};
+        BlockFaces faces = BlockFaces.ofShaped(top, underside, side);
+        assertSame(top, faces.top());
+        assertSame(underside, faces.front());
+        assertSame(side, faces.side());
+    }
+
+    @Test
     void anUnknownKindIsRefused() {
         byte[] face = {1};
         assertThrows(IllegalArgumentException.class, () -> BlockFaces.of("liquid", face, face, face));

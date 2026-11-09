@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 /**
  * Vanilla's own recipe for a slab, stairs, a fence or a wall, made of one full block, under a name of that same shape.
  * The block is a cube AI block or a vanilla one. The mod makes such a block itself instead of asking the texture server:
- * it looks like the material's side and keeps its properties.
+ * it shows the material's own top, bottom and side and keeps its properties.
  * The layouts and shape words are the texture server's ({@code matchBlockShape} and {@code SHAPE_WORDS}).
  *
  * @param material one of the grid's material stacks
@@ -148,21 +148,20 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
     }
 
     /**
-     * Every face is the material's side. A material block's faces are all one picture, and a natural or machine block's side is
-     * what shows all the way round it.
+     * Shows the material's own faces. A machine's front is left out: these shapes have no front of their own, so its side goes all the way round.
      *
-     * @param vanillaSide a vanilla material's side, read by the client that crafts, since only clients have vanilla's pictures
+     * @param vanillaFaces a vanilla material's faces, read by the client that crafts, since only clients have vanilla's pictures; unused for an AI material
      * @throws IOException if this world has no faces for an AI material
-     * @throws IllegalArgumentException if the side is not a usable picture
+     * @throws IllegalArgumentException if a face is not a usable picture
      */
-    public GeneratedBlock block(Path textureFolder, byte[] vanillaSide) throws IOException {
+    public GeneratedBlock block(Path textureFolder, @Nullable BlockFaces vanillaFaces) throws IOException {
         Block vanilla = vanillaBlock();
-        return vanilla == null ? fromAIBlock(textureFolder) : fromVanilla(vanilla, vanillaSide);
+        return vanilla == null ? fromAIBlock(textureFolder) : fromVanilla(vanilla, vanillaFaces);
     }
 
     /** The vanilla block's properties, each turned into the nearest the mod has, and its own sound. */
-    private GeneratedBlock fromVanilla(Block block, byte[] side) {
-        BlockFaces faces = new BlockFaces(side, side, side).validated();
+    private GeneratedBlock fromVanilla(Block block, BlockFaces read) {
+        BlockFaces faces = read.validated();
         BlockState state = block.defaultBlockState();
         return new GeneratedBlock(shape,
                 AIBlockTool.of(state),
@@ -177,13 +176,13 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
     private GeneratedBlock fromAIBlock(Path textureFolder) throws IOException {
         CompoundTag data = material.getTagElement(AIBlockEntity.DATA_KEY);
         String materialId = data.getString("id");
-        byte[] side;
+        BlockFaces material;
         try {
-            side = BlockTextureStore.load(textureFolder, materialId).side();
+            material = BlockTextureStore.load(textureFolder, materialId);
         } catch (NoSuchFileException e) {
             throw new IOException("This world has no faces for " + materialId, e);
         }
-        BlockFaces faces = new BlockFaces(side, side, side).validated();
+        BlockFaces faces = material.shaped().validated();
         return new GeneratedBlock(shape,
                 AIBlockTool.byName(data.getString(AIBlockEntity.TOOL_KEY)),
                 AIBlockHardness.byName(data.getString(AIBlockEntity.HARDNESS_KEY)),

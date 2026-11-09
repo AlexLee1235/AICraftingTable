@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** The shape of a vanilla model, showing one tile of {@link BlockTileAtlas}. Implements the model interface directly for the same reason as {@link AIBlockModel}. */
+/** The shape of a vanilla model, showing an id's tiles of {@link BlockTileAtlas}. Implements the model interface directly for the same reason as {@link AIBlockModel}. */
 @OnlyIn(Dist.CLIENT)
 public final class AIShapedBlockModel implements IDynamicBakedModel {
     private final ShapeTemplate template;
@@ -88,12 +88,12 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
 
     @Override
     public TextureAtlasSprite getParticleIcon(@NotNull ModelData data) {
-        return BlockTileAtlas.particleSprite(idFrom(data));
+        return BlockTileAtlas.shapeParticleSprite(idFrom(data));
     }
 
     @Override
     public TextureAtlasSprite getParticleIcon() {
-        return BlockTileAtlas.particleSprite(id);
+        return BlockTileAtlas.shapeParticleSprite(id);
     }
 
     @Override

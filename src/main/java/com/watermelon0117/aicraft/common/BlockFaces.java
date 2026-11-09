@@ -10,7 +10,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-/** The three PNG faces of one AI block. Top also stands in for the bottom, and side for the back and both flanks. */
+/**
+ * The three PNG faces of one AI block. On a cube, top also stands in for the bottom, and side for the back and both flanks.
+ * A slab, stairs, a fence or a wall has no front, so its underside is kept there: see {@link #ofShaped}.
+ */
 public record BlockFaces(byte[] top, byte[] front, byte[] side) {
     public static final int FACE_SIZE = 16;
 
@@ -30,6 +33,16 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
     /** A plant has one picture, which stands in for all three faces. */
     public static BlockFaces ofCross(byte[] texture) {
         return new BlockFaces(texture, texture, texture);
+    }
+
+    /** Vanilla's slab and stairs models tell a top, a bottom and a side apart and have no front, so the underside takes the front's place. */
+    public static BlockFaces ofShaped(byte[] top, byte[] underside, byte[] side) {
+        return new BlockFaces(top, underside, side);
+    }
+
+    /** What a shape cut from this cube shows: its top stands in for the bottom, as it does on the cube, and a front has nowhere to go. */
+    public BlockFaces shaped() {
+        return ofShaped(top, top, side);
     }
 
     /**
