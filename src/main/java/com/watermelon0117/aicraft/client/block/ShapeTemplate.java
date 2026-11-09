@@ -14,6 +14,8 @@ import net.minecraftforge.client.model.data.ModelData;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The quads of one baked vanilla model, ready to be pointed at another sprite. Copying them keeps vanilla's shape,
@@ -136,12 +138,22 @@ public final class ShapeTemplate {
             float value = (1 - s) * (1 - t) * corners[0][0] + s * (1 - t) * corners[1][0] + (1 - s) * t * corners[0][1] + s * t * corners[1][1];
             return Math.round(value * PIXEL_STEPS) / PIXEL_STEPS;
         }
+
+        Quad raised(float blocks) {
+            int[] moved = vertices.clone();
+            for (int vertex = 0; vertex < VERTICES_PER_QUAD; vertex++) {
+                int y = vertex * IQuadTransformer.STRIDE + IQuadTransformer.POSITION + 1;
+                moved[y] = Float.floatToRawIntBits(Float.intBitsToFloat(moved[y]) + blocks);
+            }
+            return new Quad(moved, pixels, tint, direction, shade, ambientOcclusion);
+        }
     }
 
     private final List<List<Quad>> quadsBySide;
     private final boolean ambientOcclusion;
     private final boolean gui3d;
     private final boolean blockLight;
+    private final Map<Integer, ShapeTemplate> raised = new ConcurrentHashMap<>();
 
     private ShapeTemplate(List<List<Quad>> quadsBySide, boolean ambientOcclusion, boolean gui3d, boolean blockLight) {
         this.quadsBySide = quadsBySide;
@@ -201,6 +213,25 @@ public final class ShapeTemplate {
             outside.add(List.copyOf(side));
         }
         return changed ? new ShapeTemplate(List.copyOf(outside), ambientOcclusion, gui3d, blockLight) : this;
+    }
+
+    /**
+     * For a plant shown against the top of its cell. Only the clear rows above what it draws end up outside the cell, and a cutout model draws nothing there.
+     *
+     * @param rows how far up to move it, in rows of its picture
+     * @return one template for each number of rows, as the atlas keeps its quads per template
+     */
+    public ShapeTemplate raised(int rows) {
+        return rows == 0 ? this : raised.computeIfAbsent(rows, this::raisedBy);
+    }
+
+    private ShapeTemplate raisedBy(int rows) {
+        float blocks = rows / BLOCK_SIXTEENTHS;
+        List<List<Quad>> moved = new ArrayList<>(quadsBySide.size());
+        for (List<Quad> quads : quadsBySide) {
+            moved.add(quads.stream().map(quad -> quad.raised(blocks)).toList());
+        }
+        return new ShapeTemplate(List.copyOf(moved), ambientOcclusion, gui3d, blockLight);
     }
 
     /** @return the quads of each side, for {@link #quadsOf} */

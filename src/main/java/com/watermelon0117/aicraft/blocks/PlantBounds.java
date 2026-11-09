@@ -59,6 +59,11 @@ public record PlantBounds(int left, int top, int right, int bottom) {
         return new int[]{left, top, right, bottom};
     }
 
+    /** @return these bounds moved straight up, until the first row drawn is the picture's top row */
+    public PlantBounds atTop() {
+        return new PlantBounds(left, 0, right, bottom - top);
+    }
+
     /**
      * The outline in sixteenths of a block, as minX, minY, minZ, maxX, maxY, maxZ.
      * <ul>

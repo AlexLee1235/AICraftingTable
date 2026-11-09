@@ -39,6 +39,8 @@ public class AIBlockEntity extends BlockEntity {
     /** Where a plant's picture is drawn, as {@link PlantBounds} keeps it. */
     public static final String PLANT_BOUNDS_KEY = "plant_bounds";
     public static final ModelProperty<String> ID_PROPERTY = new ModelProperty<>();
+    /** How many clear rows a plant's picture has above what it draws. */
+    public static final ModelProperty<Integer> PICTURE_TOP_PROPERTY = new ModelProperty<>();
 
     private CompoundTag aicraft = new CompoundTag();
     private AIBlockTool tool = AIBlockTool.byName("");
@@ -49,6 +51,9 @@ public class AIBlockEntity extends BlockEntity {
     private SoundType soundOf;
     @Nullable
     private VoxelShape outline;
+    @Nullable
+    private VoxelShape outlineAtTop;
+    private int pictureTop;
 
     public AIBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityInit.AI_BLOCK_BE.get(), pos, state);
@@ -80,10 +85,14 @@ public class AIBlockEntity extends BlockEntity {
         return soundOf != null ? soundOf : sound.soundType();
     }
 
-    /** A plant's outline from where its picture is drawn, or null when the tag holds no usable bounds. */
+    /**
+     * A plant's outline from where its picture is drawn, or null when the tag holds no usable bounds.
+     *
+     * @param atTop for a plant whose picture is shown against the top of its cell
+     */
     @Nullable
-    public VoxelShape outline() {
-        return outline;
+    public VoxelShape outline(boolean atTop) {
+        return atTop ? outlineAtTop : outline;
     }
 
     public CompoundTag getAicraftTag() {
@@ -104,7 +113,10 @@ public class AIBlockEntity extends BlockEntity {
         sound = AIBlockSound.byName(aicraft.getString(SOUND_KEY));
         flammable = aicraft.getBoolean(FLAMMABLE_KEY);
         soundOf = soundOfBlock(aicraft.getString(SOUND_OF_KEY));
-        outline = outlineOf(PlantBounds.fromTag(aicraft.getIntArray(PLANT_BOUNDS_KEY)));
+        PlantBounds bounds = PlantBounds.fromTag(aicraft.getIntArray(PLANT_BOUNDS_KEY));
+        outline = outlineOf(bounds);
+        outlineAtTop = bounds == null ? null : outlineOf(bounds.atTop());
+        pictureTop = bounds == null ? 0 : bounds.top();
     }
 
     @Nullable
@@ -169,6 +181,6 @@ public class AIBlockEntity extends BlockEntity {
     @Override
     public @NotNull ModelData getModelData() {
         String id = getTextureId();
-        return id == null ? ModelData.EMPTY : ModelData.builder().with(ID_PROPERTY, id).build();
+        return id == null ? ModelData.EMPTY : ModelData.builder().with(ID_PROPERTY, id).with(PICTURE_TOP_PROPERTY, pictureTop).build();
     }
 }

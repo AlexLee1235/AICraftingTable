@@ -10,7 +10,7 @@ public enum AIBlockAttach implements StringRepresentable {
     BELOW,
     /** Hangs from the block above. */
     ABOVE,
-    /** Needs no support, as a vanilla chain does not, so it can stack on itself. */
+    /** Needs no support, as a vanilla chain does not, so it can stack on itself. Where it is placed sets {@link AICrossBlock#HANGING}. */
     ANY;
 
     @Override

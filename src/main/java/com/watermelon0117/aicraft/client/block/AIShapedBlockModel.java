@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.client.block;
 
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
 import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
+import com.watermelon0117.aicraft.blocks.AICrossBlock;
 import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderType;
@@ -58,7 +59,15 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
     @Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand,
                                              @NotNull ModelData data, @Nullable RenderType renderType) {
-        return BlockTileAtlas.shapeQuads(template, idFrom(data), side);
+        return BlockTileAtlas.shapeQuads(placedTemplate(state, data), idFrom(data), side);
+    }
+
+    private ShapeTemplate placedTemplate(@Nullable BlockState state, ModelData data) {
+        if (state == null || !state.hasProperty(AICrossBlock.HANGING) || !state.getValue(AICrossBlock.HANGING)) {
+            return template;
+        }
+        Integer rows = data.get(AIBlockEntity.PICTURE_TOP_PROPERTY);
+        return rows == null ? template : template.raised(rows);
     }
 
     @Nullable

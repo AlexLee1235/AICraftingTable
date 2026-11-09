@@ -65,6 +65,28 @@ class PlantBoundsTest {
         assertEquals(16, box[4]);
     }
 
+    @Test
+    void aPictureOnTheBottomRowMovesUpToTheTopKeepingItsSize() {
+        PlantBounds standing = new PlantBounds(6, 6, 10, 16);
+        PlantBounds hanging = standing.atTop();
+        assertEquals(new PlantBounds(6, 0, 10, 10), hanging);
+        assertArrayEquals(new int[]{standing.box()[0], 6, standing.box()[2], standing.box()[3], 16, standing.box()[5]}, hanging.box());
+    }
+
+    @Test
+    void aPictureAlreadyOnTheTopRowStaysAndAFullOneFillsBothEnds() {
+        PlantBounds onTop = new PlantBounds(2, 0, 14, 7);
+        assertEquals(onTop, onTop.atTop());
+        PlantBounds full = new PlantBounds(7, 0, 9, 16);
+        assertEquals(full, full.atTop());
+    }
+
+    /** A picture floating in the middle has clear rows on both ends; only the ones above it count. */
+    @Test
+    void aPictureInTheMiddleMovesUpByTheRowsAboveIt() {
+        assertEquals(new PlantBounds(3, 0, 13, 8), new PlantBounds(3, 5, 13, 13).atTop());
+    }
+
     /** A column covers 0.9 of a sixteenth, rounded half up: 0.9, 1.8, 2.7, 3.6, 4.5, 5.4, 6.3, 7.2. */
     @Test
     void theFartherSideSetsACenteredWidth() {
