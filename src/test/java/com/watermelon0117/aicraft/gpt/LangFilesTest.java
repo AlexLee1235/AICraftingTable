@@ -25,7 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class LangFilesTest {
     private static final Path LANG = Path.of("src/main/resources/assets/aicraft/lang");
     private static final Path CODE = Path.of("src/main/java");
-    private static final List<String> TRANSLATED = List.of("zh_cn", "zh_tw", "ru_ru", "hu_hu", "uk_ua");
+    private static final List<String> TRANSLATED = List.of("zh_cn", "zh_tw", "ru_ru", "hu_hu", "uk_ua",
+            "es_es", "pt_br", "pt_pt", "it_it", "de_de", "fr_fr", "tr_tr", "ko_kr", "ja_jp");
     private static final String PREFIX = "error.aicraft.";
     private static final Pattern KEY_IN_CODE = Pattern.compile("\"(error\\.aicraft\\.[a-z_]+)\"");
 
@@ -67,7 +68,10 @@ class LangFilesTest {
         Map<String, String> english = errors("en_us");
         for (String language : TRANSLATED) {
             for (Map.Entry<String, String> entry : errors(language).entrySet()) {
-                assertNotEquals(english.get(entry.getKey()), entry.getValue(), language + " " + entry.getKey());
+                // Spanish for Error is also Error.
+                if (!(language.equals("es_es") && entry.getKey().equals("error.aicraft.label"))) {
+                    assertNotEquals(english.get(entry.getKey()), entry.getValue(), language + " " + entry.getKey());
+                }
             }
         }
     }
