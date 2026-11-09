@@ -11,6 +11,7 @@ import com.watermelon0117.aicraft.common.RecipeManager;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 import com.watermelon0117.aicraft.gpt.ItemIdSanitizer;
 import com.watermelon0117.aicraft.gpt.delegate.ItemGenerator;
 import net.minecraft.ChatFormatting;
@@ -24,7 +25,6 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static net.minecraft.commands.Commands.argument;
@@ -72,7 +72,7 @@ public class GenerateCommand {
             return result;
         }
         // The item's image has already been paid for by now.
-        throw new IllegalArgumentException("The judge says this is not a block");
+        throw new GenerationException("It came out as an item, not a block. Try a more block-like name, or use /aicraft generateItem.");
     }
 
     private static int generate(CommandSourceStack source, String name, Request request) throws CommandSyntaxException {
@@ -133,10 +133,6 @@ public class GenerateCommand {
 
     private static void fail(ServerPlayer player, String id, Throwable error) {
         error.printStackTrace();
-        Throwable cause = error;
-        while ((cause instanceof CompletionException || cause.getMessage() == null) && cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        player.sendSystemMessage(Component.literal("Could not generate " + id + ": " + cause.getMessage()).withStyle(ChatFormatting.RED));
+        player.sendSystemMessage(Component.literal("Could not generate " + id + ": " + GenerationException.describe(error)).withStyle(ChatFormatting.RED));
     }
 }

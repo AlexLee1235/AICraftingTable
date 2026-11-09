@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.gpt.delegate.IdeaGenerator;
 import com.watermelon0117.aicraft.gpt.opanai.GPTIdeaGenerator;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import net.minecraft.core.BlockPos;
@@ -10,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.net.ConnectException;
 import java.util.function.Supplier;
 
 public class SGenIdeaPacket {
@@ -51,8 +51,7 @@ public class SGenIdeaPacket {
                         new CGenIdeaPacket(pos, recipe, results, false, ""), player);
             }).exceptionally(e -> {
                 e.printStackTrace();
-                PacketHandler.sendToPlayer(new CGenIdeaPacket(pos, recipe, new ItemIdeas(), true,
-                        e.getCause() instanceof ConnectException ? "Unable to connect to the server. Please check your internet connection or try again later." : e.getMessage()), player);
+                PacketHandler.sendToPlayer(new CGenIdeaPacket(pos, recipe, new ItemIdeas(), true, GenerationException.describe(e)), player);
                 return null;
             });
         }

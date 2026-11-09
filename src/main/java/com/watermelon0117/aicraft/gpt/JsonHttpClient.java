@@ -53,11 +53,12 @@ public class JsonHttpClient<T, U> {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                .exceptionally(error -> {
+                    throw GenerationException.noAnswer("the server", error);
+                })
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {
-                        String msg = resp.body().replace("\\n", "\n").replace("\\", "");
-                        if (msg.isEmpty()) msg = "Unknown server error";
-                        return CompletableFuture.failedFuture(new RuntimeException(msg));
+                        return CompletableFuture.failedFuture(GenerationException.fromServer(resp.body()));
                     }
 
                     U chat = gson.fromJson(resp.body(), responseClass);

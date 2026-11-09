@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.gpt.opanai;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -67,7 +68,7 @@ public class OpenAIChatClient {
         return post(gson.toJson(body), timeout).thenApply(chat -> {
             ChatResponse.ChatMessage answer = chat.choices.get(0).message;
             if (answer.content == null) {
-                throw new IllegalStateException("OpenAI returned no content: " + answer.refusal);
+                throw new GenerationException(answer.refusal == null ? "OpenAI returned no answer. Please try again." : "OpenAI refused to answer: " + answer.refusal);
             }
             return answer.content;
         });
@@ -87,12 +88,12 @@ public class OpenAIChatClient {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                .exceptionally(error -> {
+                    throw GenerationException.noAnswer("OpenAI", error);
+                })
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {
-                        return CompletableFuture.failedFuture(
-                                new RuntimeException("OpenAI error " +
-                                        resp.statusCode() + ": " +
-                                        resp.body()));
+                        return CompletableFuture.failedFuture(GenerationException.fromOpenAI(resp.statusCode(), resp.body()));
                     }
                     return CompletableFuture.completedFuture(gson.fromJson(resp.body(), ChatResponse.class));
                 });

@@ -2,6 +2,7 @@ package com.watermelon0117.aicraft.gpt.opanai;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -45,18 +46,18 @@ public final class OpenAIImageClient {
                 .build();
 
         return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                .exceptionally(error -> {
+                    throw GenerationException.noAnswer("OpenAI", error);
+                })
                 .thenCompose(resp -> {
                     if (resp.statusCode() != 200) {
-                        return CompletableFuture.failedFuture(
-                                new RuntimeException("OpenAI error " +
-                                        resp.statusCode() + ": " +
-                                        resp.body()));
+                        return CompletableFuture.failedFuture(GenerationException.fromOpenAI(resp.statusCode(), resp.body()));
                     }
 
                     Response parsed = gson.fromJson(resp.body(), Response.class);
                     Data     d      = parsed.data.get(0);          // n == 1
                     if (d.b64_json == null) {
-                        return CompletableFuture.failedFuture(new RuntimeException("OpenAI returned no image"));
+                        return CompletableFuture.failedFuture(new GenerationException("OpenAI returned no image. Please try again."));
                     }
                     return CompletableFuture.completedFuture(d.b64_json);
                 });

@@ -6,7 +6,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyItemGenerator {
-    /** The server judges before it draws: up to 60 seconds, and a failed judge still goes on to make an item. */
+    /** The server judges before it draws, for up to 60 seconds. */
     private static final Duration TIMEOUT = Duration.ofSeconds(180);
 
     /** Answers an item or a block of any shape. Released mods call /textures, which answers only items. */

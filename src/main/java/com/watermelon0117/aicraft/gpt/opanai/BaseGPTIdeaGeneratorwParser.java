@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.gpt.opanai;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 
 import java.util.List;
@@ -51,10 +52,8 @@ public class BaseGPTIdeaGeneratorwParser {
         }).thenApply(jsonResult -> {
             System.out.println(jsonResult);
             ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
-            if (result.error)
-                throw new IllegalStateException("Json extractor says input has error");
-            if (result.items == null || result.items.size() < 3 || result.translated == null || result.translated.size() < 3)
-                throw new IllegalStateException("Json extractor returned fewer than 3 items");
+            if (result.error || result.items == null || result.items.size() < 3 || result.translated == null || result.translated.size() < 3)
+                throw new GenerationException("The AI could not come up with ideas for this recipe. Please try again.");
             return new ItemIdeas(result);
         });
     }

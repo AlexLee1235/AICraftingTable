@@ -7,6 +7,7 @@ import com.watermelon0117.aicraft.common.GeneratedInstaller;
 import com.watermelon0117.aicraft.common.ShapedBlockRecipe;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 import com.watermelon0117.aicraft.gpt.ItemIdSanitizer;
 import com.watermelon0117.aicraft.gpt.delegate.ItemGenerator;
 import com.watermelon0117.aicraft.common.ItemStackArray;
@@ -133,7 +134,7 @@ public class SSelectIdeaPacket {
         GeneratedBlock block;
         try {
             block = shaped.block(FileUtil.getBlockTextureFolder(), vanillaFaces);
-        } catch (IOException | IllegalArgumentException e) {
+        } catch (IOException | RuntimeException e) {
             applyGeneratedFailure(player, pos, e);
             return;
         }
@@ -156,7 +157,7 @@ public class SSelectIdeaPacket {
         ItemStack itemStack;
         try {
             itemStack = GeneratedInstaller.install(id, name, generated);
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             applyGeneratedFailure(player, pos, e);
             return;
         }
@@ -178,24 +179,14 @@ public class SSelectIdeaPacket {
         if (blockEntity instanceof AICraftingTableBlockEntity be) {
             be.setProgress(0);
         }
-        sendErrToAll(player.level(), unwrapMessage(error));
+        sendErrToAll(player.level(), pos, GenerationException.describe(error));
     }
 
-    private static String unwrapMessage(Throwable error) {
-        Throwable current = error;
-        while (current != null) {
-            if (current.getMessage() != null && !current.getMessage().isBlank()) {
-                return current.getMessage();
-            }
-            current = current.getCause();
-        }
-        return "Unknown error";
-    }
-
-    private static void sendErrToAll(Level level, String msg) {
+    private static void sendErrToAll(Level level, BlockPos pos, String msg) {
         for (ServerPlayer player : ((ServerLevel) level).getPlayers(p -> true)) {
             player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
             player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.RED));
+            PacketHandler.sendToPlayer(new CGenerationFailedPacket(pos), player);
         }
     }
 }

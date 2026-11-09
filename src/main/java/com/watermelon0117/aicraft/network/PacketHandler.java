@@ -72,6 +72,11 @@ public class PacketHandler {
                 .decoder(CSendBlockTexturesPacket::new)
                 .consumerMainThread(CSendBlockTexturesPacket::handle)
                 .add();
+        INSTANCE.messageBuilder(CGenerationFailedPacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CGenerationFailedPacket::encode)
+                .decoder(CGenerationFailedPacket::new)
+                .consumerMainThread(CGenerationFailedPacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

@@ -5,6 +5,7 @@ import com.watermelon0117.aicraft.common.BlockSheet;
 import com.watermelon0117.aicraft.common.CrossTexture;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 import org.slf4j.Logger;
 
 import java.util.Base64;
@@ -19,7 +20,7 @@ public class GPTBlockGenerator {
     private final GPTImageGenerator images = new GPTImageGenerator();
 
     /**
-     * A judge that fails must not cost a player the item they would get otherwise.
+     * A judge that fails is an error, as an item made instead would stay as what that recipe makes.
      *
      * @return the block, or empty when this should be an item
      */
@@ -34,8 +35,7 @@ public class GPTBlockGenerator {
                     return BlockJudge.parse(rawJson, id, grid);
                 })
                 .exceptionally(error -> {
-                    LOGGER.error("Block judge failed for {}, so it becomes an item", id, error);
-                    return Optional.empty();
+                    throw new GenerationException("The AI could not decide whether this is a block. " + GenerationException.describe(error, "Its answer could not be used. Please try again."), error);
                 })
                 .thenCompose(plan -> plan.isEmpty()
                         ? CompletableFuture.completedFuture(Optional.empty())

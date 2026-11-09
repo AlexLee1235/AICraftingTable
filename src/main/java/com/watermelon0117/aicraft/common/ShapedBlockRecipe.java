@@ -9,6 +9,7 @@ import com.watermelon0117.aicraft.blocks.AIBlockSound;
 import com.watermelon0117.aicraft.blocks.AIBlockTool;
 import com.watermelon0117.aicraft.blocks.AIPlacedBlock;
 import com.watermelon0117.aicraft.gpt.GeneratedBlock;
+import com.watermelon0117.aicraft.gpt.GenerationException;
 import com.watermelon0117.aicraft.gpt.ItemIdSanitizer;
 import com.watermelon0117.aicraft.init.BlockInit;
 import net.minecraft.core.BlockPos;
@@ -180,7 +181,7 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
         try {
             material = BlockTextureStore.load(textureFolder, materialId);
         } catch (NoSuchFileException e) {
-            throw new IOException("This world has no faces for " + materialId, e);
+            throw new GenerationException("This world has lost the pictures of " + materialId + ". Regenerate it, then try again.", e);
         }
         BlockFaces faces = material.shaped().validated();
         return new GeneratedBlock(shape,

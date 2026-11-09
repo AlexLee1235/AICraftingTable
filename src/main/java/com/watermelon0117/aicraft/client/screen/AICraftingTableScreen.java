@@ -19,6 +19,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.language.LanguageManager;
 import net.minecraft.network.chat.Component;
@@ -169,6 +170,23 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             } else {
                 System.out.println("Canceled, not putting ideas");
             }
+        }
+    }
+
+    /** The server has said why in the chat. The materials are untouched, so the same ideas are offered again. */
+    public void handleGenerationFailed(BlockPos pos) {
+        // A failed regeneration leaves the old result to show.
+        if (state != State.PROGRESS || followsResult || menu.hasCraftResult || !pos.equals(menu.blockEntity.getBlockPos())) {
+            return;
+        }
+        if (itemIdeas == null) {  // Opened while it was running.
+            error = true;
+            followsResult = true;
+            setInitial();
+        } else {
+            mainBtn.visible = true;
+            options.setMessage(itemIdeas.names);
+            state = State.GENERATED;
         }
     }
 
