@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
@@ -27,10 +28,30 @@ public final class BlockTextureStore {
     private BlockTextureStore() {
     }
 
+    /** The faces of the folder last asked for, so each login does not read every file again. {@link #save} keeps it current. */
+    private static Path cachedFolder;
+    private static CompletableFuture<Map<String, BlockFaces>> cached;
+
     public static void save(Path folder, String id, BlockFaces faces) throws IOException {
         Files.write(folder.resolve(fileName(id, TOP)), faces.top());
         Files.write(folder.resolve(fileName(id, FRONT)), faces.front());
         Files.write(folder.resolve(fileName(id, SIDE)), faces.side());
+        synchronized (BlockTextureStore.class) {
+            if (cached != null && folder.equals(cachedFolder)) {
+                // After the files are written, so a load still running cannot leave the older faces in place.
+                // Chained, as two saves waiting on one load are not promised to run in the order they were made.
+                cached = cached.thenApply(all -> {
+                    all.put(id, faces);
+                    return all;
+                });
+            }
+        }
+    }
+
+    /** Forgets the faces kept by {@link #loadAllAsync}, for a server that starts: the folder may have changed while none ran. */
+    public static synchronized void clearCache() {
+        cachedFolder = null;
+        cached = null;
     }
 
     /** @throws java.nio.file.NoSuchFileException if any of the id's three faces is missing */
@@ -68,14 +89,21 @@ public final class BlockTextureStore {
         return faces;
     }
 
-    public static CompletableFuture<Map<String, BlockFaces>> loadAllAsync(Path folder) {
-        return CompletableFuture.supplyAsync(() -> {
+    /** Reads the folder the first time and answers from memory after that, until {@link #clearCache}. A failed read is tried again. */
+    public static synchronized CompletableFuture<Map<String, BlockFaces>> loadAllAsync(Path folder) {
+        if (cached != null && folder.equals(cachedFolder) && !cached.isCompletedExceptionally()) {
+            return cached;
+        }
+        cachedFolder = folder;
+        cached = CompletableFuture.supplyAsync(() -> {
             try {
-                return loadAll(folder);
+                // Concurrent, as save adds to it on the server thread while a login may be reading it.
+                return new ConcurrentHashMap<>(loadAll(folder));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
+        return cached;
     }
 
     /** Splits faces into groups that each fit in one packet. A group holds at least one block, whatever its size. */

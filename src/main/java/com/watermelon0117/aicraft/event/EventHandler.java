@@ -61,6 +61,7 @@ public class EventHandler {
     public static void onServerStart(ServerAboutToStartEvent e) {
         SpecialItemManager.ServerSide.init(e.getServer());
         RecipeManager.ServerSide.init(e.getServer());
+        BlockTextureStore.clearCache();
         String key = AICraftingTableCommonConfigs.OPENAI_API_KEY.get();
         AICraftingTableCommonConfigs.useOpenAI = !key.isEmpty();
         if(!key.isEmpty()) {

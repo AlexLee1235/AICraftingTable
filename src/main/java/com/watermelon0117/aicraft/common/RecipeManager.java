@@ -142,7 +142,7 @@ public final class RecipeManager {
     }
 
     /**
-     * Makes this grid give the result, with the result's count, and every other recipe that makes or uses the result's id follow it.
+     * Makes this grid give the result, with the result's count, and every other recipe that makes or uses the result's id follow it, keeping its own count.
      * Matching takes the first recipe that fits, so a regenerated result appended after the old one would never come out.
      * Ingredients match by item and tags, and regenerating can turn an item into a block or back, so a recipe left holding the old stack would stop fitting.
      */
@@ -159,7 +159,8 @@ public final class RecipeManager {
             }
         }
         recipes.add(new Recipe(result.copy(), stored, shapeless));
-        recipes.replaceAll(r -> r.withItem(id, result));
+        // Each other recipe of the id still makes as many as before, as in updateItem.
+        recipes.replaceAll(r -> r.withItem(id, result.copyWithCount(r.result.getCount())));
         dirtyAndSync();
     }
 

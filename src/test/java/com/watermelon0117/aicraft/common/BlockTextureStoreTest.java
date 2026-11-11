@@ -85,6 +85,65 @@ class BlockTextureStoreTest {
     }
 
     @Test
+    void theFolderIsReadOnceAndSavesAreAddedToWhatWasRead() throws IOException {
+        BlockTextureStore.clearCache();
+        try {
+            BlockTextureStore.save(folder, "First", faces(4, 1));
+            assertEquals(java.util.Set.of("First"), BlockTextureStore.loadAllAsync(folder).join().keySet());
+
+            // Gone from disk, so only memory can still answer with it.
+            for (String face : List.of("top", "front", "side")) {
+                Files.delete(folder.resolve(BlockTextureStore.fileName("First", face)));
+            }
+            BlockFaces second = faces(4, 7);
+            BlockTextureStore.save(folder, "Second", second);
+
+            Map<String, BlockFaces> again = BlockTextureStore.loadAllAsync(folder).join();
+            assertEquals(java.util.Set.of("First", "Second"), again.keySet());
+            assertArrayEquals(second.side(), again.get("Second").side());
+
+            BlockTextureStore.clearCache();
+            assertEquals(java.util.Set.of("Second"), BlockTextureStore.loadAllAsync(folder).join().keySet());
+        } finally {
+            BlockTextureStore.clearCache();
+        }
+    }
+
+    @Test
+    void anotherWorldsFolderGetsItsOwnFaces(@TempDir Path other) throws IOException {
+        BlockTextureStore.clearCache();
+        try {
+            BlockTextureStore.save(folder, "Here", faces(4, 1));
+            BlockTextureStore.save(other, "There", faces(4, 5));
+            assertEquals(java.util.Set.of("Here"), BlockTextureStore.loadAllAsync(folder).join().keySet());
+
+            // No clearCache between them: the folder alone must be enough.
+            assertEquals(java.util.Set.of("There"), BlockTextureStore.loadAllAsync(other).join().keySet());
+            BlockTextureStore.save(folder, "Late", faces(4, 9));
+            assertEquals(java.util.Set.of("There"), BlockTextureStore.loadAllAsync(other).join().keySet());
+            assertEquals(java.util.Set.of("Here", "Late"), BlockTextureStore.loadAllAsync(folder).join().keySet());
+        } finally {
+            BlockTextureStore.clearCache();
+        }
+    }
+
+    @Test
+    void aRegeneratedBlockReplacesWhatWasRead() throws IOException {
+        BlockTextureStore.clearCache();
+        try {
+            BlockTextureStore.save(folder, "Again", faces(4, 1));
+            BlockTextureStore.loadAllAsync(folder).join();
+            BlockFaces newer = faces(4, 7), newest = faces(4, 9);
+            BlockTextureStore.save(folder, "Again", newer);
+            BlockTextureStore.save(folder, "Again", newest);
+
+            assertArrayEquals(newest.top(), BlockTextureStore.loadAllAsync(folder).join().get("Again").top());
+        } finally {
+            BlockTextureStore.clearCache();
+        }
+    }
+
+    @Test
     void batchesStayUnderTheLimitAndLoseNothing() {
         Map<String, BlockFaces> all = new LinkedHashMap<>();
         for (int i = 0; i < 1000; i++) {

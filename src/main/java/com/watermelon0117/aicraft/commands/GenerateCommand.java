@@ -20,6 +20,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import com.mojang.logging.LogUtils;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -37,6 +40,7 @@ public class GenerateCommand {
     private static final SimpleCommandExceptionType IN_PROGRESS = new SimpleCommandExceptionType(
             Component.translatable("error.aicraft.in_progress"));
 
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final ItemGenerator GENERATOR = new ItemGenerator();
     private static final Set<String> IN_FLIGHT = ConcurrentHashMap.newKeySet();
 
@@ -84,38 +88,67 @@ public class GenerateCommand {
         if (!IN_FLIGHT.add(id)) {
             throw IN_PROGRESS.create();
         }
-        SpecialItemManager items = SpecialItemManager.get(player.level());
-        boolean exists = items.hasItem(id);
-        // The id is English, and an item from the table can have a name in the player's language. The table's regenerate button keeps it too.
-        String displayName = exists ? items.getItem(id).getHoverName().getString() : name.trim();
-        source.sendSuccess(() -> Component.literal((exists ? "Regenerating " : "Generating ") + id + "..."), false);
-        request.send(id, displayName, player.getStringUUID())
-                .whenComplete((result, error) -> player.getServer().execute(() -> {
-                    IN_FLIGHT.remove(id);
-                    if (error != null) {
-                        fail(player, id, error);
-                    } else {
-                        apply(player, id, displayName, result);
-                    }
-                }));
+        try {
+            SpecialItemManager items = SpecialItemManager.get(player.level());
+            boolean exists = items.hasItem(id);
+            // The id is English, and an item from the table can have a name in the player's language. The table's regenerate button keeps it too.
+            String displayName = exists ? items.getItem(id).getHoverName().getString() : name.trim();
+            source.sendSuccess(() -> Component.literal((exists ? "Regenerating " : "Generating ") + id + "..."), false);
+            request.send(id, displayName, player.getStringUUID())
+                    .whenComplete((result, error) -> player.getServer().execute(() -> {
+                        IN_FLIGHT.remove(id);
+                        if (error != null) {
+                            fail(player, id, error);
+                        } else {
+                            apply(player, id, displayName, result);
+                        }
+                    }));
+        } catch (RuntimeException e) {
+            // Nothing was sent, so nothing will come back to free the id.
+            IN_FLIGHT.remove(id);
+            throw e;
+        }
         return 1;
     }
 
-    private static void apply(ServerPlayer player, String id, String name, GeneratedResult generated) {
-        ItemStack stack;
-        try {
-            stack = GeneratedInstaller.install(id, name, generated);
-        } catch (IOException | RuntimeException e) {
-            fail(player, id, e);
+    /** @return the player as they are now, as the one who ran the command may have died or left since; null when they are offline */
+    @Nullable
+    private static ServerPlayer current(ServerPlayer player) {
+        return player.getServer().getPlayerList().getPlayer(player.getUUID());
+    }
+
+    private static void apply(ServerPlayer asked, String id, String name, GeneratedResult generated) {
+        ServerPlayer player = current(asked);
+        if (player == null) {
+            // What was paid for is still made, and is in the creative tab when they return.
+            installFor(asked, id, name, generated);
+            LOGGER.info("Generated {} for {}, who has left; no stack was given", id, asked.getName().getString());
             return;
         }
-        SpecialItemManager.get(player.level()).put(stack);
-        RecipeManager.get().updateItem(stack);
+        ItemStack stack = installFor(player, id, name, generated);
+        if (stack == null) {
+            return;
+        }
         ItemStack given = stack.copyWithCount(stack.getMaxStackSize());
         if (!player.getInventory().add(given)) {
             player.drop(given, false);
         }
         player.sendSystemMessage(Component.literal("Generated " + id + describe(generated, stack)));
+    }
+
+    /** @return one of what was made, or null when it could not be installed, which the player has been told */
+    @Nullable
+    private static ItemStack installFor(ServerPlayer player, String id, String name, GeneratedResult generated) {
+        ItemStack stack;
+        try {
+            stack = GeneratedInstaller.install(id, name, generated);
+        } catch (IOException | RuntimeException e) {
+            fail(player, id, e);
+            return null;
+        }
+        SpecialItemManager.get(player.level()).put(stack);
+        RecipeManager.get().updateItem(stack);
+        return stack;
     }
 
     private static String describe(GeneratedResult generated, ItemStack stack) {
@@ -131,8 +164,12 @@ public class GenerateCommand {
         return properties.isEmpty() ? "" : " " + properties;
     }
 
-    private static void fail(ServerPlayer player, String id, Throwable error) {
+    private static void fail(ServerPlayer asked, String id, Throwable error) {
         error.printStackTrace();
+        ServerPlayer player = current(asked);
+        if (player == null) {
+            return;
+        }
         player.sendSystemMessage(Component.translatable("error.aicraft.could_not_generate", id, GenerationException.describe(error)).withStyle(ChatFormatting.RED));
     }
 }
