@@ -1,10 +1,12 @@
 package com.watermelon0117.aicraft;
 
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
+import com.watermelon0117.aicraft.common.MisspelledConfigKey;
 import com.watermelon0117.aicraft.init.*;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 
@@ -29,6 +31,7 @@ public class AICraftingTable {
         ParticleInit.PARTICLE_TYPES.register(bus);
         ArgumentInit.ARGUMENTS.register(bus);
         CreativeModeTabInit.CREATIVE_MODE_TABS.register(bus);
+        MisspelledConfigKey.fix(FMLPaths.CONFIGDIR.get());
         context.registerConfig(ModConfig.Type.COMMON, AICraftingTableCommonConfigs.SPEC);
     }
 }
