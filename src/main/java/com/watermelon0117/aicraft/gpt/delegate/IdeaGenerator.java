@@ -4,7 +4,7 @@ import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.gpt.ProxyIdeaGenerator;
-import com.watermelon0117.aicraft.gpt.opanai.GPTIdeaGenerator;
+import com.watermelon0117.aicraft.gpt.openai.GPTIdeaGenerator;
 
 import java.util.concurrent.CompletableFuture;
 

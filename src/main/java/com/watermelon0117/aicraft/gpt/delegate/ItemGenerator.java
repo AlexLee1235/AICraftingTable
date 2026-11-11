@@ -5,8 +5,8 @@ import com.watermelon0117.aicraft.common.ItemStackArray;
 import com.watermelon0117.aicraft.gpt.GeneratedItem;
 import com.watermelon0117.aicraft.gpt.GeneratedResult;
 import com.watermelon0117.aicraft.gpt.ProxyItemGenerator;
-import com.watermelon0117.aicraft.gpt.opanai.GPTBlockGenerator;
-import com.watermelon0117.aicraft.gpt.opanai.GPTItemGenerator;
+import com.watermelon0117.aicraft.gpt.openai.GPTBlockGenerator;
+import com.watermelon0117.aicraft.gpt.openai.GPTItemGenerator;
 
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;

@@ -3,7 +3,7 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.gpt.opanai.ItemResult;
+import com.watermelon0117.aicraft.gpt.openai.ItemResult;
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;

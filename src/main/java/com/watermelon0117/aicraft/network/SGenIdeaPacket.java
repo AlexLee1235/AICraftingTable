@@ -1,7 +1,7 @@
 package com.watermelon0117.aicraft.network;
 
 import com.watermelon0117.aicraft.gpt.delegate.IdeaGenerator;
-import com.watermelon0117.aicraft.gpt.opanai.GPTIdeaGenerator;
+import com.watermelon0117.aicraft.gpt.openai.GPTIdeaGenerator;
 import com.watermelon0117.aicraft.gpt.GenerationException;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.common.ItemStackArray;

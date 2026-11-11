@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.gpt.opanai;
+package com.watermelon0117.aicraft.gpt.openai;
 
 public class ItemResult  {
     public String visual_description;

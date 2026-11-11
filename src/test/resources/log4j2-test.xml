@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tests that load Forge classes would otherwise use Minecraft's log4j2.xml, which writes logs/ into the project folder. -->
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%level] %logger{1}: %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="warn">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

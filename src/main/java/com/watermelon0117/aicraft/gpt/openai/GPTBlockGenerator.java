@@ -1,4 +1,4 @@
-package com.watermelon0117.aicraft.gpt.opanai;
+package com.watermelon0117.aicraft.gpt.openai;
 
 import com.mojang.logging.LogUtils;
 import com.watermelon0117.aicraft.common.BlockSheet;

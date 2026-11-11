@@ -3,7 +3,7 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.gpt.opanai.OpenAIChatClient;
+import com.watermelon0117.aicraft.gpt.openai.OpenAIChatClient;
 
 import java.net.URI;
 import java.net.http.HttpClient;
