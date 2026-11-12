@@ -16,7 +16,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * Vanilla's own recipe for a slab, stairs, a fence or a wall, made of one full block, under a name of that same shape.
- * The block is a cube AI block or a vanilla one. The mod makes such a block itself instead of asking the texture server:
+ * The block is a cube AI block or a plain full block of vanilla or any other mod. The mod makes such a block itself instead of asking the texture server:
  * it shows the material's own top, bottom and side and keeps its properties.
  * The layouts and shape words are the texture server's ({@code matchBlockShape} and {@code SHAPE_WORDS}).
  *
@@ -101,7 +100,7 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
                 cells.append(' ');
             } else if (stack.is(Items.STICK)) {
                 cells.append('S');
-            } else if ((isCube(stack) || isVanillaFullBlock(stack)) && (material == null || ItemStack.isSameItemSameTags(material, stack))) {
+            } else if ((isCube(stack) || isPlainFullBlock(stack)) &&(material == null || ItemStack.isSameItemSameTags(material, stack))) {
                 material = material == null ? stack.copyWithCount(1) : material;
                 cells.append('I');
             } else {
@@ -120,22 +119,22 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
     }
 
     /**
-     * A plain vanilla block that fills its space and is drawn from its model, so its side is a picture to copy.
+     * A plain block of vanilla or another mod that fills its space and is drawn from its model, so its side is a picture to copy.
      * A renamed one is left to the texture server, as its name may mean something else.
+     * The mod's own AI blocks are not plain: their pictures come from the block entity, not from the model.
      */
-    private static boolean isVanillaFullBlock(ItemStack stack) {
-        if (!(stack.getItem() instanceof BlockItem item) || stack.getTag() != null && !stack.getTag().isEmpty()) {
+    private static boolean isPlainFullBlock(ItemStack stack) {
+        if (!(stack.getItem() instanceof BlockItem item) || stack.getTag() != null && !stack.getTag().isEmpty()
+                || item.getBlock() instanceof AIPlacedBlock) {
             return false;
         }
-        ResourceLocation key = ForgeRegistries.ITEMS.getKey(stack.getItem());
         BlockState state = item.getBlock().defaultBlockState();
-        return key != null && key.getNamespace().equals("minecraft") && state.getRenderShape() == RenderShape.MODEL
-                && Block.isShapeFullBlock(state.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO));
+        return state.getRenderShape() == RenderShape.MODEL && Block.isShapeFullBlock(state.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO));
     }
 
-    /** @return the vanilla block the material is, or null when it is an AI block */
+    /** @return the plain block the material is, whose faces the crafting client reads, or null when it is an AI block */
     @Nullable
-    public Block vanillaBlock() {
+    public Block copiedBlock() {
         return material.is(BlockInit.AI_BLOCK_ITEM.get()) ? null : ((BlockItem) material.getItem()).getBlock();
     }
 
@@ -152,17 +151,17 @@ public record ShapedBlockRecipe(AIBlockShape shape, ItemStack material) {
     /**
      * Shows the material's own faces. A machine's front is left out: these shapes have no front of their own, so its side goes all the way round.
      *
-     * @param vanillaFaces a vanilla material's faces, read by the client that crafts, since only clients have vanilla's pictures; unused for an AI material
+     * @param copiedFaces a plain material's faces, read by the client that crafts, since only clients have the blocks' pictures; unused for an AI material
      * @throws IOException if this world has no faces for an AI material
      * @throws IllegalArgumentException if a face is not a usable picture
      */
-    public GeneratedBlock block(Path textureFolder, @Nullable BlockFaces vanillaFaces) throws IOException {
-        Block vanilla = vanillaBlock();
-        return vanilla == null ? fromAIBlock(textureFolder) : fromVanilla(vanilla, vanillaFaces);
+    public GeneratedBlock block(Path textureFolder, @Nullable BlockFaces copiedFaces) throws IOException {
+        Block copied = copiedBlock();
+        return copied == null ? fromAIBlock(textureFolder) : fromPlainBlock(copied, copiedFaces);
     }
 
-    /** The vanilla block's properties, each turned into the nearest the mod has, and its own sound. */
-    private GeneratedBlock fromVanilla(Block block, BlockFaces read) {
+    /** The plain block's properties, each turned into the nearest the mod has, and its own sound. */
+    private GeneratedBlock fromPlainBlock(Block block, BlockFaces read) {
         BlockFaces faces = read.validated();
         BlockState state = block.defaultBlockState();
         return new GeneratedBlock(shape,

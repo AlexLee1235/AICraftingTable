@@ -14,7 +14,7 @@ import java.util.Base64;
 import java.util.Locale;
 
 /**
- * @param soundOf      the id of a vanilla block whose own sound this block keeps, or null; the texture server never names one
+ * @param soundOf      the id of a block, vanilla's or a mod's, whose own sound this block keeps, or null; the texture server never names one
  * @param transparency read from the faces; a plant is opaque here, as it has no such state and is cut out anyway
  * @param attach       what holds a cross in place; every other shape says {@code BELOW}, and nothing reads it
  */

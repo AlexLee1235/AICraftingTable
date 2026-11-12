@@ -37,19 +37,19 @@ public class SSelectIdeaPacket {
     private final String name;
     private final ItemStack[] recipe;
     private final boolean override;
-    /** A vanilla material's faces as the crafting client read them, or null. A 16x16 PNG is far smaller than the limit on each. */
+    /** A plain material's faces, vanilla's or a mod's, as the crafting client read them, or null. A 16x16 PNG is far smaller than the limit on each. */
     @Nullable
-    private final BlockFaces vanillaFaces;
+    private final BlockFaces copiedFaces;
     private static final int MAX_FACE_BYTES = 16384;
     private static int incrementID = 0;
 
-    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean override, @Nullable BlockFaces vanillaFaces) {
+    public SSelectIdeaPacket(BlockPos pos, String id, String name, ItemStack[] recipe, boolean override, @Nullable BlockFaces copiedFaces) {
         this.pos = pos;
         this.id = id;
         this.name = name;
         this.recipe = recipe;
         this.override = override;
-        this.vanillaFaces = vanillaFaces;
+        this.copiedFaces = copiedFaces;
     }
 
     public SSelectIdeaPacket(FriendlyByteBuf buf) {
@@ -61,7 +61,7 @@ public class SSelectIdeaPacket {
             recipe[i] = buf.readItem();
         this.recipe = recipe;
         this.override = buf.readBoolean();
-        this.vanillaFaces = buf.readNullable(SSelectIdeaPacket::readFaces);
+        this.copiedFaces = buf.readNullable(SSelectIdeaPacket::readFaces);
     }
 
     private static BlockFaces readFaces(FriendlyByteBuf buf) {
@@ -75,7 +75,7 @@ public class SSelectIdeaPacket {
         for (int i = 0; i < 9; i++)
             buf.writeItemStack(recipe[i], true);
         buf.writeBoolean(override);
-        buf.writeNullable(vanillaFaces, CAddBlockTexturePacket::writeFaces);
+        buf.writeNullable(copiedFaces, CAddBlockTexturePacket::writeFaces);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
@@ -104,11 +104,11 @@ public class SSelectIdeaPacket {
                     be.taskID = tId;
                     player.level().sendBlockUpdated(pos, player.level().getBlockState(pos), player.level().getBlockState(pos), Block.UPDATE_ALL);
                     Optional<ShapedBlockRecipe> shaped = ShapedBlockRecipe.match(recipeSnapshot, id)
-                            // Only clients have vanilla's pictures, so without one the texture server draws the block.
-                            .filter(found -> found.vanillaBlock() == null || vanillaFaces != null);
+                            // Only clients have the blocks' pictures, so without one the texture server draws the block.
+                            .filter(found -> found.copiedBlock() == null || copiedFaces != null);
                     if (shaped.isPresent()) {
                         // Vanilla's recipe for this shape out of a full block looks like that block, so the texture server is not asked.
-                        makeShapedBlock(player, pos, id, name, recipeSnapshot, tId, shaped.get(), vanillaFaces);
+                        makeShapedBlock(player, pos, id, name, recipeSnapshot, tId, shaped.get(), copiedFaces);
                         return;
                     }
                     generator.generate(id, name, new ItemStackArray(recipeSnapshot), player.getStringUUID()).thenAccept(generated -> {
@@ -130,10 +130,10 @@ public class SSelectIdeaPacket {
     }
 
     private static void makeShapedBlock(ServerPlayer player, BlockPos pos, String id, String name, ItemStack[] recipe, int taskId,
-                                        ShapedBlockRecipe shaped, @Nullable BlockFaces vanillaFaces) {
+                                        ShapedBlockRecipe shaped, @Nullable BlockFaces copiedFaces) {
         GeneratedBlock block;
         try {
-            block = shaped.block(FileUtil.getBlockTextureFolder(), vanillaFaces);
+            block = shaped.block(FileUtil.getBlockTextureFolder(), copiedFaces);
         } catch (IOException | RuntimeException e) {
             applyGeneratedFailure(player, pos, e);
             return;

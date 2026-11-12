@@ -2,7 +2,7 @@ package com.watermelon0117.aicraft.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.watermelon0117.aicraft.AICraftingTable;
-import com.watermelon0117.aicraft.client.block.VanillaFaceReader;
+import com.watermelon0117.aicraft.client.block.BlockFaceReader;
 import com.watermelon0117.aicraft.common.BlockFaces;
 import com.watermelon0117.aicraft.common.ShapedBlockRecipe;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
@@ -126,7 +126,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (MainItem.isMainItem(itemStack)) {
             String id = MainItem.getID(itemStack);
             String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true, vanillaFaces(id)));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true, copiedFaces(id)));
             followsResult = false;
             setProgress();
             // send feedback
@@ -138,16 +138,16 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (state == State.GENERATED) {
             String id = itemIdeas.id[i];
             String name = itemIdeas.names[i];
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, false, vanillaFaces(id)));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, false, copiedFaces(id)));
             setProgress();
         }
     }
 
-    /** The faces of a vanilla material for the server to copy, since the server has no vanilla pictures; null when nothing is copied. */
+    /** The faces of a plain material, vanilla's or a mod's, for the server to copy, since the server has no block pictures; null when nothing is copied. */
     @Nullable
-    private BlockFaces vanillaFaces(String id) {
-        Block vanilla = ShapedBlockRecipe.match(currentRecipe.items, id).map(ShapedBlockRecipe::vanillaBlock).orElse(null);
-        return vanilla == null ? null : VanillaFaceReader.faces(vanilla);
+    private BlockFaces copiedFaces(String id) {
+        Block copied = ShapedBlockRecipe.match(currentRecipe.items, id).map(ShapedBlockRecipe::copiedBlock).orElse(null);
+        return copied == null ? null : BlockFaceReader.faces(copied);
     }
 
     private void btnPress(Button button) {
