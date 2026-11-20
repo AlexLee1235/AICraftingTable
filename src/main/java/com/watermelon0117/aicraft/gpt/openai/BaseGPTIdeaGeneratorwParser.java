@@ -1,0 +1,67 @@
+package com.watermelon0117.aicraft.gpt.openai;
+
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.gpt.GenerationException;
+import com.watermelon0117.aicraft.gpt.ItemIdeas;
+import net.minecraft.network.chat.Component;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+public class BaseGPTIdeaGeneratorwParser {
+    String inst2 = "You will be given a block of text that includes 3 original Minecraft-style item names, possibly along with descriptions or reasoning.\n" +
+            "\n" +
+            "Your job is to:\n" +
+            "1. Extract just the item names (no descriptions, numbering, or extra formatting).\n" +
+            "2. Translate each extracted name into [TARGET LANGUAGE].\n" +
+            "3. Return the results in JSON format with two arrays:\n" +
+            "\n" +
+            "{\n" +
+            "  \"items\": [\"original1\", \"original2\", \"original3\"],\n" +
+            "  \"translated\": [\"translated1\", \"translated2\", \"translated3\"],\n" +
+            "  \"error\": false\n" +
+            "}\n" +
+            "\n" +
+            "If there are no items in the text, set \"error\" to true and leave both arrays as empty.\n" +
+            "\n" +
+            "Example input:\n" +
+            "This pattern forms a U-shape. Here are three item ideas: Iron Crucible, Ore Hopper, Molten Basin.\n" +
+            "\n" +
+            "Example output (translated):\n" +
+            "{\n" +
+            "  \"items\": [\"Iron Crucible\", \"Ore Hopper\", \"Molten Basin\"],\n" +
+            "  \"translated\": [\"translated1\", \"translated2\", \"translated3\"],\n" +
+            "  \"error\": false\n" +
+            "}\n" +
+            "\n" +
+            "Now extract and translate from this:\n";
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+    private final OpenAIChatClient client, extractor;
+
+    public BaseGPTIdeaGeneratorwParser(String sysMsg, String model, double temp) {
+        client = new OpenAIChatClient(model, temp, 2048, sysMsg, "text");
+        extractor = new OpenAIChatClient("gpt-4.1", 0.0, 1024,
+                "You are a helpful assistant that extracts structured data and translate.", "json_object");
+    }
+
+    public CompletableFuture<ItemIdeas> generate(String prompt, String lang, String user) {
+        return client.chat(prompt, "Idea", user).thenCompose(rawResult -> {
+            System.out.println(rawResult);
+            return extractor.chat(inst2 + "Target language: " + lang + "\n" + rawResult, "Extract", user);
+        }).thenApply(jsonResult -> {
+            System.out.println(jsonResult);
+            ItemResult result = gson.fromJson(jsonResult, ItemResult.class);
+            if (result.error || result.items == null || result.items.size() < 3 || result.translated == null || result.translated.size() < 3)
+                throw new GenerationException(Component.translatable("error.aicraft.no_ideas"));
+            return new ItemIdeas(result);
+        });
+    }
+
+    public static final class ItemResult {
+        boolean error;
+        public List<String> items;
+        public List<String> translated;
+    }
+}

@@ -3,6 +3,9 @@ package com.watermelon0117.aicraft.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.client.block.BlockFaceReader;
+import com.watermelon0117.aicraft.common.BlockFaces;
+import com.watermelon0117.aicraft.common.ShapedBlockRecipe;
 import com.watermelon0117.aicraft.gpt.ItemIdeas;
 import com.watermelon0117.aicraft.init.ItemInit;
 import com.watermelon0117.aicraft.items.MainItem;
@@ -17,7 +20,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CraftingScreen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.language.LanguageInfo;
 import net.minecraft.client.resources.language.LanguageManager;
@@ -27,6 +30,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -42,6 +47,9 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
     private ItemIdeas itemIdeas;
     private boolean error = false;
     private boolean first = true;
+    /** True while the state only says whether the grid has a result, and false while it shows a generation the player started. */
+    private boolean followsResult;
+    private int lastStateId;
 
     private Button mainBtn, reBtn;
     private ImageButton bookBtn;
@@ -81,6 +89,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             if (menu.hasCraftResult || menu.blockEntity.getProgress() > 0) setProgress();
             else setInitial();
             currentRecipe = new ItemStackArray(menu);
+            followsResult = menu.blockEntity.getProgress() == 0;
             first = false;
         }
     }
@@ -111,6 +120,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             throw new IllegalStateException();
         options.visible = false;
         error = false;
+        followsResult = false;
         state = State.GENERATING;
     }
 
@@ -127,7 +137,8 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (MainItem.isMainItem(itemStack)) {
             String id = MainItem.getID(itemStack);
             String name = ItemInit.MAIN_ITEM.get().getName(itemStack).getString();
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, true, copiedFaces(id)));
+            followsResult = false;
             setProgress();
             // send feedback
         } else
@@ -138,9 +149,16 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (state == State.GENERATED) {
             String id = itemIdeas.id[i];
             String name = itemIdeas.names[i];
-            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, false));
+            PacketHandler.sendToServer(new SSelectIdeaPacket(menu.blockEntity.getBlockPos(), id, name, currentRecipe.items, false, copiedFaces(id)));
             setProgress();
         }
+    }
+
+    /** The faces of a plain material, vanilla's or a mod's, for the server to copy, since the server has no block pictures; null when nothing is copied. */
+    @Nullable
+    private BlockFaces copiedFaces(String id) {
+        Block copied = ShapedBlockRecipe.match(currentRecipe.items, id).map(ShapedBlockRecipe::copiedBlock).orElse(null);
+        return copied == null ? null : BlockFaceReader.faces(copied);
     }
 
     private void btnPress(Button button) {
@@ -151,11 +169,11 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }
     }
 
-    public void handleIdeaPacket(ItemStack[] recipe, ItemIdeas idea, boolean err, String errMsg) {
+    public void handleIdeaPacket(ItemStack[] recipe, ItemIdeas idea, boolean err, Component errMsg) {
         if (state == State.GENERATING) {
             if (err) {
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal("An error occurred when using the AI crafting table.").withStyle(ChatFormatting.RED));
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(errMsg).withStyle(ChatFormatting.RED));
+                Minecraft.getInstance().player.sendSystemMessage(Component.translatable("error.aicraft.table_failed").withStyle(ChatFormatting.RED));
+                Minecraft.getInstance().player.sendSystemMessage(errMsg.copy().withStyle(ChatFormatting.RED));
                 error = true;
                 setInitial();
             } else if (new ItemStackArray(menu).equals(new ItemStackArray(recipe))) {
@@ -166,13 +184,38 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         }
     }
 
+    /** The server has said why in the chat. The materials are untouched, so the same ideas are offered again. */
+    public void handleGenerationFailed(BlockPos pos) {
+        // A failed regeneration leaves the old result to show.
+        if (state != State.PROGRESS || followsResult || menu.hasCraftResult || !pos.equals(menu.blockEntity.getBlockPos())) {
+            return;
+        }
+        if (itemIdeas == null) {  // Opened while it was running.
+            error = true;
+            followsResult = true;
+            setInitial();
+        } else {
+            mainBtn.visible = true;
+            options.setMessage(itemIdeas.names);
+            state = State.GENERATED;
+        }
+    }
+
     @Override
     public void containerTick() {
         super.containerTick();
-        if (!currentRecipe.equals(new ItemStackArray(menu))) {
+        recipeBookComponent.tick();
+        boolean gridChanged = !currentRecipe.equals(new ItemStackArray(menu));
+        if (gridChanged) {
+            currentRecipe = new ItemStackArray(menu);
+            followsResult = true;
+        }
+        // A click changes the grid here at once but only the server works out the result, so look again each time the server has sent something.
+        boolean serverSpoke = menu.getStateId() != lastStateId;
+        lastStateId = menu.getStateId();
+        if (followsResult && (gridChanged || serverSpoke)) {
             if (menu.hasCraftResult) setProgress();
             else setInitial();
-            currentRecipe = new ItemStackArray(menu);
         }
     }
 
@@ -195,7 +238,7 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
         if (state == State.GENERATING)
             this.font.draw(poseStack, Component.literal("Generating"), leftPos + 102, topPos + 20, 4210752);
         if (error)
-            this.font.draw(poseStack, Component.literal("Error"), leftPos + 102, topPos + 20, 4210752);
+            this.font.draw(poseStack, Component.translatable("error.aicraft.label"), leftPos + 102, topPos + 20, 4210752);
     }
 
     @Override
@@ -226,7 +269,17 @@ public class AICraftingTableScreen extends AbstractContainerScreen<AICraftingTab
             setFocused(recipeBookComponent);
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        boolean handled = super.mouseClicked(mouseX, mouseY, button);
+        // A clicked button takes the keys, so give them back to the recipe book: its search box and chat key need them.
+        if (getFocused() instanceof Button)
+            setFocused(recipeBookComponent);
+        return handled;
+    }
+
+    @Override
+    public void removed() {
+        recipeBookComponent.removed();
+        super.removed();
     }
 
     @Override

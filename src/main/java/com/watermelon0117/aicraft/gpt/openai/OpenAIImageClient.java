@@ -1,0 +1,80 @@
+package com.watermelon0117.aicraft.gpt.openai;
+
+import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
+import com.watermelon0117.aicraft.gpt.GenerationException;
+import net.minecraft.network.chat.Component;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.Base64;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+
+public final class OpenAIImageClient {
+    private static final URI ENDPOINT = URI.create(OpenAIChatClient.apiBase() + "/v1/images/generations");
+    /** gpt-image-1 shuts down on 2026-10-23; the texture server uses the same model. */
+    private static final String MODEL = "gpt-image-2.5-sunburst";
+    public static String apiKey;
+    private final HttpClient http;
+    private final Gson gson;
+
+    public OpenAIImageClient() {
+        this.http   = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+        this.gson   = new GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create();
+    }
+
+    /* ───────────────────────────────── PUBLIC API ───────────────────────────────── */
+
+
+    public CompletableFuture<String> generateAsync(String prompt, String size, String background, String moderation, String quality, String outputFormat) {
+        Request body = new Request(prompt, MODEL, 1, size, background, moderation, quality, outputFormat);
+        String json  = gson.toJson(body);
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(ENDPOINT)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(100))
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        return http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                .exceptionally(error -> {
+                    throw GenerationException.openAINoAnswer(error);
+                })
+                .thenCompose(resp -> {
+                    if (resp.statusCode() != 200) {
+                        return CompletableFuture.failedFuture(GenerationException.fromOpenAI(resp.statusCode(), resp.body()));
+                    }
+
+                    Response parsed = gson.fromJson(resp.body(), Response.class);
+                    Data     d      = parsed.data.get(0);          // n == 1
+                    if (d.b64_json == null) {
+                        return CompletableFuture.failedFuture(new GenerationException(Component.translatable("error.aicraft.openai_no_image")));
+                    }
+                    return CompletableFuture.completedFuture(d.b64_json);
+                });
+    }
+
+    /* ────────────────────────────── INTERNAL DTOs ─────────────────────────────── */
+
+    private record Request(String prompt,
+                           String model,
+                           int n,
+                           String size,
+                           String background,
+                           String moderation,
+                           String quality,
+                           String output_format) {}
+
+    private static final class Response { List<Data> data; }
+    private static final class Data     { String b64_json; }
+}

@@ -62,6 +62,21 @@ public class PacketHandler {
                 .decoder(CSyncRecipesPacket::new)
                 .consumerMainThread(CSyncRecipesPacket::handle)
                 .add();
+        INSTANCE.messageBuilder(CAddBlockTexturePacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CAddBlockTexturePacket::encode)
+                .decoder(CAddBlockTexturePacket::new)
+                .consumerMainThread(CAddBlockTexturePacket::handle)
+                .add();
+        INSTANCE.messageBuilder(CSendBlockTexturesPacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CSendBlockTexturesPacket::encode)
+                .decoder(CSendBlockTexturesPacket::new)
+                .consumerMainThread(CSendBlockTexturesPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(CGenerationFailedPacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CGenerationFailedPacket::encode)
+                .decoder(CGenerationFailedPacket::new)
+                .consumerMainThread(CGenerationFailedPacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

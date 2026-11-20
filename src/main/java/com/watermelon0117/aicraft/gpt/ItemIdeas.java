@@ -1,6 +1,6 @@
 package com.watermelon0117.aicraft.gpt;
 
-import com.watermelon0117.aicraft.gpt.opanai.BaseGPTIdeaGeneratorwParser;
+import com.watermelon0117.aicraft.gpt.openai.BaseGPTIdeaGeneratorwParser;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class ItemIdeas {

@@ -21,7 +21,8 @@ import net.minecraftforge.fml.util.thread.EffectiveSide;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 public final class RecipeManager {
     /* ── helpers ── */
@@ -87,6 +88,16 @@ public final class RecipeManager {
                 return true;
             }
         }
+
+        /** This recipe with every stack of the id, made or used, swapped for the item as it is now. */
+        private Recipe withItem(String id, ItemStack item) {
+            ItemStack[] swapped = new ItemStack[9];
+            for (int i = 0; i < 9; i++)
+                swapped[i] = id.equals(MainItem.getID(grid[i])) ? ItemHandlerHelper.copyStackWithSize(item, 1) : grid[i];
+            // A shapeless grid is kept sorted by item and tags, and the swap can change both.
+            return new Recipe(id.equals(MainItem.getID(result)) ? item.copy() : result,
+                    shapeless ? sortShapeless(swapped) : swapped, shapeless);
+        }
     }
 
     /* ── public API (identical names / params) ── */
@@ -111,15 +122,19 @@ public final class RecipeManager {
                             stack1.getDamageValue() + stack2.getDamageValue() - stack1.getMaxDamage()));
                     return ret;
                 }
-                return ItemStack.EMPTY;
+                // All AI items are meta_item, so vanilla takes a tool and any other AI item for a repair. They may still be an AI recipe.
+                return matchGrid(container);
             }
         } else {
-            ItemStack[] itemStacks = new ItemStack[9];
-            for (int i = 0; i < 9; i++)
-                itemStacks[i] = container.getItem(i);
-            result = RecipeManager.get().match(itemStacks);
+            result = matchGrid(container);
         }
         return result;
+    }
+    private static ItemStack matchGrid(CraftingContainer container) {
+        ItemStack[] itemStacks = new ItemStack[9];
+        for (int i = 0; i < 9; i++)
+            itemStacks[i] = container.getItem(i);
+        return RecipeManager.get().match(itemStacks);
     }
     public ItemStack match(ItemStack[] g) {
         return backing().stream()
@@ -127,8 +142,16 @@ public final class RecipeManager {
                 .findFirst().orElse(ItemStack.EMPTY);
     }
 
-    public void addRecipe(ItemStack result, ItemStack[] g, boolean shapeless) {
+    /**
+     * Makes this grid give the result, with the result's count, and every other recipe that makes or uses the result's id follow it, keeping its own count.
+     * Matching takes the first recipe that fits, so a regenerated result appended after the old one would never come out.
+     * Ingredients match by item and tags, and regenerating can turn an item into a block or back, so a recipe left holding the old stack would stop fitting.
+     */
+    public void putRecipe(ItemStack result, ItemStack[] g, boolean shapeless) {
         checkServer();
+        String id = MainItem.getID(result);
+        List<Recipe> recipes = backing();
+        recipes.removeIf(r -> Objects.equals(id, MainItem.getID(r.result)) && r.match(g));
         ItemStack[] stored = shapeless ? sortShapeless(g) : Arrays.copyOf(g, 9);
         for (int i = 0; i < stored.length; i++) {
             if (!stored[i].isEmpty()) {
@@ -136,10 +159,25 @@ public final class RecipeManager {
                 stored[i].setCount(1);        // …then force stack-size to 1
             }
         }
-        ItemStack resCopy=result.copy();
-        resCopy.setCount(1);
-        backing().add(new Recipe(resCopy, stored, shapeless));
+        recipes.add(new Recipe(result.copy(), stored, shapeless));
+        // Each other recipe of the id still makes as many as before, as in updateItem.
+        recipes.replaceAll(r -> r.withItem(id, ItemHandlerHelper.copyStackWithSize(result, r.result.getCount())));
         dirtyAndSync();
+    }
+
+    /** Every recipe that makes or uses the item's id follows it, as in {@link #putRecipe}, for a regeneration with no grid. Each still makes as many as before. */
+    public void updateItem(ItemStack item) {
+        checkServer();
+        String id = MainItem.getID(item);
+        backing().replaceAll(r -> r.withItem(id, ItemHandlerHelper.copyStackWithSize(item, r.result.getCount())));
+        dirtyAndSync();
+    }
+
+    /** @return how many the first recipe of this id makes, or 1 if it has none */
+    public int craftedCount(String id) {
+        return backing().stream()
+                .filter(r -> Objects.equals(id, MainItem.getID(r.result)))
+                .findFirst().map(r -> r.result.getCount()).orElse(1);
     }
 
     public void removeItem(String id) {

@@ -1,10 +1,10 @@
 package com.watermelon0117.aicraft.gpt;
 
-final class ItemIdSanitizer {
+public final class ItemIdSanitizer {
     private ItemIdSanitizer() {
     }
 
-    static String sanitize(String id) {
+    public static String sanitize(String id) {
         if (id == null) {
             return null;
         }
@@ -17,6 +17,11 @@ final class ItemIdSanitizer {
             }
         }
         return sanitized.toString();
+    }
+
+    /** Whether an id is something the idea step could have handed out, which is safe to use in a file name. */
+    public static boolean isClean(String id) {
+        return id != null && !id.isBlank() && id.equals(sanitize(id));
     }
 
     private static boolean isAllowed(char character) {

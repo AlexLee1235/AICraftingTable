@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ItemIdSanitizerTest {
     @Test
@@ -59,6 +61,19 @@ class ItemIdSanitizerTest {
         String parsed = new StringReader(commandArgument).readUnquotedString().replace('_', ' ');
 
         assertEquals(storedId, parsed);
+    }
+
+    @Test
+    void onlyAnIdTheIdeaStepCouldGiveIsClean() {
+        assertTrue(ItemIdSanitizer.isClean("Mossy Brick Slab"));
+        assertTrue(ItemIdSanitizer.isClean("Sword +1.5-Test"));
+        assertFalse(ItemIdSanitizer.isClean("..\\..\\options"));
+        assertFalse(ItemIdSanitizer.isClean("../level"));
+        assertFalse(ItemIdSanitizer.isClean("Slab#top"));
+        assertFalse(ItemIdSanitizer.isClean("Miner's Hammer"));
+        assertFalse(ItemIdSanitizer.isClean(" "));
+        assertFalse(ItemIdSanitizer.isClean(""));
+        assertFalse(ItemIdSanitizer.isClean(null));
     }
 
     private static ItemIdeas ideas(String first, String second, String third) {

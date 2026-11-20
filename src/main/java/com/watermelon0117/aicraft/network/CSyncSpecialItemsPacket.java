@@ -1,10 +1,13 @@
 package com.watermelon0117.aicraft.network;
 
+import com.google.common.collect.Maps;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 
@@ -17,7 +20,8 @@ public class CSyncSpecialItemsPacket {
         this.payload=payload;
     }
     CSyncSpecialItemsPacket(FriendlyByteBuf buf) {
-        payload=buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readNbt);
+        // The items come oldest first, which a plain readMap would lose to a HashMap.
+        payload=buf.readMap(Maps::newLinkedHashMapWithExpectedSize, FriendlyByteBuf::readUtf, FriendlyByteBuf::readNbt);
     }
 
     void encode(FriendlyByteBuf buf) {
@@ -25,7 +29,11 @@ public class CSyncSpecialItemsPacket {
     }
 
     void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> SpecialItemManager.ClientSide.refill(payload));
+        ctx.get().enqueueWork(() -> {
+            SpecialItemManager.ClientSide.refill(payload);
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> com.watermelon0117.aicraft.client.ClientCreativeTabRefresher::refresh);
+        });
         ctx.get().setPacketHandled(true);
     }
 }

@@ -66,6 +66,15 @@ public class MainItem extends Item {
     public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
         return getID(stack).contains("Sword") || toolAction != ToolActions.SWORD_SWEEP;
     }
+    /** Vanilla only asks this of the item in the main hand, on the client and on the server. */
+    @Override
+    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        return !(player.isCreative() && isOnlyMelee(player.getMainHandItem()));
+    }
+    private static boolean isOnlyMelee(ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
+        return tag.getBoolean("isMelee") && !tag.getBoolean("isPickaxe") && !tag.getBoolean("isAxe") && !tag.getBoolean("isShovel") && !tag.getBoolean("isHoe");
+    }
     private static boolean isCorrectTool(ItemStack stack, BlockState state){
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         boolean ret = false;
@@ -109,7 +118,7 @@ public class MainItem extends Item {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return !tag.getBoolean("invincible") && isToolMelee(stack);
     }
-    private static boolean isToolMelee(ItemStack stack) {
+    public static boolean isToolMelee(ItemStack stack) {
         CompoundTag tag = stack.getOrCreateTag().getCompound("aicraft");
         return tag.getBoolean("isPickaxe") ||
                 tag.getBoolean("isAxe") ||
@@ -178,7 +187,7 @@ public class MainItem extends Item {
     }
     public static boolean isMainItem(ItemStack a) {
         if (a == null) return false;
-        return (a.is(ItemInit.MAIN_ITEM.get()) || a.is(ItemInit.MAIN_FOOD_ITEM.get()));
+        return (a.is(ItemInit.MAIN_ITEM.get()) || a.is(ItemInit.MAIN_FOOD_ITEM.get()) || a.getItem() instanceof AIBlockItem);
     }
     private static Tier getTier(CompoundTag tag){
         return Tiers.values()[tag.getByte("tier")];

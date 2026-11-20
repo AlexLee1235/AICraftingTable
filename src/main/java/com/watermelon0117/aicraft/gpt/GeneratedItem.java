@@ -3,14 +3,23 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.watermelon0117.aicraft.gpt.opanai.ItemResult;
+import com.watermelon0117.aicraft.gpt.openai.ItemResult;
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
-public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shapeless) {
+import java.util.Base64;
+
+public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shapeless) implements GeneratedResult {
     private static final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+    /** @throws IllegalArgumentException if the answer has no item */
+    public static GeneratedItem fromResponse(GeneratedResult.Response response, String id, String name) {
+        if (response.b64Image() == null || response.json() == null) {
+            throw new IllegalArgumentException("The texture server's answer has no item");
+        }
+        return fromJson(response.json(), id, name, Base64.getDecoder().decode(response.b64Image()));
+    }
     public static GeneratedItem fromJson(ItemResult json, String id, String name, byte[] rawTexture){
         ItemStack itemStack1=makeItem(json, id, name);
         return new GeneratedItem(itemStack1, rawTexture, json.is_shapeless_crafting);
@@ -18,6 +27,12 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
     public static GeneratedItem fromJson(String rawJson, String id, String name, byte[] rawTexture) {
         var json = gson.fromJson(rawJson, ItemResult.class);
         return GeneratedItem.fromJson(json, id, name, rawTexture);
+    }
+
+    /** The item prompt asks for no count, and an item has always come one at a time. */
+    @Override
+    public int count() {
+        return 1;
     }
 
     public static ItemStack makeItem(ItemResult json, String id, String name) {
@@ -48,7 +63,10 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
             tag.putBoolean(json.food_is_solid_or_liquid != null && json.food_is_solid_or_liquid.equals("liquid") ? "isDrink" : "isFood", true);
         }
 
-        itemStack.getOrCreateTag().put("aicraft", tag);
+        CompoundTag root = new CompoundTag();
+        root.put("aicraft", tag);
+        // setTag marks a tool undamaged, as saving and sending it do. Ingredients match by tags, so a new tool must not differ from the same tool sent or saved.
+        itemStack.setTag(root);
         return itemStack;
     }
 

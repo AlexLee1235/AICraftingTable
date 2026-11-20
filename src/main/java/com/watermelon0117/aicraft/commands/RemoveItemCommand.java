@@ -16,7 +16,7 @@ import static net.minecraft.commands.Commands.literal;
 
 public class RemoveItemCommand {
     private static final SimpleCommandExceptionType ITEM_NOT_FOUND = new SimpleCommandExceptionType(
-            Component.literal("Error: Item not found.")
+            Component.translatable("error.aicraft.item_not_found")
     );
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         dispatcher.register(

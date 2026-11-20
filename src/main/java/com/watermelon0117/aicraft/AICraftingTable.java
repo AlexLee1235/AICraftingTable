@@ -2,8 +2,8 @@ package com.watermelon0117.aicraft;
 
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
 import com.watermelon0117.aicraft.common.SpecialItemManager;
+import com.watermelon0117.aicraft.common.MisspelledConfigKey;
 import com.watermelon0117.aicraft.init.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -11,6 +11,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 
@@ -34,6 +35,7 @@ public class AICraftingTable {
         MenuInit.MENU_TYPES.register(bus);
         ParticleInit.PARTICLE_TYPES.register(bus);
         ArgumentInit.ARGUMENTS.register(bus);
+        MisspelledConfigKey.fix(FMLPaths.CONFIGDIR.get());
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, AICraftingTableCommonConfigs.SPEC);
     }
  
@@ -46,9 +48,8 @@ public class AICraftingTable {
         @Override
         public void fillItemList(NonNullList<ItemStack> list) {
             super.fillItemList(list);
-            for(ItemStack stack: SpecialItemManager.get(Minecraft.getInstance().player.level).list()){
-                list.add(1, stack);
-            }
+            // Newest first, as the manager lists them, after the table itself.
+            list.addAll(Math.min(1, list.size()), SpecialItemManager.ClientSide.list());
         }
     };
 }
