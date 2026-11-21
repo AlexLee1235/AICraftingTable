@@ -57,6 +57,11 @@ public class TextureManager {
         return bytes2;
     }
 
+    /** Saves an icon that is already the sprite players see, which applyTexture would pixelize again. */
+    public static void saveSprite(byte[] png, String id) throws IOException {
+        Files.write(new File(FileUtil.getTextureFolder(), id + ".png").toPath(), png);
+    }
+
     public static byte[] applyTexture(byte[] bytes, String id) {
         try {
             Files.write(FileUtil.getArchiveFolder(id + "_" + getCurrentDateTime() + ".jpeg").toPath(), bytes);

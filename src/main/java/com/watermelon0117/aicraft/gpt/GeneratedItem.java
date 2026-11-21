@@ -81,9 +81,14 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
     }
 
     private static byte getTier(ItemResult json) {
-        if (json.tier == null)
+        return tierByte(json.tier);
+    }
+
+    /** @return the stored {@code tier} byte for the item step's tier answer, as tools and armor keep it */
+    public static byte tierByte(String tier) {
+        if (tier == null)
             return (byte) Tiers.STONE.ordinal();
-        return switch (json.tier) {
+        return switch (tier) {
             case "wooden" -> (byte) Tiers.WOOD.ordinal();
             case "stone" -> (byte) Tiers.STONE.ordinal();
             case "iron" -> (byte) Tiers.IRON.ordinal();

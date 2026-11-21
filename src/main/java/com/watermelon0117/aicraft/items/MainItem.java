@@ -187,7 +187,7 @@ public class MainItem extends Item {
     }
     public static boolean isMainItem(ItemStack a) {
         if (a == null) return false;
-        return (a.is(ItemInit.MAIN_ITEM.get()) || a.is(ItemInit.MAIN_FOOD_ITEM.get()) || a.getItem() instanceof AIBlockItem);
+        return (a.is(ItemInit.MAIN_ITEM.get()) || a.is(ItemInit.MAIN_FOOD_ITEM.get()) || a.getItem() instanceof AIBlockItem || a.getItem() instanceof AIArmorItem);
     }
     private static Tier getTier(CompoundTag tag){
         return Tiers.values()[tag.getByte("tier")];

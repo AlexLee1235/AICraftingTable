@@ -2,9 +2,11 @@ package com.watermelon0117.aicraft.event;
 
 import com.mojang.logging.LogUtils;
 import com.watermelon0117.aicraft.AICraftingTable;
+import com.watermelon0117.aicraft.commands.ArmorTestCommand;
 import com.watermelon0117.aicraft.commands.GenerateCommand;
 import com.watermelon0117.aicraft.commands.RemoveItemCommand;
 import com.watermelon0117.aicraft.common.AICraftingTableCommonConfigs;
+import com.watermelon0117.aicraft.common.ArmorTextureStore;
 import com.watermelon0117.aicraft.common.BlockTextureStore;
 import com.watermelon0117.aicraft.common.FileUtil;
 import com.watermelon0117.aicraft.common.RecipeManager;
@@ -13,6 +15,7 @@ import com.watermelon0117.aicraft.common.TextureManager;
 import com.watermelon0117.aicraft.gpt.openai.OpenAIChatClient;
 import com.watermelon0117.aicraft.gpt.openai.OpenAIImageClient;
 import com.watermelon0117.aicraft.network.CSendAllTexturePacket;
+import com.watermelon0117.aicraft.network.CSendArmorTexturesPacket;
 import com.watermelon0117.aicraft.network.CSendBlockTexturesPacket;
 import com.watermelon0117.aicraft.network.CSyncRecipesPacket;
 import com.watermelon0117.aicraft.network.CSyncSpecialItemsPacket;
@@ -55,6 +58,9 @@ public class EventHandler {
     public static void registerCommands(RegisterCommandsEvent event){
         RemoveItemCommand.register(event.getDispatcher(), event.getBuildContext());
         GenerateCommand.register(event.getDispatcher());
+        if (ArmorTestCommand.enabled()) {
+            ArmorTestCommand.register(event.getDispatcher());
+        }
     }
 
     @SubscribeEvent
@@ -62,6 +68,7 @@ public class EventHandler {
         SpecialItemManager.ServerSide.init(e.getServer());
         RecipeManager.ServerSide.init(e.getServer());
         BlockTextureStore.clearCache();
+        ArmorTextureStore.clearCache();
         String key = AICraftingTableCommonConfigs.OPENAI_API_KEY.get();
         AICraftingTableCommonConfigs.useOpenAI = !key.isEmpty();
         if(!key.isEmpty()) {
@@ -77,6 +84,22 @@ public class EventHandler {
             PacketHandler.sendToPlayer(new CSyncRecipesPacket(RecipeManager.ServerSide.data().recipes), sp);
             TextureManager.loadFromFileAsync().thenAccept(map-> PacketHandler.sendToPlayer(new CSendAllTexturePacket(map), sp));
             sendBlockTextures(sp);
+            sendArmorTextures(sp);
+        }
+    }
+
+    /** As for block textures: a failure costs the player some armor pictures, never the login. */
+    private static void sendArmorTextures(ServerPlayer player) {
+        try {
+            ArmorTextureStore.loadAllAsync(FileUtil.getArmorTextureFolder())
+                    .thenAcceptAsync(map -> ArmorTextureStore.batches(map, ArmorTextureStore.MAX_BATCH_BYTES)
+                            .forEach(batch -> PacketHandler.sendToPlayer(new CSendArmorTexturesPacket(batch), player)), player.getServer())
+                    .exceptionally(error -> {
+                        LOGGER.error("Could not send AI armor textures to {}", player.getName().getString(), error);
+                        return null;
+                    });
+        } catch (RuntimeException error) {
+            LOGGER.error("Could not send AI armor textures to {}", player.getName().getString(), error);
         }
     }
 

@@ -77,6 +77,17 @@ public class PacketHandler {
                 .decoder(CGenerationFailedPacket::new)
                 .consumerMainThread(CGenerationFailedPacket::handle)
                 .add();
+        // Last, so every packet above keeps its number.
+        INSTANCE.messageBuilder(CAddArmorTexturePacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CAddArmorTexturePacket::encode)
+                .decoder(CAddArmorTexturePacket::new)
+                .consumerMainThread(CAddArmorTexturePacket::handle)
+                .add();
+        INSTANCE.messageBuilder(CSendArmorTexturesPacket.class, index++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CSendArmorTexturesPacket::encode)
+                .decoder(CSendArmorTexturesPacket::new)
+                .consumerMainThread(CSendArmorTexturesPacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

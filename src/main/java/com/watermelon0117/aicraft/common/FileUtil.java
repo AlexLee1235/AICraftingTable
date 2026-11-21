@@ -18,6 +18,11 @@ public class FileUtil {
         return ensureExist(folder.toFile()).toPath();
     }
 
+    public static Path getArmorTextureFolder() {
+        Path folder = ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT).resolve("aicraft").resolve("armor_textures");
+        return ensureExist(folder.toFile()).toPath();
+    }
+
     public static File getTempFolder(String name) {
         File folder = new File("./aicraft/process/");
         ensureExist(folder);
