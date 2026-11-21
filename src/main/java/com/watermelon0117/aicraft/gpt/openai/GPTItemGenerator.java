@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.watermelon0117.aicraft.common.SpritePipeline;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 public class GPTItemGenerator {
@@ -27,7 +28,18 @@ public class GPTItemGenerator {
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     private final GPTImageGenerator imgClient = new GPTImageGenerator();
 
-    private static String buildPrompt(String name, String[] in) {
+    /**
+     * /aicraft generateItem sends nine "empty" slots. Shown them and asked to go by the materials, gpt-4.1 answered that
+     * "The suluski is not a finished item with any visual appearance in-game, as the recipe grid is completely empty",
+     * and the image model was then asked to draw that. So with no materials it sees no recipe. Told only to go by the name, it
+     * still said a made-up name such as Sulus "does not exist in standard Minecraft"; told the item is new, it described a look
+     * in all 30 answers tested, made-up names included. The server's buildItemPrompt does the same, word for word.
+     */
+    static String buildPrompt(String name, String[] in) {
+        if (Arrays.stream(in, 0, 9).allMatch(slot -> slot.equals("empty") || slot.isEmpty())) {
+            return inst.replace("Based on the arrangement of materials", "It is a new item: imagine its look from its name") + String.format("Item: %s\n", name)
+                    + "\nplease answer in json format";
+        }
         String r = String.format("Recipe:\n" +
                         "\tTop Left: %s\n" +
                         "\tTop: %s\n" +
