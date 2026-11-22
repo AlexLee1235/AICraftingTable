@@ -51,6 +51,12 @@ public final class WornReader {
     private final List<WornLayout.Item> entries = new ArrayList<>();
     private final List<WornLayout.View> entryViews = new ArrayList<>();
     private final Map<WornLayout.Item, Integer> number = new LinkedHashMap<>();
+    // Round 11: arm cells left to the body side, in the order read
+    private final List<ToBody> toBody = new ArrayList<>();
+
+    /** An arm cell's color left to the body side: the view, the cell centre in the drawing, the body side's face key. */
+    private record ToBody(String view, double px, double py, int[] color, String key) {
+    }
 
     private WornReader(WornLayout layout, int[] argb) {
         this.L = layout;
@@ -209,6 +215,19 @@ public final class WornReader {
                 faces.put(key, read);
             }
         }
+        // Round 11: the body side's cell at the same spot of the drawing takes the color, unless it read that spot itself.
+        for (ToBody t : toBody) {
+            FaceCells g = faces.get(t.key());
+            if (g == null || !t.view().equals(g.view)) {
+                continue;
+            }
+            int q = countBelow(g.xs, t.px()) - 1, j = countBelow(g.ys, t.py()) - 1;
+            if (q < 0 || q >= g.xs.length - 1 || j < 0 || j >= g.ys.length - 1 || g.state[j * g.nx + q] == 1) {
+                continue;
+            }
+            g.cells[j * g.nx + q] = 0xFF000000 | t.color()[0] << 16 | t.color()[1] << 8 | t.color()[2];
+            g.state[j * g.nx + q] = 1;
+        }
         // Faces no view shows.
         for (WornLayout.Part part : WornLayout.parts(slot)) {
             if (!part.armor() || !WornLayout.READ_BOXES.get(slot).contains(part.name())) {
@@ -242,6 +261,32 @@ public final class WornReader {
         }
         fillHidden(faces);
         return Optional.of(pack(faces, step, steps));
+    }
+
+    /** How many of the sorted cuts lie below x (np.searchsorted, side left). */
+    private static int countBelow(double[] cuts, double x) {
+        int n = 0;
+        while (n < cuts.length && cuts[n] < x) {
+            n++;
+        }
+        return n;
+    }
+
+    /**
+     * Round 11: for the arm's face in a chestplate side view, the pixel box of the body side's face in that view, whose
+     * rectangle holds the input's background beside the bare lower arm; null for every other face. By name, not by depth: the
+     * left view reads the arm as R_ARM.left, which the layout places behind the body.
+     */
+    private int[] besideArmBox(WornLayout.View view, WornLayout.Item i) {
+        if (!slot.equals("chestplate") || !i.box.equals("R_ARM") || !(view.name.equals("right") || view.name.equals("left"))) {
+            return null;
+        }
+        for (WornLayout.Item it : view.items) {
+            if (it.armor && it.box.equals("BODY")) {
+                return WornLayout.pixelBox(it.px);
+            }
+        }
+        return null;
     }
 
     private static int[] rgbOf(int rgb) {
@@ -630,6 +675,7 @@ public final class WornReader {
         final byte[] state;
         final String source;
         double[] xs, ys;
+        String view;  // the view a read face was read in
 
         FaceCells(String box, String face, WornLayout.Face geometry, int nx, int ny, String source) {
             this.box = box;
@@ -670,8 +716,19 @@ public final class WornReader {
         FaceCells out = new FaceCells(i.box, i.face.face(), i.face, nx, ny, "read");
         out.xs = xs;
         out.ys = ys;
+        out.view = view.name;
         byte[] why = new byte[nx * ny];  // 1 left transparent, 2 painted in the mannequin's color
         boolean[] onGray = cellsOnGray(view, k, i, xs, ys);
+        int[] bodyBox = besideArmBox(view, i);
+        String bodyKey = null;
+        if (bodyBox != null) {
+            for (WornLayout.Item it : view.items) {
+                if (it.armor && it.box.equals("BODY")) {
+                    bodyKey = "BODY." + it.face.face();
+                    break;
+                }
+            }
+        }
         for (int j = 0; j < ny; j++) {
             for (int q = 0; q < nx; q++) {
                 int cell = j * nx + q;
@@ -687,16 +744,24 @@ public final class WornReader {
                     yi[b] = (int) Math.min(Math.max(Math.rint(y0 + ((cy0 + b) + 0.5 - Y0) / sy - 0.5), 0), H - 1);
                 }
                 boolean[] blocked = new boolean[w * h];
-                int ahead = 0, behind = 0;
+                boolean[] beside = bodyBox != null ? new boolean[w * h] : null;
+                int ahead = 0, behind = 0, behindOrBeside = 0;
                 for (int b = 0; b < h; b++) {
                     for (int a = 0; a < w; a++) {
                         int oc = view.ownerCov(xi[a], yi[b]);
                         double dc = view.depthCov(xi[a], yi[b]);
                         boolean isAhead = oc != k && dc > i.depth + 1e-6;
                         boolean isBehind = oc != k && view.isArmor(oc) && dc < i.depth - 1e-6;
+                        // Round 11: the input's background on the body side's rectangle, beside the bare lower arm
+                        boolean isBeside = bodyBox != null && oc == -1 && xi[a] >= bodyBox[0] && xi[a] < bodyBox[2]
+                                && yi[b] >= bodyBox[1] && yi[b] < bodyBox[3];
                         ahead += isAhead ? 1 : 0;
                         behind += isBehind ? 1 : 0;
-                        blocked[b * w + a] = isAhead || isBehind;
+                        behindOrBeside += isBehind || isBeside ? 1 : 0;
+                        if (isBeside) {
+                            beside[b * w + a] = !isBehind;
+                        }
+                        blocked[b * w + a] = isAhead || isBehind || isBeside;
                     }
                 }
                 int total = w * h;
@@ -704,10 +769,27 @@ public final class WornReader {
                     out.state[cell] = -1;
                     continue;
                 }
-                if (total > 0 && 2L * behind > total) {
+                int ix = (int) (w * INSET), iy = (int) (h * INSET);
+                if (beside != null && total > 0 && 2L * behind <= total && 2L * behindOrBeside > total) {
+                    // These pixels clear the cell: their color goes to the body side once every face is read.
+                    int[] colors = new int[Math.max(0, (w - 2 * ix) * (h - 2 * iy))];
+                    int found = 0;
+                    for (int b = iy; b < h - iy; b++) {
+                        for (int a = ix; a < w - ix; a++) {
+                            int p = (cy0 + b) * W + cx0 + a;
+                            if (beside[b * w + a] && alpha(p)) {
+                                colors[found++] = argb[p] & 0xFFFFFF;
+                            }
+                        }
+                    }
+                    if (found > 0) {
+                        toBody.add(new ToBody(view.name, (xs[q] + xs[q + 1]) / 2, (ys[j] + ys[j + 1]) / 2,
+                                representativeColor(colors, found), bodyKey));
+                    }
+                }
+                if (total > 0 && 2L * behindOrBeside > total) {
                     continue;
                 }
-                int ix = (int) (w * INSET), iy = (int) (h * INSET);
                 int selected = 0, opaque = 0;
                 int[] colors = new int[Math.max(0, (w - 2 * ix) * (h - 2 * iy))];
                 int[] pixelAt = new int[colors.length];
