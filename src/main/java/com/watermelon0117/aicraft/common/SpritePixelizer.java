@@ -17,10 +17,23 @@ import java.util.Optional;
  * color per occupied cell. The source is never resized.
  *
  * <p>If the model's own grid gives a sprite larger than {@link #MAX_SIDE}, the grid is refit
- * with a minimum step that keeps the item within {@code MAX_SIDE - 2} cells.
+ * with a minimum step that keeps the item within {@code MAX_SIDE - 2} cells. When no grid the
+ * model drew is that coarse, the refit uses that minimum step.
+ *
+ * <p>Among near-equal scores the fit takes the largest step, so a fit allowed steps far above
+ * the item's cell size took a step that left the item 1 to 4 cells when the drawn grid was weak
+ * or the refit range held no grid (test/item_sheet_3x/speck_cause.md). The step is therefore
+ * kept to at least {@link #MIN_CELLS} cells across the item, and the refit to {@link #REFIT_RANGE}
+ * times its minimum step.
  */
 public final class SpritePixelizer {
     public static final int MAX_SIDE = 32;
+    /** Fewest cells along the item's longest side; a real item drawn 8 cells wide fits, a collapsed one had 1 to 4. */
+    static final double MIN_CELLS = 5.0;
+    /** A refit grid the model drew was at most 2.7 times the refit's minimum step in 619 test images. */
+    static final double REFIT_RANGE = 4.0;
+    /** Refit scores below this held no grid (0.04 to 0.17 in the collapsed refits; 0.19 and up otherwise). */
+    static final double REFIT_MIN_SCORE = 0.18;
 
     // grid_processor.Settings
     private static final double MIN_STEP = 8.0;
@@ -58,10 +71,20 @@ public final class SpritePixelizer {
 
     public static Optional<Result> pixelize(BufferedImage image) {
         Source src = Source.of(image);
-        Optional<Result> result = pixelize(src, MIN_STEP, false);
+        if (src.maskCount == 0) {
+            return Optional.empty();
+        }
+        Peaks peaks = Peaks.of(src);
+        double extent = Math.max(src.maskWidth(), src.maskHeight());
+        double ceiling = Math.max(MIN_STEP, extent / MIN_CELLS);
+        Optional<Result> result = pixelize(src, fitGrid(src, peaks, MIN_STEP, ceiling), false);
         if (result.isPresent() && result.get().sprite().getWidth() > MAX_SIDE) {
-            double extent = Math.max(src.maskWidth(), src.maskHeight());
-            Optional<Result> capped = pixelize(src, Math.max(MIN_STEP, extent / (MAX_SIDE - 2)), true);
+            double floor = Math.max(MIN_STEP, extent / (MAX_SIDE - 2));
+            Grid grid = fitGrid(src, peaks, floor, Math.max(floor, Math.min(ceiling, floor * REFIT_RANGE)));
+            if (grid != null && grid.score < REFIT_MIN_SCORE) {
+                grid = gridAt(peaks, floor);
+            }
+            Optional<Result> capped = pixelize(src, grid, true);
             if (capped.isPresent()) {
                 return capped;
             }
@@ -69,11 +92,7 @@ public final class SpritePixelizer {
         return result;
     }
 
-    private static Optional<Result> pixelize(Source src, double minStep, boolean capped) {
-        if (src.maskCount == 0) {
-            return Optional.empty();
-        }
-        Grid grid = fitGrid(src, minStep);
+    private static Optional<Result> pixelize(Source src, Grid grid, boolean capped) {
         if (grid == null) {
             return Optional.empty();
         }
@@ -183,16 +202,23 @@ public final class SpritePixelizer {
 
     // ---------------------------------------------------------------- lattice fit
 
-    private record Grid(double step, double xOrigin, double yOrigin) {
+    private record Grid(double step, double xOrigin, double yOrigin, double score) {
     }
 
-    private static Grid fitGrid(Source src, double minStep) {
-        double[][] x = edgePeaks(src, true);
-        double[][] y = edgePeaks(src, false);
+    /** Edge peaks along x and y, found once per image for both fits. */
+    private record Peaks(double[][] x, double[][] y) {
+        static Peaks of(Source src) {
+            return new Peaks(edgePeaks(src, true), edgePeaks(src, false));
+        }
+    }
+
+    private static Grid fitGrid(Source src, Peaks peaks, double minStep, double maxStep) {
+        double[][] x = peaks.x;
+        double[][] y = peaks.y;
         if (x[0].length < 2 || y[0].length < 2) {
             return null;
         }
-        double upper = Math.min(MAX_STEP, Math.min(src.h, src.w) / 2.0);
+        double upper = Math.min(maxStep, Math.min(MAX_STEP, Math.min(src.h, src.w) / 2.0));
         int count = (int) Math.ceil((upper + STEP_INCREMENT / 2 - minStep) / STEP_INCREMENT);
         if (count <= 0) {
             return null;
@@ -214,7 +240,13 @@ public final class SpritePixelizer {
                 chosen = k;
             }
         }
-        return new Grid(steps[chosen], xo[chosen], yo[chosen]);
+        return new Grid(steps[chosen], xo[chosen], yo[chosen], scores[chosen]);
+    }
+
+    /** The lattice of one given step, phased to the edges. */
+    private static Grid gridAt(Peaks peaks, double step) {
+        double[] fx = phaseFit(peaks.x[0], peaks.x[1], step), fy = phaseFit(peaks.y[0], peaks.y[1], step);
+        return new Grid(step, fx[0], fy[0], 0.3 * (fx[1] + fy[1]) + 0.4 * Math.min(fx[1], fy[1]));
     }
 
     /** Returns {origin, resultant}. */
