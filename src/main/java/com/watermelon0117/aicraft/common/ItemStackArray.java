@@ -3,6 +3,9 @@ package com.watermelon0117.aicraft.common;
 import com.watermelon0117.aicraft.items.MainItem;
 import com.watermelon0117.aicraft.menu.AICraftingTableMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PotionItem;
+import net.minecraft.world.item.TippedArrowItem;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Arrays;
@@ -36,11 +39,24 @@ public class ItemStackArray {
             else {
                 if (MainItem.isMainItem(items[i]))
                     list[i] = MainItem.getID(items[i]);
+                else if (items[i].getItem() instanceof PotionItem || items[i].getItem() instanceof TippedArrowItem)
+                    list[i] = potionName(items[i]);
                 else
                     list[i] = toTitleCase(ForgeRegistries.ITEMS.getKey(items[i].getItem()).getPath());//strip(items[i].getDisplayName().getString());
             }
         }
         return list;
+    }
+    /**
+     * Every potion, splash potion, lingering potion and tipped arrow shares its item's id, so its name comes from the potion it holds:
+     * vanilla's English name, such as Potion of Healing, Splash Water Bottle or Arrow of Swiftness.
+     */
+    private static String potionName(ItemStack stack) {
+        String english = EnglishNames.get(stack.getDescriptionId());
+        if (english != null)
+            return english;
+        // A potion no English text names, such as another mod's on a dedicated server.
+        return toTitleCase(ForgeRegistries.ITEMS.getKey(stack.getItem()).getPath()) + " of " + toTitleCase(PotionUtils.getPotion(stack).getName(""));
     }
     public static String toTitleCase(String input) {
         StringBuilder result = new StringBuilder();
