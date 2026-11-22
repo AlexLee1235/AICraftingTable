@@ -324,9 +324,35 @@ class BlockFacesTest {
         IllegalArgumentException nothing = assertThrows(IllegalArgumentException.class, () -> cross(empty));
         assertTrue(nothing.getMessage().contains("empty"), nothing.getMessage());
 
-        String tooBig = base64(png(32, 0xFF336699));
-        IllegalArgumentException size = assertThrows(IllegalArgumentException.class, () -> cross(tooBig));
-        assertTrue(size.getMessage().contains("32x32"), size.getMessage());
+        for (int side : new int[]{20, 48}) {
+            String notASprite = base64(png(side, 0xFF336699));
+            IllegalArgumentException size = assertThrows(IllegalArgumentException.class, () -> cross(notASprite));
+            assertTrue(size.getMessage().contains(side + "x" + side), size.getMessage());
+        }
+    }
+
+    /** A plant keeps its item sprite's size, and its bounds say how large that picture is. */
+    @Test
+    void aPlantPictureMayBeAnItemSpritesSize() throws IOException {
+        for (int side : new int[]{24, 32}) {
+            BufferedImage image = new BufferedImage(side, side, BufferedImage.TYPE_INT_ARGB);
+            for (int y = 4; y < side; y++) {
+                image.setRGB(side / 2, y, 0xFF2E8B57);
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", out);
+
+            GeneratedBlock plant = cross(base64(out.toByteArray()));
+
+            assertEquals(new PlantBounds(side / 2, 4, side / 2 + 1, side, side), plant.faces().plantBounds());
+        }
+    }
+
+    @Test
+    void aBlockFaceStillMustBe16x16() throws IOException {
+        String big = base64(png(32, 0xFF336699));
+        IllegalArgumentException size = assertThrows(IllegalArgumentException.class, () -> material("cube_material", big));
+        assertTrue(size.getMessage().contains("not 16x16"), size.getMessage());
     }
 
     @Test

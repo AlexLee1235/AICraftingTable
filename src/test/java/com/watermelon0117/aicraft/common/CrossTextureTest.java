@@ -48,7 +48,7 @@ class CrossTextureTest {
 
     @Test
     void somethingThatHangsKeepsItsPixelsAndStartsOnTheTopRow() {
-        BufferedImage texture = CrossTexture.fromSprite(plant(16, 6, 4), true);
+        BufferedImage texture = CrossTexture.fromSprite(plant(16, 6, 4), true, false);
 
         int[] plant = box(texture);
         assertEquals(0, plant[1], "the first row of what hangs is the first row of the texture");
@@ -100,6 +100,52 @@ class CrossTextureTest {
         assertEquals(16, plant[2]);
         assertEquals(4, plant[3]);
         assertEquals(12, plant[1]);
+    }
+
+    @Test
+    void aKeptSpriteStaysItsOwnSizeWithEveryPixelAndStandsOnTheBottomRow() {
+        for (int side : new int[]{16, 24, 32}) {
+            BufferedImage sprite = plant(side, side - 10, 6);
+
+            BufferedImage texture = CrossTexture.fromSprite(sprite, false, true);
+
+            assertEquals(side, texture.getWidth());
+            assertEquals(side, texture.getHeight());
+            int[] from = box(sprite), plant = box(texture);
+            assertEquals(from[2], plant[2]);
+            assertEquals(from[3], plant[3]);
+            assertEquals(side - 1, plant[1] + plant[3] - 1, "the last row of the plant is the last row of the texture");
+            assertEquals((side - plant[2]) / 2, plant[0], "centered");
+            for (int y = 0; y < plant[3]; y++) {
+                for (int x = 0; x < plant[2]; x++) {
+                    assertEquals(sprite.getRGB(from[0] + x, from[1] + y), texture.getRGB(plant[0] + x, plant[1] + y), side + ": " + x + "," + y);
+                }
+            }
+        }
+    }
+
+    @Test
+    void aKeptSpriteThatHangsStartsOnTheTopRow() {
+        BufferedImage texture = CrossTexture.fromSprite(plant(24, 12, 8), true, true);
+
+        int[] plant = box(texture);
+        assertEquals(24, texture.getWidth());
+        assertEquals(0, plant[1]);
+        assertEquals(20, plant[3]);
+        assertEquals(STEM, texture.getRGB(12, 19));
+    }
+
+    @Test
+    void aModelLikeImageKeepsTheSpriteSize() throws Exception {
+        BufferedImage model = SyntheticSprites.modelImage(SyntheticSprites.sprite(SyntheticSprites.diamond(20), 7), 32, 300, 300, true);
+        BufferedImage sprite = SpritePixelizer.pixelize(model).orElseThrow().sprite();
+
+        BufferedImage texture = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(CrossTexture.process(LegacyModEncoder.toPng(model), false, true)));
+
+        assertTrue(sprite.getWidth() > 16, "a sprite larger than 16: " + sprite.getWidth());
+        assertEquals(sprite.getWidth(), texture.getWidth());
+        assertEquals(box(sprite)[2], box(texture)[2]);
+        assertEquals(box(sprite)[3], box(texture)[3]);
     }
 
     @Test

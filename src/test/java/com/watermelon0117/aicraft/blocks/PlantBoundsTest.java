@@ -12,7 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class PlantBoundsTest {
     /** A clear picture with pixels of this alpha from (left, top) to just before (right, bottom). */
     private static BufferedImage drawn(int left, int top, int right, int bottom, int alpha) {
-        BufferedImage picture = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        return drawn(16, left, top, right, bottom, alpha);
+    }
+
+    private static BufferedImage drawn(int side, int left, int top, int right, int bottom, int alpha) {
+        BufferedImage picture = new BufferedImage(side, side, BufferedImage.TYPE_INT_ARGB);
         for (int y = top; y < bottom; y++) {
             for (int x = left; x < right; x++) {
                 picture.setRGB(x, y, alpha << 24 | 0x336622);
@@ -36,8 +40,44 @@ class PlantBoundsTest {
     }
 
     @Test
-    void aPictureNot16x16IsRefused() {
-        assertThrows(IllegalArgumentException.class, () -> PlantBounds.of(new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB)));
+    void onlyASpritesSidesAreAPicture() {
+        assertEquals(new PlantBounds(6, 4, 18, 24, 24), PlantBounds.of(drawn(24, 6, 4, 18, 24, 255)));
+        assertEquals(new PlantBounds(0, 2, 32, 32, 32), PlantBounds.of(drawn(32, 0, 2, 32, 32, 255)));
+        assertThrows(IllegalArgumentException.class, () -> PlantBounds.of(new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB)));
+        assertThrows(IllegalArgumentException.class, () -> PlantBounds.of(new BufferedImage(16, 32, BufferedImage.TYPE_INT_ARGB)));
+        assertThrows(IllegalArgumentException.class, () -> new PlantBounds(0, 0, 25, 24, 24));
+    }
+
+    /** The whole picture is one block, so the same share of it gives the same outline at any side. */
+    @Test
+    void aLargerPictureSharesTheBlockByItsOwnRows() {
+        assertArrayEquals(new int[]{1, 0, 1, 15, 16, 15}, new PlantBounds(0, 0, 32, 32, 32).box());
+        assertArrayEquals(new PlantBounds(2, 4, 14, 16).box(), new PlantBounds(3, 6, 21, 24, 24).box());
+        assertArrayEquals(new PlantBounds(2, 4, 14, 16).box(), new PlantBounds(4, 8, 28, 32, 32).box());
+    }
+
+    /** 20 of 24 rows are 13.3 sixteenths, which the outline rounds out to 14; 12 columns reach 3.6, rounded to 4. */
+    @Test
+    void aRowEndingInsideASixteenthTakesAllOfIt() {
+        assertArrayEquals(new int[]{4, 0, 4, 12, 14, 12}, new PlantBounds(6, 4, 18, 24, 24).box());
+        assertArrayEquals(new int[]{4, 2, 4, 12, 16, 12}, new PlantBounds(6, 4, 18, 24, 24).atTop().box());
+    }
+
+    @Test
+    void oneColumnOfALargePictureStillGivesAnOutline() {
+        assertArrayEquals(new int[]{7, 0, 7, 9, 1, 9}, new PlantBounds(15, 31, 16, 32, 32).box());
+    }
+
+    @Test
+    void aLargerPictureKeepsItsSideThroughATagAndMovingUp() {
+        PlantBounds bounds = new PlantBounds(3, 2, 21, 24, 24);
+        assertArrayEquals(new int[]{3, 2, 21, 24, 24}, bounds.toTag());
+        assertEquals(bounds, PlantBounds.fromTag(bounds.toTag()));
+        assertEquals(new PlantBounds(3, 0, 21, 22, 24), bounds.atTop());
+        assertArrayEquals(new int[]{1, 2, 15, 16}, new PlantBounds(1, 2, 15, 16).toTag(), "a 16x16 picture's tag is as before");
+        assertNull(PlantBounds.fromTag(new int[]{0, 0, 16, 16, 20}));
+        assertNull(PlantBounds.fromTag(new int[]{0, 0, 33, 32, 32}));
+        assertNull(PlantBounds.fromTag(new int[]{0, 0, 16, 16, 16, 16}));
     }
 
     /** The oak sapling's own picture is drawn from column 1 to 14 and row 1 to 15; vanilla's hand-made outline is 2..14 wide and 12 tall. */

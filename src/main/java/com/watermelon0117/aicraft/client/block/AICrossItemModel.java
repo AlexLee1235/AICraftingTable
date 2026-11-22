@@ -59,12 +59,12 @@ public final class AICrossItemModel implements IDynamicBakedModel {
 
     @Override
     public TextureAtlasSprite getParticleIcon(@NotNull ModelData data) {
-        return BlockTileAtlas.particleSprite(id);
+        return BlockTileAtlas.plantSprite(id);
     }
 
     @Override
     public TextureAtlasSprite getParticleIcon() {
-        return BlockTileAtlas.particleSprite(id);
+        return BlockTileAtlas.plantSprite(id);
     }
 
     @Override

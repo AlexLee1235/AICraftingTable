@@ -3,6 +3,7 @@ package com.watermelon0117.aicraft.client.block;
 import com.watermelon0117.aicraft.blockentities.AIBlockEntity;
 import com.watermelon0117.aicraft.blocks.AIBlockTransparency;
 import com.watermelon0117.aicraft.blocks.AICrossBlock;
+import com.watermelon0117.aicraft.blocks.PlantBounds;
 import com.watermelon0117.aicraft.items.MainItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderType;
@@ -56,10 +57,11 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
         return new AIShapedBlockModel(template, renderTypes, transforms, null, new ByIdOverrides(template, seeThroughTemplate, renderTypes, transforms));
     }
 
+    /** Only a plant's block entity says its picture is larger than a tile; every other block shows its tiles. */
     @Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand,
                                              @NotNull ModelData data, @Nullable RenderType renderType) {
-        return BlockTileAtlas.shapeQuads(placedTemplate(state, data), idFrom(data), side);
+        return BlockTileAtlas.plantQuads(placedTemplate(state, data), idFrom(data), pictureSideOf(data), side);
     }
 
     private ShapeTemplate placedTemplate(@Nullable BlockState state, ModelData data) {
@@ -67,7 +69,12 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
             return template;
         }
         Integer rows = data.get(AIBlockEntity.PICTURE_TOP_PROPERTY);
-        return rows == null ? template : template.raised(rows);
+        return rows == null ? template : template.raised(rows, pictureSideOf(data));
+    }
+
+    private static int pictureSideOf(ModelData data) {
+        Integer side = data.get(AIBlockEntity.PICTURE_SIDE_PROPERTY);
+        return side == null ? PlantBounds.SIDE_16 : side;
     }
 
     @Nullable
@@ -88,7 +95,7 @@ public final class AIShapedBlockModel implements IDynamicBakedModel {
 
     @Override
     public TextureAtlasSprite getParticleIcon(@NotNull ModelData data) {
-        return BlockTileAtlas.shapeParticleSprite(idFrom(data));
+        return BlockTileAtlas.plantSprite(idFrom(data), pictureSideOf(data));
     }
 
     @Override

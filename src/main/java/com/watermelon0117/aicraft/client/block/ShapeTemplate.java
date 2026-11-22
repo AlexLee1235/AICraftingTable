@@ -32,6 +32,8 @@ public final class ShapeTemplate {
     /** Vanilla's UVs are whole pixels, and the float arithmetic that finds them again must not move an edge onto the next one. */
     private static final float PIXEL_STEPS = 1000.0F;
     private static final float BLOCK_SIXTEENTHS = 16.0F;
+    /** More than any picture's side, so a number of rows and a side make one key. */
+    private static final int RAISE_KEY = 64;
     /** A turned model's corners land a rounding error away from the grid, far less than this. */
     private static final float ON_GRID = 0.001F;
 
@@ -219,15 +221,15 @@ public final class ShapeTemplate {
     /**
      * For a plant shown against the top of its cell. Only the clear rows above what it draws end up outside the cell, and a cutout model draws nothing there.
      *
-     * @param rows how far up to move it, in rows of its picture
-     * @return one template for each number of rows, as the atlas keeps its quads per template
+     * @param rows        how far up to move it, in rows of its picture
+     * @param pictureSide how many rows the picture has, all of which make one block
+     * @return one template for each distance, as the atlas keeps its quads per template
      */
-    public ShapeTemplate raised(int rows) {
-        return rows == 0 ? this : raised.computeIfAbsent(rows, this::raisedBy);
+    public ShapeTemplate raised(int rows, int pictureSide) {
+        return rows == 0 ? this : raised.computeIfAbsent(rows * RAISE_KEY + pictureSide, key -> raisedBy(rows / (float) pictureSide));
     }
 
-    private ShapeTemplate raisedBy(int rows) {
-        float blocks = rows / BLOCK_SIXTEENTHS;
+    private ShapeTemplate raisedBy(float blocks) {
         List<List<Quad>> moved = new ArrayList<>(quadsBySide.size());
         for (List<Quad> quads : quadsBySide) {
             moved.add(quads.stream().map(quad -> quad.raised(blocks)).toList());

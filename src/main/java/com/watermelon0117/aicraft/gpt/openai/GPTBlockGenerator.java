@@ -46,7 +46,7 @@ public class GPTBlockGenerator {
     private CompletableFuture<GeneratedBlock> draw(String id, BlockJudge.Plan plan) {
         if (plan.isCross()) {
             return images.generateDrawing(BlockImagePrompts.cross(id, plan.description(), plan.attach()))
-                    .thenApply(modelB64 -> cross(plan, CrossTexture.process(decode(modelB64), plan.attach().equals("above"))));
+                    .thenApply(modelB64 -> cross(plan, CrossTexture.process(decode(modelB64), plan.attach().equals("above"), true)));
         }
         return images.generateSheet(BlockImagePrompts.sheet(id, plan), plan.seeThrough())
                 .thenApply(modelB64 -> sheet(plan, BlockSheet.process(decode(modelB64), plan.seeThrough())));

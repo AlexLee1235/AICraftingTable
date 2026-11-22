@@ -30,7 +30,7 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         };
     }
 
-    /** A plant has one picture, which stands in for all three faces. */
+    /** A plant has one picture, which stands in for all three faces. It is 16x16, or 24 or 32 square when it keeps its item sprite's size. */
     public static BlockFaces ofCross(byte[] texture) {
         return new BlockFaces(texture, texture, texture);
     }
@@ -69,11 +69,11 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         return AIBlockTransparency.ofAlphas(alphas);
     }
 
-    /** Throws unless the picture is 16x16 and shows something. It may be see-through, unlike a face. */
+    /** Throws unless the picture is 16, 24 or 32 square and shows something. It may be see-through, unlike a face. */
     public BlockFaces validatedCross() {
-        BufferedImage image = readSized("plant", top);
-        for (int y = 0; y < FACE_SIZE; y++) {
-            for (int x = 0; x < FACE_SIZE; x++) {
+        BufferedImage image = readPlant(top);
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
                 if ((image.getRGB(x, y) >>> 24) != 0) {
                     return this;
                 }
@@ -85,7 +85,15 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
     /** Where a plant's picture is drawn, which sets its outline; null when it shows no pixel. */
     @Nullable
     public PlantBounds plantBounds() {
-        return PlantBounds.of(readSized("plant", top));
+        return PlantBounds.of(readPlant(top));
+    }
+
+    private static BufferedImage readPlant(byte[] png) {
+        BufferedImage image = read("plant", png);
+        if (image.getWidth() != image.getHeight() || !PlantBounds.isPictureSide(image.getWidth())) {
+            throw new IllegalArgumentException("The plant face is " + image.getWidth() + "x" + image.getHeight() + ", not 16x16, 24x24 or 32x32");
+        }
+        return image;
     }
 
     private static void validate(String name, byte[] png) {
@@ -101,6 +109,14 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
     }
 
     private static BufferedImage readSized(String name, byte[] png) {
+        BufferedImage image = read(name, png);
+        if (image.getWidth() != FACE_SIZE || image.getHeight() != FACE_SIZE) {
+            throw new IllegalArgumentException("The " + name + " face is " + image.getWidth() + "x" + image.getHeight() + ", not 16x16");
+        }
+        return image;
+    }
+
+    private static BufferedImage read(String name, byte[] png) {
         BufferedImage image;
         try {
             image = ImageIO.read(new ByteArrayInputStream(png));
@@ -109,9 +125,6 @@ public record BlockFaces(byte[] top, byte[] front, byte[] side) {
         }
         if (image == null) {
             throw new IllegalArgumentException("The " + name + " face is not a readable image");
-        }
-        if (image.getWidth() != FACE_SIZE || image.getHeight() != FACE_SIZE) {
-            throw new IllegalArgumentException("The " + name + " face is " + image.getWidth() + "x" + image.getHeight() + ", not 16x16");
         }
         return image;
     }

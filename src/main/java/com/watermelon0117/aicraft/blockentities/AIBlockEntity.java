@@ -41,6 +41,8 @@ public class AIBlockEntity extends BlockEntity {
     public static final ModelProperty<String> ID_PROPERTY = new ModelProperty<>();
     /** How many clear rows a plant's picture has above what it draws. */
     public static final ModelProperty<Integer> PICTURE_TOP_PROPERTY = new ModelProperty<>();
+    /** How wide and high a plant's picture is, so its model shows that much of the atlas before the picture arrives. */
+    public static final ModelProperty<Integer> PICTURE_SIDE_PROPERTY = new ModelProperty<>();
 
     private CompoundTag aicraft = new CompoundTag();
     private AIBlockTool tool = AIBlockTool.byName("");
@@ -54,6 +56,7 @@ public class AIBlockEntity extends BlockEntity {
     @Nullable
     private VoxelShape outlineAtTop;
     private int pictureTop;
+    private int pictureSide = PlantBounds.SIDE_16;
 
     public AIBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityInit.AI_BLOCK_BE.get(), pos, state);
@@ -117,6 +120,7 @@ public class AIBlockEntity extends BlockEntity {
         outline = outlineOf(bounds);
         outlineAtTop = bounds == null ? null : outlineOf(bounds.atTop());
         pictureTop = bounds == null ? 0 : bounds.top();
+        pictureSide = bounds == null ? PlantBounds.SIDE_16 : bounds.side();
     }
 
     @Nullable
@@ -181,6 +185,7 @@ public class AIBlockEntity extends BlockEntity {
     @Override
     public @NotNull ModelData getModelData() {
         String id = getTextureId();
-        return id == null ? ModelData.EMPTY : ModelData.builder().with(ID_PROPERTY, id).with(PICTURE_TOP_PROPERTY, pictureTop).build();
+        return id == null ? ModelData.EMPTY : ModelData.builder().with(ID_PROPERTY, id).with(PICTURE_TOP_PROPERTY, pictureTop)
+                .with(PICTURE_SIDE_PROPERTY, pictureSide).build();
     }
 }
