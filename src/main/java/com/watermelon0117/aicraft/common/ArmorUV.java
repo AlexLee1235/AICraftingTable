@@ -29,10 +29,14 @@ public record ArmorUV(Slot slot, int width, int height, Map<String, Rect> faces)
     public static final String R_LEG = "R_LEG";
     public static final List<String> FACE_NAMES = List.of("front", "back", "right", "left", "top", "bottom");
 
-    /** The slot and the faces vanilla's armor covers on it: a piece missing one would show a hole there. Left limbs read the right ones, mirrored. */
+    /**
+     * The slot and the faces vanilla's armor covers on it: a piece missing one would show a hole there. Left limbs read the right ones, mirrored.
+     * Other faces of these boxes may be in the table too, and are drawn when they are: the reader keeps the chestplate's body top, which
+     * vanilla leaves bare, only where the model painted beside the neck (not a bikini's, for one).
+     */
     public enum Slot {
         HELMET("helmet", Map.of(HEAD, List.of("front", "back", "right", "left", "top"))),
-        CHESTPLATE("chestplate", Map.of(BODY, List.of("front", "back", "right", "left", "top"),
+        CHESTPLATE("chestplate", Map.of(BODY, List.of("front", "back", "right", "left"),
                 R_ARM, List.of("front", "back", "right", "left", "top"))),
         LEGGINGS("leggings", Map.of(BODY, List.of("front", "back", "right", "left"),
                 R_LEG, List.of("front", "back", "right", "left", "top"))),

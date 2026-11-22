@@ -48,6 +48,18 @@ class ArmorUVTest {
         assertTrue(e.getMessage().contains("HEAD.top"), e.getMessage());
     }
 
+    /** Vanilla leaves it bare, and the reader has none when the model painted nothing beside the neck (a bikini, in play). */
+    @Test
+    void aChestplateWithoutItsBodyTopIsReadAndDrawsNoneThere() {
+        ArmorUV uv = ArmorUV.parse(CHESTPLATE.replace("\"BODY.top\": [33, 0, 10, 8, \"read\"], ", ""));
+
+        assertEquals(9, uv.faces().size());
+        assertEquals(null, uv.face(ArmorUV.BODY, "top"));
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> ArmorUV.parse(CHESTPLATE.replace("\"BODY.front\": [0, 0, 8, 12, \"read\"], ", "")));
+        assertTrue(e.getMessage().contains("BODY.front"), e.getMessage());
+    }
+
     @Test
     void aFaceOutsideThePictureOrOfAnotherSlotIsRefused() {
         assertThrows(IllegalArgumentException.class, () -> ArmorUV.parse(helmet(HEAD_FACES.replace("[32, 0, 8, 8]", "[33, 0, 8, 8]"))));
