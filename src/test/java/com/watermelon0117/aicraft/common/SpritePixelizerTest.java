@@ -46,6 +46,9 @@ class SpritePixelizerTest {
 
         assertTrue(result.capped());
         assertTrue(result.sprite().getWidth() <= SpritePixelizer.MAX_SIDE, "side " + result.sprite().getWidth());
+        // no coarser grid exists, so the refit keeps the item near MAX_SIDE - 2 cells instead of a few huge ones
+        int cells = Math.max(result.contentWidth(), result.contentHeight());
+        assertTrue(cells >= 25, "cells " + cells);
     }
 
     @Test
