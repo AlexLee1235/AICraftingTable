@@ -83,6 +83,16 @@ class ArmorUVTest {
         return out.toByteArray();
     }
 
+    /** As the texture server's parseArmorSlot. */
+    @Test
+    void onlyTheFourSlotNamesAreArmorInAnyCaseAndWithSpacesAround() {
+        assertEquals(java.util.Optional.of(ArmorUV.Slot.CHESTPLATE), ArmorUV.Slot.ofAnswer("Chestplate "));
+        assertEquals(java.util.Optional.of(ArmorUV.Slot.BOOTS), ArmorUV.Slot.ofAnswer("boots"));
+        for (String answer : new String[]{"none", "ring", "", null, "helmets"}) {
+            assertTrue(ArmorUV.Slot.ofAnswer(answer).isEmpty(), String.valueOf(answer));
+        }
+    }
+
     @Test
     void aPictureMustHaveItsTablesSize() throws IOException {
         assertEquals(ArmorUV.Slot.CHESTPLATE, new ArmorTexture(png(44, 30), CHESTPLATE).check().slot());

@@ -17,7 +17,8 @@ public class GenerationException extends RuntimeException {
             "The system-wide usage limit has been reached. Please try again tomorrow or use your own OpenAI account", "error.aicraft.limit_global",
             "Your daily usage quota exceeded. Please try again tomorrow or use your own OpenAI account", "error.aicraft.limit_user",
             "Too many request from your IP. Please try again tomorrow or use your own OpenAI account", "error.aicraft.limit_ip",
-            "The AI could not decide whether this is a block. Please try again.", "error.aicraft.bad_answer");
+            "The AI could not decide whether this is a block. Please try again.", "error.aicraft.bad_answer",
+            "The AI could not draw this armor. Please try again.", "error.aicraft.armor_failed");
 
     private final Component playerMessage;
 

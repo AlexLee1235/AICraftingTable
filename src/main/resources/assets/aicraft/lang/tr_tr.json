@@ -10,6 +10,7 @@
 	"error.aicraft.openai_moderated": "OpenAI'nin güvenlik sistemi bu isteği reddetti. Lütfen tekrar dene veya başka bir ad kullan.",
 	"error.aicraft.openai_no_image": "OpenAI görsel döndürmedi. Lütfen tekrar dene.",
 	"error.aicraft.bad_answer": "Yapay zekâ kullanılabilir bir yanıt döndürmedi. Lütfen tekrar dene.",
+	"error.aicraft.armor_failed": "Yapay zekâ bu zırhın giyildiğinde nasıl göründüğünü çizemedi. Lütfen tekrar dene.",
 	"error.aicraft.no_ideas": "Yapay zekâ bu tarif için üç fikir döndürmedi. Lütfen tekrar dene.",
 	"error.aicraft.unexpected": "Bir şeyler ters gitti. Lütfen tekrar dene. Ayrıntılar oyun günlüğünde.",
 	"error.aicraft.lost_pictures": "Bu dünyada %s için doku dosyaları eksik. Önce o bloğu yeniden oluştur, sonra tekrar dene.",

@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -61,6 +62,23 @@ public record ArmorUV(Slot slot, int width, int height, Map<String, Rect> faces)
                 }
             }
             throw new IllegalArgumentException("Unknown armor slot: " + key);
+        }
+
+        /**
+         * The item step's armor_slot answer, as the texture server's parseArmorSlot reads it: one of the four slot names in any
+         * case and with spaces around; anything else, "none" included, is not armor.
+         */
+        public static Optional<Slot> ofAnswer(String answer) {
+            if (answer == null) {
+                return Optional.empty();
+            }
+            String key = answer.trim().toLowerCase(Locale.ROOT);
+            for (Slot slot : values()) {
+                if (slot.key.equals(key)) {
+                    return Optional.of(slot);
+                }
+            }
+            return Optional.empty();
         }
     }
 

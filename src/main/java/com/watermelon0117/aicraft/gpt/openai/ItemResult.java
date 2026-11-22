@@ -15,4 +15,6 @@ public class ItemResult  {
     public boolean is_edible;
     public int nutrition_value;
     public String food_is_solid_or_liquid;
+    /** helmet, chestplate, leggings, boots, or none (ArmorUV.Slot.ofAnswer). */
+    public String armor_slot;
 }

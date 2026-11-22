@@ -45,6 +45,23 @@ public final class ArmorTextureStore {
         }
     }
 
+    /** Removes an id's worn picture, if it has one: the id was made into something else. */
+    public static void delete(Path folder, String id) throws IOException {
+        boolean had = Files.deleteIfExists(folder.resolve(id + PNG));
+        had |= Files.deleteIfExists(folder.resolve(id + JSON));
+        if (!had) {
+            return;
+        }
+        synchronized (ArmorTextureStore.class) {
+            if (cached != null && folder.equals(cachedFolder)) {
+                cached = cached.thenApply(all -> {
+                    all.remove(id);
+                    return all;
+                });
+            }
+        }
+    }
+
     /** Forgets the pieces kept by {@link #loadAllAsync}, for a server that starts: the folder may have changed while none ran. */
     public static synchronized void clearCache() {
         cachedFolder = null;

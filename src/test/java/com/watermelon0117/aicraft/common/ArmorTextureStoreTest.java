@@ -79,6 +79,24 @@ class ArmorTextureStoreTest {
     }
 
     @Test
+    void aDeletedPieceIsGoneFromTheFolderAndTheKeptCopy() throws IOException {
+        try {
+            ArmorTextureStore.save(folder, "Old Helmet", texture(4, 1));
+            ArmorTextureStore.save(folder, "Kept", texture(4, 2));
+            assertEquals(Set.of("Old Helmet", "Kept"), ArmorTextureStore.loadAllAsync(folder).join().keySet());
+
+            ArmorTextureStore.delete(folder, "Old Helmet");
+            ArmorTextureStore.delete(folder, "Never Armor");
+
+            assertEquals(Set.of("Kept"), ArmorTextureStore.loadAllAsync(folder).join().keySet());
+            assertEquals(Set.of("Kept"), ArmorTextureStore.loadAll(folder).keySet());
+            assertTrue(Files.notExists(folder.resolve("Old Helmet.json")));
+        } finally {
+            ArmorTextureStore.clearCache();
+        }
+    }
+
+    @Test
     void batchesStayUnderTheLimitAndLoseNothing() {
         Map<String, ArmorTexture> all = new LinkedHashMap<>();
         for (int i = 0; i < 400; i++) {

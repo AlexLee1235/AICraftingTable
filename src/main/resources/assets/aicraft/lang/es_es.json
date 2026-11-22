@@ -10,6 +10,7 @@
 	"error.aicraft.openai_moderated": "El sistema de seguridad de OpenAI ha rechazado esta solicitud. Inténtalo de nuevo o usa otro nombre.",
 	"error.aicraft.openai_no_image": "OpenAI no ha devuelto ninguna imagen. Inténtalo de nuevo.",
 	"error.aicraft.bad_answer": "La IA no ha devuelto una respuesta válida. Inténtalo de nuevo.",
+	"error.aicraft.armor_failed": "La IA no ha podido dibujar cómo se ve esta armadura puesta. Inténtalo de nuevo.",
 	"error.aicraft.no_ideas": "La IA no ha devuelto tres ideas para esta receta. Inténtalo de nuevo.",
 	"error.aicraft.unexpected": "Algo ha salido mal. Inténtalo de nuevo. Encontrarás los detalles en el registro del juego.",
 	"error.aicraft.lost_pictures": "Faltan los archivos de textura de %s en este mundo. Vuelve a generar ese bloque y luego inténtalo de nuevo.",

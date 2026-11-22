@@ -3,9 +3,13 @@ package com.watermelon0117.aicraft.gpt.openai;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.common.ArmorTexture;
+import com.watermelon0117.aicraft.common.ArmorUV;
 import com.watermelon0117.aicraft.common.SpritePipeline;
 
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class GPTItemGenerator {
@@ -23,7 +27,10 @@ public class GPTItemGenerator {
             "attack_speed(slow, normal, fast)?\n" +
             "is_edible?\n" +
             "nutrition_value(0 to 20, apple is 4 for reference)?\n" +
-            "food_is_solid_or_liquid?\n";
+            "food_is_solid_or_liquid?\n" +
+            // The mod wears armor: the texture server asks this too when the request says "armor": true.
+            "armor_slot(helmet, chestplate, leggings, boots, or none if it is not worn as armor; " +
+            "armor also answers tier with one of the tier words, leather being wooden and chainmail stone)?\n";
     private final OpenAIChatClient client = new OpenAIChatClient("gpt-4.1", 1.0, 1024, "", "json_object");
     private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     private final GPTImageGenerator imgClient = new GPTImageGenerator();
@@ -62,12 +69,22 @@ public class GPTItemGenerator {
             System.out.println(rawJson);
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
             if (json.visual_description == null) json.visual_description = "";
-            return imgClient.generateItem(id, json.visual_description).thenApply(textureB64 ->
-                    new GPTItemGeneratorResult(rawJson, SpritePipeline.process(textureB64).modImageB64(), json));
+            Optional<ArmorUV.Slot> slot = ArmorUV.Slot.ofAnswer(json.armor_slot);
+            return imgClient.generateItem(id, json.visual_description).thenCompose(textureB64 -> {
+                SpritePipeline.Output sprite = SpritePipeline.process(textureB64);
+                if (slot.isEmpty()) {
+                    return CompletableFuture.completedFuture(new GPTItemGeneratorResult(rawJson, sprite.modImageB64(), json, null));
+                }
+                // The icon the player sees is what the armor is painted from; without a sprite, the model's own picture.
+                byte[] icon = sprite.playerTexture() != null ? sprite.playerTexture() : Base64.getDecoder().decode(textureB64);
+                return imgClient.paintArmor(slot.get().key(), id, json.visual_description, icon)
+                        .thenApply(worn -> new GPTItemGeneratorResult(rawJson, sprite.modImageB64(), json, worn));
+            });
         });
     }
 
-    public record GPTItemGeneratorResult(String rawJson, String b64Tex, ItemResult json) {
+    /** @param worn the picture of an armor piece as worn; null for every other item */
+    public record GPTItemGeneratorResult(String rawJson, String b64Tex, ItemResult json, ArmorTexture worn) {
     }
 }
 

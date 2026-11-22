@@ -3,6 +3,8 @@ package com.watermelon0117.aicraft.gpt;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.watermelon0117.aicraft.common.ArmorTexture;
+import com.watermelon0117.aicraft.common.ArmorUV;
 import com.watermelon0117.aicraft.gpt.openai.ItemResult;
 import com.watermelon0117.aicraft.init.ItemInit;
 import net.minecraft.nbt.CompoundTag;
@@ -10,23 +12,41 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 
 import java.util.Base64;
+import java.util.Optional;
 
-public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shapeless) implements GeneratedResult {
+/** @param worn the picture of an armor piece as worn; null for every other item */
+public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shapeless, ArmorTexture worn) implements GeneratedResult {
     private static final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-    /** @throws IllegalArgumentException if the answer has no item */
+    /** @throws IllegalArgumentException if the answer has no item, or an armor piece's answer has no worn picture of its slot */
     public static GeneratedItem fromResponse(GeneratedResult.Response response, String id, String name) {
         if (response.b64Image() == null || response.json() == null) {
             throw new IllegalArgumentException("The texture server's answer has no item");
         }
-        return fromJson(response.json(), id, name, Base64.getDecoder().decode(response.b64Image()));
+        ItemResult json = gson.fromJson(response.json(), ItemResult.class);
+        ArmorTexture worn = null;
+        if (ArmorUV.Slot.ofAnswer(json.armor_slot).isPresent()) {
+            GeneratedResult.Armor armor = response.armor();
+            if (armor == null || armor.atlas() == null || armor.uv() == null) {
+                throw new IllegalArgumentException("The texture server's answer has no worn picture for this armor");
+            }
+            worn = new ArmorTexture(Base64.getDecoder().decode(armor.atlas()), armor.uv());
+        }
+        return of(json, id, name, Base64.getDecoder().decode(response.b64Image()), worn);
     }
-    public static GeneratedItem fromJson(ItemResult json, String id, String name, byte[] rawTexture){
-        ItemStack itemStack1=makeItem(json, id, name);
-        return new GeneratedItem(itemStack1, rawTexture, json.is_shapeless_crafting);
-    }
-    public static GeneratedItem fromJson(String rawJson, String id, String name, byte[] rawTexture) {
-        var json = gson.fromJson(rawJson, ItemResult.class);
-        return GeneratedItem.fromJson(json, id, name, rawTexture);
+
+    /**
+     * @param worn the worn picture, which an answer naming a slot must have and any other answer must not
+     * @throws IllegalArgumentException if the worn picture is missing, unexpected, unreadable or for another slot
+     */
+    public static GeneratedItem of(ItemResult json, String id, String name, byte[] rawTexture, ArmorTexture worn) {
+        Optional<ArmorUV.Slot> slot = ArmorUV.Slot.ofAnswer(json.armor_slot);
+        if (slot.isPresent() != (worn != null)) {
+            throw new IllegalArgumentException(slot.isPresent() ? "An armor answer came without its worn picture" : "A worn picture came without an armor answer");
+        }
+        if (worn != null && worn.check().slot() != slot.get()) {
+            throw new IllegalArgumentException("The worn picture is for another slot than " + slot.get().key());
+        }
+        return new GeneratedItem(makeItem(json, id, name), rawTexture, json.is_shapeless_crafting, worn);
     }
 
     /** The item prompt asks for no count, and an item has always come one at a time. */
@@ -36,6 +56,12 @@ public record GeneratedItem(ItemStack itemStack, byte[] rawTexture, boolean shap
     }
 
     public static ItemStack makeItem(ItemResult json, String id, String name) {
+        Optional<ArmorUV.Slot> slot = ArmorUV.Slot.ofAnswer(json.armor_slot);
+        if (slot.isPresent()) {
+            // Worn armor wins over a tool or food answer: one item cannot be both, and the slot is what the AI made it for.
+            // Its protection is the vanilla set of its tier (AIArmorTier), as a tool's mining is.
+            return ItemInit.armorFor(slot.get()).makeStack(id, name, tierByte(json.tier), "bedrock".equals(json.tier));
+        }
         ItemStack itemStack = json.is_edible
                 ? new ItemStack(ItemInit.MAIN_FOOD_ITEM.get())
                 : new ItemStack(ItemInit.MAIN_ITEM.get());

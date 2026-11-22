@@ -66,6 +66,9 @@ class GenerationExceptionTest {
         assertEquals(Component.translatable("error.aicraft.limit_ip"),
                 shown(GenerationException.fromServer("Too many request from your IP. Please try again tomorrow or use your own OpenAI account")));
         assertEquals(BAD_ANSWER, shown(GenerationException.fromServer("The AI could not decide whether this is a block. Please try again.")));
+        // The texture server's ARMOR_FAILED (src/armor.js).
+        assertEquals(Component.translatable("error.aicraft.armor_failed"),
+                shown(GenerationException.fromServer("The AI could not draw this armor. Please try again.")));
     }
 
     @Test

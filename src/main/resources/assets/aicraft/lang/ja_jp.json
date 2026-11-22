@@ -10,6 +10,7 @@
 	"error.aicraft.openai_moderated": "OpenAI の安全システムがこのリクエストを拒否しました。もう一度試すか、別の名前を使ってください。",
 	"error.aicraft.openai_no_image": "OpenAI から画像が返されませんでした。もう一度お試しください。",
 	"error.aicraft.bad_answer": "AI から使用できる回答が返されませんでした。もう一度お試しください。",
+	"error.aicraft.armor_failed": "AI がこの防具を身に着けたときの見た目を描けませんでした。もう一度お試しください。",
 	"error.aicraft.no_ideas": "AI からこのレシピのアイデアが3つ返されませんでした。もう一度お試しください。",
 	"error.aicraft.unexpected": "問題が発生しました。もう一度お試しください。詳細はゲームのログに記録されています。",
 	"error.aicraft.lost_pictures": "このワールドに %s のテクスチャファイルがありません。先にそのブロックを再生成してから、もう一度お試しください。",

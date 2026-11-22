@@ -10,6 +10,7 @@
 	"error.aicraft.openai_moderated": "Das Sicherheitssystem von OpenAI hat diese Anfrage abgelehnt. Versuche es erneut oder verwende einen anderen Namen.",
 	"error.aicraft.openai_no_image": "OpenAI hat kein Bild geliefert. Bitte versuche es erneut.",
 	"error.aicraft.bad_answer": "Die KI hat keine brauchbare Antwort geliefert. Bitte versuche es erneut.",
+	"error.aicraft.armor_failed": "Die KI konnte nicht zeichnen, wie diese Rüstung getragen aussieht. Bitte versuche es erneut.",
 	"error.aicraft.no_ideas": "Die KI hat keine drei Ideen für dieses Rezept geliefert. Bitte versuche es erneut.",
 	"error.aicraft.unexpected": "Etwas ist schiefgelaufen. Bitte versuche es erneut. Details stehen im Spielprotokoll.",
 	"error.aicraft.lost_pictures": "In dieser Welt fehlen die Texturdateien von %s. Generiere diesen Block zuerst neu und versuche es dann erneut.",

@@ -34,6 +34,6 @@ public class ItemGenerator {
 
     private CompletableFuture<GeneratedResult> generateWithOwnKey(String id, String name, ItemStackArray recipe, String user) {
         return gptItemGenerator.generate(id, recipe.getDisplayNames(), user).thenApply(res ->
-                GeneratedItem.fromJson(res.json(), id, name, Base64.getDecoder().decode(res.b64Tex())));
+                GeneratedItem.of(res.json(), id, name, Base64.getDecoder().decode(res.b64Tex()), res.worn()));
     }
 }

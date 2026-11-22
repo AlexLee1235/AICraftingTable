@@ -10,6 +10,7 @@
 	"error.aicraft.openai_moderated": "Az OpenAI biztonsági rendszere elutasította ezt a kérést. Próbáld újra, vagy válassz másik nevet.",
 	"error.aicraft.openai_no_image": "Az OpenAI nem adott vissza képet. Próbáld újra.",
 	"error.aicraft.bad_answer": "Az MI nem adott használható választ. Próbáld újra.",
+	"error.aicraft.armor_failed": "Az MI nem tudta megrajzolni, hogyan néz ki ez a páncél viselve. Próbáld újra.",
 	"error.aicraft.no_ideas": "Az MI nem adott három ötletet ehhez a recepthez. Próbáld újra.",
 	"error.aicraft.unexpected": "Valami hiba történt. Próbáld újra. A részletek a játék naplójában találhatók.",
 	"error.aicraft.lost_pictures": "Ebből a világból hiányoznak a(z) %s textúrafájljai. Először generáld újra azt a blokkot, majd próbáld újra.",

@@ -6,7 +6,10 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** The texture server asks the same, word for word (test/api.test.js), as an own key runs its flow here. */
+/**
+ * The texture server asks the same, word for word (test/api.test.js), as an own key runs its flow here: the server's
+ * questions for a mod that wears armor ("armor": true), so the armor_slot question ends the list.
+ */
 class GPTItemGeneratorTest {
     private static String questions(String basis) {
         return "given a minecraft item, please answer following questions:\n"
@@ -23,7 +26,9 @@ class GPTItemGeneratorTest {
                 + "attack_speed(slow, normal, fast)?\n"
                 + "is_edible?\n"
                 + "nutrition_value(0 to 20, apple is 4 for reference)?\n"
-                + "food_is_solid_or_liquid?\n";
+                + "food_is_solid_or_liquid?\n"
+                + "armor_slot(helmet, chestplate, leggings, boots, or none if it is not worn as armor; "
+                + "armor also answers tier with one of the tier words, leather being wooden and chainmail stone)?\n";
     }
 
     @Test

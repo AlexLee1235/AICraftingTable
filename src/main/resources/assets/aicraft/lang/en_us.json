@@ -25,6 +25,7 @@
 	"error.aicraft.openai_moderated": "OpenAI's safety system rejected this request. Please try again or use a different name.",
 	"error.aicraft.openai_no_image": "OpenAI returned no image. Please try again.",
 	"error.aicraft.bad_answer": "The AI did not return a usable answer. Please try again.",
+	"error.aicraft.armor_failed": "The AI could not draw how this armor looks when worn. Please try again.",
 	"error.aicraft.no_ideas": "The AI did not return three ideas for this recipe. Please try again.",
 	"error.aicraft.unexpected": "Something went wrong. Please try again. The game log has the details.",
 	"error.aicraft.lost_pictures": "The texture files of %s are missing from this world. Regenerate that block first, then try again.",

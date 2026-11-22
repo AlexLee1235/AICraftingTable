@@ -10,6 +10,7 @@
 	"error.aicraft.openai_moderated": "OpenAI 的安全系統擋下了這次請求。請再試一次，或換一個名稱。",
 	"error.aicraft.openai_no_image": "OpenAI 沒有回傳圖片，請再試一次。",
 	"error.aicraft.bad_answer": "AI 沒有回傳可用的結果，請再試一次。",
+	"error.aicraft.armor_failed": "AI 畫不出這件盔甲穿在身上的樣子，請再試一次。",
 	"error.aicraft.no_ideas": "AI 沒有為這個配方想出三個點子，請再試一次。",
 	"error.aicraft.unexpected": "發生了未預期的錯誤，請再試一次。詳細內容在遊戲 log 裡。",
 	"error.aicraft.lost_pictures": "這個世界裡找不到 %s 的材質檔。請先重新產生該方塊，再試一次。",

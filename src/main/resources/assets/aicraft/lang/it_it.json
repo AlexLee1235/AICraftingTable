@@ -10,6 +10,7 @@
 	"error.aicraft.openai_moderated": "Il sistema di sicurezza di OpenAI ha respinto questa richiesta. Riprova o usa un altro nome.",
 	"error.aicraft.openai_no_image": "OpenAI non ha restituito alcuna immagine. Riprova.",
 	"error.aicraft.bad_answer": "L'IA non ha restituito una risposta utilizzabile. Riprova.",
+	"error.aicraft.armor_failed": "L'IA non è riuscita a disegnare come appare questa armatura indossata. Riprova.",
 	"error.aicraft.no_ideas": "L'IA non ha restituito tre idee per questa ricetta. Riprova.",
 	"error.aicraft.unexpected": "Qualcosa è andato storto. Riprova. I dettagli sono nel log del gioco.",
 	"error.aicraft.lost_pictures": "In questo mondo mancano i file delle texture di %s. Rigenera prima quel blocco, poi riprova.",

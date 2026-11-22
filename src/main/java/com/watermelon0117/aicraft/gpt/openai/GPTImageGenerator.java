@@ -1,5 +1,20 @@
 package com.watermelon0117.aicraft.gpt.openai;
 
+import com.watermelon0117.aicraft.common.ArmorTexture;
+import com.watermelon0117.aicraft.common.WornLayout;
+import com.watermelon0117.aicraft.common.WornReader;
+import com.watermelon0117.aicraft.gpt.GenerationException;
+import net.minecraft.network.chat.Component;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class GPTImageGenerator {
@@ -11,6 +26,47 @@ public class GPTImageGenerator {
     /** A transparent PNG, the same request as the texture server's for an item or a plant. */
     CompletableFuture<String> generateDrawing(String prompt) {
         return imgClient.generateAsync(prompt, "1024x1024", "transparent", "low", "medium", "png");
+    }
+
+    /**
+     * The picture of an armor piece as worn, as the texture server makes it: the model paints the light gray armor on the
+     * mannequin's views (WornLayout) from the item's icon, and the W reader makes the atlas and its UV table.
+     *
+     * @param iconPng the icon the player sees in the inventory
+     */
+    CompletableFuture<ArmorTexture> paintArmor(String slot, String name, String description, byte[] iconPng) {
+        byte[] views = png(WornLayout.input(slot));
+        byte[] icon = png(WornLayout.icon(readPng(iconPng)));
+        return imgClient.editAsync(WornLayout.prompt(slot, name, description), List.of(views, icon), "1536x1024", "transparent", "low", "medium", "png")
+                .thenApply(b64 -> {
+                    Optional<WornReader.Result> read = WornReader.read(readPng(Base64.getDecoder().decode(b64)), slot);
+                    if (read.isEmpty()) {
+                        throw new GenerationException(Component.translatable("error.aicraft.armor_failed"));
+                    }
+                    return new ArmorTexture(png(read.get().atlas()), read.get().uv());
+                });
+    }
+
+    private static BufferedImage readPng(byte[] bytes) {
+        try {
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+            if (image == null) {
+                throw new IllegalArgumentException("Unreadable picture");
+            }
+            return image;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static byte[] png(BufferedImage image) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", out);
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** One image of three squares. Transparent only for a see-through block: in that mode the model leaves every block faintly see-through. */
