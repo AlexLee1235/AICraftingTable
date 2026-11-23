@@ -19,6 +19,11 @@ public class JsonHttpClient<T, U> {
     private static final String API_KEY = System.getenv().getOrDefault("AICRAFT_API_KEY", "MY_SUPER_SECRET_KEY");
     private static final String DEFAULT_API_BASE = "https://mod.aicraftingtable.com";
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(100);
+    /**
+     * What this mod can show beyond what every contract 3 mod can, sent with every request: worn armor, and a plant's
+     * picture at its item sprite's 16, 24 or 32 pixels. The server answers nothing a mod has not named here.
+     */
+    public static final List<String> FEATURES = List.of("armor", "largeCross");
 
     private final URI endpoint;
     private final Class<U> responseClass; // store Class<U> for deserialization

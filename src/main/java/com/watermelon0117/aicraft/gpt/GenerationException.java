@@ -1,24 +1,24 @@
 package com.watermelon0117.aicraft.gpt;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.minecraft.network.chat.Component;
 
 import java.net.http.HttpTimeoutException;
-import java.util.Map;
+import java.util.Set;
 
 /** A failure to make something, with a message written for the player, which their own game shows in its language. It is the only kind of failure whose own text they are shown. */
 public class GenerationException extends RuntimeException {
     private static final String UNEXPECTED = "error.aicraft.unexpected";
     private static final String SERVER_PROBLEM = "error.aicraft.server_problem";
-    /** The texture server's fixed sentences. Released mods show them as they are, so they cannot be reworded there, and here they say which message to show. */
-    private static final Map<String, String> SERVER_SENTENCES = Map.of(
-            "The system-wide usage limit has been reached. Please try again tomorrow or use your own OpenAI account", "error.aicraft.limit_global",
-            "Your daily usage quota exceeded. Please try again tomorrow or use your own OpenAI account", "error.aicraft.limit_user",
-            "Too many request from your IP. Please try again tomorrow or use your own OpenAI account", "error.aicraft.limit_ip",
-            "The AI could not decide whether this is a block. Please try again.", "error.aicraft.bad_answer",
-            "The AI could not draw this armor. Please try again.", "error.aicraft.armor_failed");
+    /**
+     * The sentences this mod has, in the player's language, for the texture server's error codes (contract 3): a code is the
+     * end of its translation key.
+     */
+    private static final Set<String> SERVER_CODE_KEYS = Set.of("error.aicraft.limit_global", "error.aicraft.limit_user",
+            "error.aicraft.limit_ip", "error.aicraft.bad_answer", "error.aicraft.armor_failed", "error.aicraft.openai_moderated", SERVER_PROBLEM);
 
     private final Component playerMessage;
 
@@ -67,22 +67,41 @@ public class GenerationException extends RuntimeException {
         return false;
     }
 
-    /** For an answer from the texture server other than 200. Its text is written for players, unless it is a crash, a hosting page or what OpenAI said to it. */
+    /**
+     * For an answer from the texture server other than 200, which is {"error": {"code", "message"}}. A code without a sentence
+     * here shows the server's message: OpenAI's own words for "openai", the server's for a newer code. Anything else, such as
+     * a hosting page or a server too old for /v3, is a server problem.
+     */
     public static GenerationException fromServer(String body) {
-        String text = body.trim();
-        if (text.startsWith("{") || text.startsWith("OpenAI error ")) {
-            String said = openAISaid(text);
-            if (text.contains("moderation_blocked") || (said != null && said.contains("safety system"))) {
-                return new GenerationException(Component.translatable("error.aicraft.openai_moderated"));
-            }
-            return new GenerationException(said == null ? Component.translatable(SERVER_PROBLEM) : quoteOpenAI(said));
-        }
-        if (text.isEmpty() || text.startsWith("<") || text.startsWith("INTERNAL_SERVER_ERROR")) {
+        JsonObject error = serverError(body);
+        String code = error == null ? null : textOf(error, "code");
+        String message = error == null ? null : textOf(error, "message");
+        if (code == null) {
             return new GenerationException(Component.translatable(SERVER_PROBLEM));
         }
-        String sentence = text.replace("\\n", "\n").replace("\\", "");
-        String key = SERVER_SENTENCES.get(sentence);
-        return new GenerationException(key == null ? Component.literal(sentence) : Component.translatable(key));
+        String key = "error.aicraft." + code;
+        if (SERVER_CODE_KEYS.contains(key)) {
+            return new GenerationException(Component.translatable(key));
+        }
+        if (message == null) {
+            return new GenerationException(Component.translatable(SERVER_PROBLEM));
+        }
+        return new GenerationException(code.equals("openai") ? quoteOpenAI(message) : Component.literal(message));
+    }
+
+    private static JsonObject serverError(String body) {
+        try {
+            JsonElement error = JsonParser.parseString(body).getAsJsonObject().get("error");
+            return error != null && error.isJsonObject() ? error.getAsJsonObject() : null;
+        } catch (JsonParseException | IllegalStateException e) {
+            return null;
+        }
+    }
+
+    /** @return the field as text, or null if it is missing, blank or not text */
+    private static String textOf(JsonObject object, String field) {
+        JsonElement value = object.get(field);
+        return value != null && value.isJsonPrimitive() && !value.getAsString().isBlank() ? value.getAsString() : null;
     }
 
     /** For an answer from OpenAI other than 200. */

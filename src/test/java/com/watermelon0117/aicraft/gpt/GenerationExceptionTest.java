@@ -19,7 +19,6 @@ class GenerationExceptionTest {
     private static final Component NO_ACCESS = Component.literal("OpenAI: The model `gpt-6.1-terra` does not exist or you do not have access to it.");
     private static final String REJECTED = "Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID req_123.";
     private static final String REJECTED_JSON = "{\"error\":{\"message\":\"" + REJECTED + "\",\"type\":\"image_generation_user_error\",\"param\":null,\"code\":\"moderation_blocked\",\"moderation_details\":{\"moderation_stage\":\"output\",\"categories\":[\"other\"]}}}";
-    private static final Component MODERATED = Component.translatable("error.aicraft.openai_moderated");
 
     private static Component shown(GenerationException error) {
         return GenerationException.describe(error);
@@ -57,49 +56,39 @@ class GenerationExceptionTest {
         assertEquals(Component.translatable("error.aicraft.timeout_openai"), shown(GenerationException.openAINoAnswer(new HttpTimeoutException("request timed out"))));
     }
 
-    @Test
-    void theServersFixedSentencesBecomeOurOwn() {
-        assertEquals(Component.translatable("error.aicraft.limit_global"),
-                shown(GenerationException.fromServer("The system-wide usage limit has been reached. Please try again tomorrow or use your own OpenAI account")));
-        assertEquals(Component.translatable("error.aicraft.limit_user"),
-                shown(GenerationException.fromServer("Your daily usage quota exceeded. Please try again tomorrow or use your own OpenAI account")));
-        assertEquals(Component.translatable("error.aicraft.limit_ip"),
-                shown(GenerationException.fromServer("Too many request from your IP. Please try again tomorrow or use your own OpenAI account")));
-        assertEquals(BAD_ANSWER, shown(GenerationException.fromServer("The AI could not decide whether this is a block. Please try again.")));
-        // The texture server's ARMOR_FAILED (src/armor.js).
-        assertEquals(Component.translatable("error.aicraft.armor_failed"),
-                shown(GenerationException.fromServer("The AI could not draw this armor. Please try again.")));
+    private static String serverError(String code, String message) {
+        return "{\"error\":{\"code\":\"" + code + "\",\"message\":\"" + message + "\"}}";
     }
 
     @Test
-    void otherServerSentencesReachThePlayerAsTheyAre() {
-        assertEquals(Component.literal("A new notice."), shown(GenerationException.fromServer("A new notice.")));
-        assertEquals(Component.literal("Line one\nline two"), shown(GenerationException.fromServer("Line one\\nline two")));
+    void theServersCodesBecomeOurOwnSentences() {
+        for (String code : new String[]{"limit_global", "limit_user", "limit_ip", "bad_answer", "armor_failed", "openai_moderated", "server_problem"}) {
+            assertEquals(Component.translatable("error.aicraft." + code), shown(GenerationException.fromServer(serverError(code, "The server's own words."))), code);
+        }
+        // As the texture server's src/v3.js writes it.
+        assertEquals(Component.translatable("error.aicraft.limit_user"), shown(GenerationException.fromServer(
+                "{\"error\":{\"code\":\"limit_user\",\"message\":\"Your daily usage quota exceeded. Please try again tomorrow or use your own OpenAI account\"}}")));
     }
 
     @Test
-    void whatOnlyTheServersLogsShouldSayDoesNot() {
-        for (String body : new String[]{"", "   ", "INTERNAL_SERVER_ERRORPixelizer is unavailable: fetch failed", "<!DOCTYPE html><html><body>Bad Gateway</body></html>", "{\"error\":\"bad\"}", "{not json", "OpenAI error 500: upstream"}) {
+    void whatOpenAISaidToTheServerIsQuoted() {
+        assertEquals(Component.literal("OpenAI: Rate limit reached for gpt-4.1."), shown(GenerationException.fromServer(serverError("openai", "Rate limit reached for gpt-4.1."))));
+    }
+
+    @Test
+    void aCodeWeHaveNoSentenceForShowsTheServersMessage() {
+        assertEquals(Component.literal("A new notice."), shown(GenerationException.fromServer(serverError("something_new", "A new notice."))));
+        assertEquals(Component.literal("mode must be one of auto, item"), shown(GenerationException.fromServer(serverError("bad_request", "mode must be one of auto, item"))));
+    }
+
+    @Test
+    void anythingElseIsAServerProblem() {
+        for (String body : new String[]{"", "   ", "null", "[]", "Not found", "INTERNAL_SERVER_ERRORPixelizer is unavailable: fetch failed",
+                "<!DOCTYPE html><html><body>Bad Gateway</body></html>", "{\"error\":\"Invalid or missing API key\"}", "{not json",
+                "Your daily usage quota exceeded. Please try again tomorrow or use your own OpenAI account",
+                "{\"error\":{\"message\":\"No code.\"}}", "{\"error\":{\"code\":\"openai\"}}", "{\"error\":{\"code\":\"something_new\",\"message\":\" \"}}"}) {
             assertEquals(SERVER_PROBLEM, shown(GenerationException.fromServer(body)), body);
         }
-    }
-
-    @Test
-    void whatOpenAISaidToTheServerIsCutToItsSentence() {
-        assertEquals(NO_ACCESS, shown(GenerationException.fromServer(NO_ACCESS_JSON)));
-        assertEquals(NO_ACCESS, shown(GenerationException.fromServer("OpenAI error 403: " + NO_ACCESS_JSON)));
-    }
-
-    @Test
-    void aSafetyRejectionThroughTheServerIsInThePlayersLanguage() {
-        assertEquals(MODERATED, shown(GenerationException.fromServer(REJECTED_JSON)));
-        assertEquals(MODERATED, shown(GenerationException.fromServer("OpenAI error 400: " + REJECTED_JSON)));
-    }
-
-    @Test
-    void eitherTheCodeOrTheSentenceMarksASafetyRejection() {
-        assertEquals(MODERATED, shown(GenerationException.fromServer("{\"error\":{\"message\":\"Your request was rejected by the safety system.\",\"code\":null}}")));
-        assertEquals(MODERATED, shown(GenerationException.fromServer("{\"error\":{\"message\":\"Blocked.\",\"code\":\"moderation_blocked\"}}")));
     }
 
     @Test
