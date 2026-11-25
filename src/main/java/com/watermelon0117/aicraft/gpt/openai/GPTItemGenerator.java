@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.watermelon0117.aicraft.common.ArmorTexture;
 import com.watermelon0117.aicraft.common.ArmorUV;
+import com.watermelon0117.aicraft.common.ItemSheet;
 import com.watermelon0117.aicraft.common.SpritePipeline;
 
 import java.util.Arrays;
@@ -70,13 +71,14 @@ public class GPTItemGenerator {
             ItemResult json = gson.fromJson(rawJson, ItemResult.class);
             if (json.visual_description == null) json.visual_description = "";
             Optional<ArmorUV.Slot> slot = ArmorUV.Slot.ofAnswer(json.armor_slot);
-            return imgClient.generateItem(id, json.visual_description).thenCompose(textureB64 -> {
-                SpritePipeline.Output sprite = SpritePipeline.process(textureB64);
+            return imgClient.generateItemSheet(id, json.visual_description).thenCompose(sheetB64 -> {
+                ItemSheet.Result picked = ItemSheet.process(Base64.getDecoder().decode(sheetB64));
+                SpritePipeline.Output sprite = picked.output();
                 if (slot.isEmpty()) {
                     return CompletableFuture.completedFuture(new GPTItemGeneratorResult(rawJson, sprite.modImageB64(), json, null));
                 }
-                // The icon the player sees is what the armor is painted from; without a sprite, the model's own picture.
-                byte[] icon = sprite.playerTexture() != null ? sprite.playerTexture() : Base64.getDecoder().decode(textureB64);
+                // The icon the player sees is what the armor is painted from; without a sprite, the model's own drawing.
+                byte[] icon = sprite.playerTexture() != null ? sprite.playerTexture() : picked.squarePng();
                 return imgClient.paintArmor(slot.get().key(), id, json.visual_description, icon)
                         .thenApply(worn -> new GPTItemGeneratorResult(rawJson, sprite.modImageB64(), json, worn));
             });

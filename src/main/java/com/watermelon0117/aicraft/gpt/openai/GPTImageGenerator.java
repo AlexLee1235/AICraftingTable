@@ -1,6 +1,7 @@
 package com.watermelon0117.aicraft.gpt.openai;
 
 import com.watermelon0117.aicraft.common.ArmorTexture;
+import com.watermelon0117.aicraft.common.ItemSheet;
 import com.watermelon0117.aicraft.common.WornLayout;
 import com.watermelon0117.aicraft.common.WornReader;
 import com.watermelon0117.aicraft.gpt.GenerationException;
@@ -19,11 +20,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class GPTImageGenerator {
     OpenAIImageClient imgClient = new OpenAIImageClient();
-    public CompletableFuture<String> generateItem(String name, String desc) {
-        return generateDrawing(buildPrompt(name, desc));
+
+    /** Three drawings of the item in a row, the texture server's request for an item; {@link ItemSheet} picks one. */
+    public CompletableFuture<String> generateItemSheet(String name, String desc) {
+        return imgClient.generateAsync(buildItemSheetPrompt(name, desc), "1536x512", "transparent", "low", "medium", "png");
     }
 
-    /** A transparent PNG, the same request as the texture server's for an item or a plant. */
+    /** A transparent PNG, the same request as the texture server's for a plant. */
     CompletableFuture<String> generateDrawing(String prompt) {
         return imgClient.generateAsync(prompt, "1024x1024", "transparent", "low", "medium", "png");
     }
@@ -75,8 +78,39 @@ public class GPTImageGenerator {
     }
 
     /**
+     * The item prompt below changed only where three squares need it, as test/item_sheet_3x round B made it: the texture
+     * server's buildItemSheetPrompt, word for word. One 1536x512 image costs about 40% of a 1024 one, and in the test the
+     * left drawing was as large as a single item and kept the named materials.
+     */
+    static String buildItemSheetPrompt(String name, String desc) {
+        return "Create a Minecraft inventory sprite sheet of " + name + ": three drawings of the same item side by side in one image.\n"
+                + "Description: " + desc + "\n"
+                + "The image is exactly three equal squares in a row, with no gaps, labels or dividers between them. "
+                + "Each square holds one complete item, centered in its own square; no part of an item reaches into a neighboring square. "
+                + "All three are the same item made of the same materials, with the same color palette, as the description says; "
+                + "they differ only in small details of shape. Never turn a copy into another material, tier or color scheme.\n"
+                + "Each square is a native 16x16 bitmap enlarged exactly 32 times by nearest neighbor. "
+                + "Make each item SMALL: its entire silhouette fits in the central 8 columns and 8 rows of its square, "
+                + "occupying no more than half the square's width or height. "
+                + "Leave the outer four pixel rows and columns of every square fully transparent (alpha 0). "
+                + "Every native pixel is a solid 32x32 square on the same grid. "
+                + "Use only these few central pixels for the recognizable silhouette and essential details; "
+                + "do not draw tiny additional pixels inside them.\n"
+                + "Draw each one as a flat 2D front-facing inventory icon, not an isometric 3D block.\n"
+                + "Background: fully transparent (alpha 0), with only the three items visible. "
+                + "Do not paint a colored backdrop or a checkerboard pattern. "
+                + "Keep the items opaque; transparency is for the empty background. "
+                + "No ground plane, cast shadow, surrounding scene, grid lines, text, frame or editor interface. "
+                + "No gradients, antialiasing, subpixel detail, glow halos, noise or small decorative textures. "
+                + "For emissive materials use a few solid bright pixels instead of blurry light. "
+                + "Keep every item fully visible and recognizable. "
+                + "Simplify details that cannot fit into whole pixels; do not replace the item with an unrelated generic shape.";
+    }
+
+    /**
      * Sunburst draws much finer pixels than gpt-image-1 did. Asking for a small item on a coarse
      * 16x16 canvas, flat and on a transparent background, keeps its textures near the old sizes.
+     * Plants are still drawn from it; items were until the sheet above.
      */
     static String buildPrompt(String name, String desc) {
         return "Create a Minecraft inventory sprite of " + name + ".\n"
